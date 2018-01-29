@@ -24,23 +24,23 @@ class JoueurClient(Thread):
             command = self.getcommand()
 
             if command == b"SET":
-                print(self.name+": SET from server")
+                print(self.name + ": SET from server")
                 n, m = struct.unpack("bb", self.sock.recv(2))
                 print("{} lines, {} columns".format(n, m))
 
             elif command == b"HUM":
-                print(self.name+": HUM from server")
+                print(self.name + ": HUM from server")
                 human_location = []
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 for _ in range(n):
                     human_location.append(struct.unpack("bb", self.sock.recv(2)))
                 print(human_location)
             elif command == b"HME":
-                print(self.name+": HME from server")
+                print(self.name + ": HME from server")
                 x, y = struct.unpack("bb", self.sock.recv(2))
                 print("({},{}) : start location".format(x, y))
             elif command == b"MAP":
-                print(self.name+": MAP from server")
+                print(self.name + ": MAP from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 positions = []
                 for _ in range(n):
@@ -48,7 +48,7 @@ class JoueurClient(Thread):
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 print(positions)
             elif command == b"UPD":
-                print(self.name+": UPD from server")
+                print(self.name + ": UPD from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 positions = []
                 for _ in range(n):
@@ -56,9 +56,9 @@ class JoueurClient(Thread):
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 print(positions)
             elif command == b"END":
-                print(self.name+": END from server")
+                print(self.name + ": END from server")
             elif command == b"BYE":
-                print(self.name+": BYE from server")
+                print(self.name + ": BYE from server")
                 break
         self.sock.close()
 
@@ -69,7 +69,7 @@ class JoueurClient(Thread):
         return commande
 
     def send_NME(self):
-        print(self.name+": Sending NME for " + self.name)
+        print(self.name + ": Sending NME for " + self.name)
         paquet = bytes()
         t = len(self.name.encode('ascii'))
         paquet += "NME".encode('ascii')
@@ -78,7 +78,7 @@ class JoueurClient(Thread):
         self.sock.send(paquet)
 
     def send_MOV(self, moves):
-        print(self.name+" Sending MOV")
+        print(self.name + " Sending MOV")
         n = len(moves)
         paquet = bytes()
         paquet += "MOV".encode("ascii")
@@ -89,28 +89,26 @@ class JoueurClient(Thread):
 
 
 if __name__ == "__main__":
-
-    os.system(os.getcwd())
     Joueur_1 = JoueurClient()
-    Joueur_2=JoueurClient("Joueur 3")
+    Joueur_2 = JoueurClient("Joueur 3")
 
     Joueur_1.start()
     Joueur_2.start()
 
     time.sleep(1)
-    moves = [(5, 4, 1, 5, 3),(5, 4, 2, 4, 4)]
+    moves = [(5, 4, 1, 5, 3), (5, 4, 2, 4, 4)]
     Joueur_1.send_MOV(moves)
 
     time.sleep(1)
-    moves=[(2,3,3,2,2)]
+    moves = [(2, 3, 3, 2, 2)]
     Joueur_2.send_MOV(moves)
 
     time.sleep(1)
-    moves = [(4, 4, 3, 3, 4),(5,3,1,4,3)]
+    moves = [(4, 4, 3, 3, 4), (5, 3, 1, 4, 3)]
     Joueur_1.send_MOV(moves)
 
     time.sleep(1)
-    moves=[(2,2,4,2,3)]
+    moves = [(2, 2, 4, 2, 3)]
     Joueur_2.send_MOV(moves)
 
     time.sleep(1)
@@ -118,7 +116,7 @@ if __name__ == "__main__":
     Joueur_1.send_MOV(moves)
 
     time.sleep(1)
-    moves=[(2,3,4,2,2)]
+    moves = [(2, 3, 4, 2, 2)]
     Joueur_2.send_MOV(moves)
 
     time.sleep(1)
@@ -126,6 +124,7 @@ if __name__ == "__main__":
     Joueur_1.send_MOV(moves)
 
     time.sleep(1)
-    moves=[(2,2,4,3,2)]
+    moves = [(2, 2, 4, 3, 2)]
     Joueur_2.send_MOV(moves)
+
 
