@@ -1,23 +1,30 @@
 import socket
 import time
 import struct
-import os
-
+import sys
+import random
+from itertools import product
 from threading import Thread
 
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
-NAME = "TwAIlight"
 
 
 class JoueurClient(Thread):
+    NAME = "TwAIlight"
+
     def __init__(self, name=NAME):
         Thread.__init__(self)
         self.name = name
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((HOTE, PORT))
+        self.sock = None
+        self.home = None
+        self.map_content = None
+        self.map_size = None
+        self.is_vamp = None
 
     def run(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((HOTE, PORT))
         self.send_NME()
 
         while True:
@@ -27,6 +34,7 @@ class JoueurClient(Thread):
                 print(self.name + ": SET from server")
                 n, m = struct.unpack("bb", self.sock.recv(2))
                 print("{} lines, {} columns".format(n, m))
+                self.create_map((m, n))  # on intervertit !
 
             elif command == b"HUM":
                 print(self.name + ": HUM from server")
@@ -34,11 +42,12 @@ class JoueurClient(Thread):
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 for _ in range(n):
                     human_location.append(struct.unpack("bb", self.sock.recv(2)))
-                print(human_location)
+                self.locate_humans(human_location)
             elif command == b"HME":
                 print(self.name + ": HME from server")
                 x, y = struct.unpack("bb", self.sock.recv(2))
                 print("({},{}) : start location".format(x, y))
+                self.home = (x, y)
             elif command == b"MAP":
                 print(self.name + ": MAP from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
@@ -47,16 +56,24 @@ class JoueurClient(Thread):
                     x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 print(positions)
+                self.update_map(list(positions))
+                self.define_race()
             elif command == b"UPD":
                 print(self.name + ": UPD from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
-                positions = []
-                for _ in range(n):
-                    x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
-                    positions.append((x, y, nb_hum, nb_vamp, nb_wv))
-                print(positions)
+                if n:
+                    positions = []
+                    for _ in range(n):
+                        x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
+                        positions.append((x, y, nb_hum, nb_vamp, nb_wv))
+                    print(positions)
+                    self.update_map(list(positions))
+
+                self.send_MOV(self.next_moves())
             elif command == b"END":
                 print(self.name + ": END from server")
+                self.init_game()
+
             elif command == b"BYE":
                 print(self.name + ": BYE from server")
                 break
@@ -78,7 +95,7 @@ class JoueurClient(Thread):
         self.sock.send(paquet)
 
     def send_MOV(self, moves):
-        print(self.name + " Sending MOV")
+        print(self.name + " Sending MOV : " + str(moves))
         n = len(moves)
         paquet = bytes()
         paquet += "MOV".encode("ascii")
@@ -87,6 +104,76 @@ class JoueurClient(Thread):
             paquet += struct.pack("bbbbb", *move)
         self.sock.send(paquet)
 
+    def create_map(self, size):
+        self.map_size = size
+        self.map_content = {}
+        for i, j in product(range(size[0]), range(size[1])):
+            self.map_content[(i, j)] = (0, 0, 0)
+
+    def update_map(self, positions):
+        for i, j, n_hum, n_vamp, n_lg in positions:
+            self.map_content[(i, j)] = (n_hum, n_vamp, n_lg)
+
+    def init_game(self):
+        self.home = None
+        self.map_content = None
+        self.map_size = None
+        self.is_vamp = None
+
+    def define_race(self):
+        for i, j in self.map_content:
+            if (i, j) == self.home:
+                if self.map_content[(i, j)][1]:
+                    self.is_vamp = True
+                else:
+                    self.is_vamp = False
+                break
+
+    def locate_humans(self, human_locations):
+        pass
+
+    def next_moves(self):
+        """ Fonction pour faire bouger nos armées. Il y une probabilité aléatoire uniforme de se déplacer sur les cases
+        adjascentes, et une probabilité aléatoire de casser le groupe en 2 s'il y a suffisamment de membres """
+
+        end_position = []
+        if self.is_vamp:
+            members = [elt for elt in self.map_content if self.map_content[elt][1] != 0]
+        else:
+            members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
+        print(self.name + ' map : ' + str(self.map_content))
+        # On prend une décision pour chaque case occupée par nos armées
+        for elt in members:
+            x_old = elt[0]
+            y_old = elt[1]
+
+            # Scission du groupe ou non
+            if self.is_vamp:
+                number = self.map_content[elt][1]
+            else:
+                number = self.map_content[elt][2]
+
+            groupe_1 = random.randint(0, number)
+            groupe_2 = number - groupe_1
+
+            def new_position(x_old, y_old, x_max, y_max):
+                available_positions = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
+                                       for j in (-1, 0, 1) \
+                                       if (x_old + i, y_old + j) != (x_old, y_old) \
+                                       and 0 <= (x_old + i) < x_max \
+                                       and 0 <= (y_old + j) < y_max
+                                       ]
+                return random.choice(available_positions)
+
+            if groupe_1:
+                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1])
+                end_position.append((x_old, y_old, groupe_1, new_pos[0], new_pos[1]))
+            if groupe_2:
+                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1])
+                end_position.append((x_old, y_old, groupe_2, new_pos[0], new_pos[1]))
+
+        return end_position
+
 
 if __name__ == "__main__":
     Joueur_1 = JoueurClient()
@@ -94,7 +181,7 @@ if __name__ == "__main__":
 
     Joueur_1.start()
     Joueur_2.start()
-
+    """
     time.sleep(1)
     moves = [(5, 4, 1, 5, 3), (5, 4, 2, 4, 4)]
     Joueur_1.send_MOV(moves)
@@ -125,6 +212,4 @@ if __name__ == "__main__":
 
     time.sleep(1)
     moves = [(2, 2, 4, 3, 2)]
-    Joueur_2.send_MOV(moves)
-
-
+    Joueur_2.send_MOV(moves)"""
