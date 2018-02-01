@@ -5,7 +5,7 @@ import random
 class MapInterne:
     def __init__(self):
         # Carte The Trap
-        self.map_size = (5, 10)
+        self.map_size = (10, 5)
         self.map_content = {(0, 0): (0, 0, 0), (0, 1): (0, 0, 0), (0, 2): (0, 0, 0), (0, 3): (0, 0, 0),
                             (0, 4): (0, 0, 0), (1, 0): (0, 0, 0), (1, 1): (0, 0, 0), (1, 2): (0, 0, 0),
                             (1, 3): (0, 0, 0), (1, 4): (0, 0, 0), (2, 0): (0, 0, 0), (2, 1): (0, 0, 0),
@@ -119,7 +119,7 @@ class MapInterne:
             return min(1, x - 0.5)
 
     def tirage(self, n_att, n_def):
-        probabilite = Map.proba_p(n_att, n_def)
+        probabilite = MapInterne.proba_p(n_att, n_def)
         return (random.random() / probabilite) <= 1
 
     def populations(self):
@@ -146,10 +146,10 @@ class MapInterne:
             return None
 
     def print_map(self):
-        for i in range(self.map_size[1]):
+        for j in range(self.map_size[1]):
             # For each row
             print("_" * (self.map_size[0] * 5))
-            for j in range(self.map_size[0]):
+            for i in range(self.map_size[0]):
                 # For each cell
                 print("| ", end='')
                 cell_text = "   "

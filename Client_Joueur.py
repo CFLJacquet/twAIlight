@@ -134,7 +134,7 @@ class JoueurClient(Thread):
     def locate_humans(self, human_locations):
         pass
 
-    def next_moves(self):
+    def next_moves(self, show_map=True):
         """ Fonction pour faire bouger nos armées. Il y une probabilité aléatoire uniforme de se déplacer sur les cases
         adjascentes, et une probabilité aléatoire de casser le groupe en 2 s'il y a suffisamment de membres """
 
@@ -144,7 +144,7 @@ class JoueurClient(Thread):
         else:
             members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
         if self.debug_mode: print(self.name+'/next_moves Map : ' + str(self.map_content))
-        self.print_map()
+        if show_map: self.print_map()
         # On prend une décision pour chaque case occupée par nos armées
         for elt in members:
             x_old = elt[0]
@@ -185,10 +185,11 @@ class JoueurClient(Thread):
         return end_position
 
     def print_map(self):
-        for i in range(self.map_size[1]):
+        print('client_Joueur')
+        for j in range(self.map_size[1]):
             # For each row
             print("_"*(self.map_size[0]*5))
-            for j in range(self.map_size[0]):
+            for i in range(self.map_size[0]):
                 # For each cell
                 print("| ", end='')
                 cell_text = "   "

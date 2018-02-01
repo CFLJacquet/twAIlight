@@ -39,7 +39,7 @@ class ServeurInterne(Thread):
         print("Server : Joueur 2 : " + str(name_2))
 
         self.start_new_game()
-
+        self.map.print_map()
         while True:
             moves = self.get_MOV(self.queue_p1_server)
             if self.debug_mode: print('Server : MOV received from ' + self.player_1.name)
@@ -52,6 +52,8 @@ class ServeurInterne(Thread):
                 break
 
             self.map.update(moves)
+
+            self.map.print_map()
             if self.debug_mode: print('Server : Map updated')
             if self.map.game_over():
                 self.send_both_players("END")
@@ -85,7 +87,7 @@ class ServeurInterne(Thread):
                 break
 
             self.map.update(moves)
-
+            self.map.print_map()
             if self.map.game_over():
                 self.send_both_players("END")
                 if self.map.winner() is None:
@@ -180,6 +182,9 @@ class ServeurInterne(Thread):
 
 
 
+
+
 if __name__ == "__main__":
-    serveur = ServeurInterne(MapInterne(), JoueurInterne, JoueurInterne, name2="Player2", debug_mode=True)
+    serveur = ServeurInterne(MapInterne(), JoueurInterne, JoueurInterne, name2="Player2")
+    serveur.debug_mode=False
     serveur.start()

@@ -15,7 +15,7 @@ class JoueurInterne(JoueurClient):
 
             if command == "SET":
                 n, m = self.queue_server_player.get()
-                self.create_map((m, n))
+                self.create_map((n, m)) # Pas la peine d'intervertir ici
                 if self.debug_mode: print(self.name + ": SET received")
 
             elif command == "HUM":
@@ -54,7 +54,7 @@ class JoueurInterne(JoueurClient):
                     if self.debug_mode: print(positions)
                     self.update_map(positions)
                 if self.debug_mode: print(self.name + ": UPD received")
-                self.send_MOV(self.next_moves())
+                self.send_MOV(self.next_moves(show_map=False))
                 if self.debug_mode: print(self.name + ": MOV sent")
 
             elif command == "END":
@@ -81,6 +81,7 @@ class JoueurInterne(JoueurClient):
         self.queue_player_server.put(len(moves))
         for move in moves:
             self.queue_player_server.put(move)
+
 
 if __name__=="__main__":
     pass
