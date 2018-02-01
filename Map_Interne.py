@@ -93,7 +93,7 @@ class MapInterne:
                     n_surv = sum(self.tirage(n_att, n_hum) for _ in range(n_att))
                     self.map_content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
                     if self.debug_mode:
-                        print("Victoire de l'attaquant ({} survivants, {} humains convertis".format(n_surv, n_conv))
+                        print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(n_surv, n_conv))
                 else:
                     victory = self.tirage(n_att, n_hum)
                     if self.debug_mode:
@@ -104,7 +104,7 @@ class MapInterne:
                         n_surv = sum(self.tirage(n_att, n_hum) for _ in range(n_att))
                         self.map_content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
                         if self.debug_mode:
-                            print("Victoire de l'attaquant ({} survivants, {} humains convertis".format(n_surv, n_conv))
+                            print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(n_surv, n_conv))
                     else:  # défaite
                         n_surv = n_hum - sum(self.tirage(n_att, n_hum) for _ in range(n_hum))
                         self.map_content[(x, y)] = (n_surv, 0, 0)
@@ -173,9 +173,9 @@ class MapInterne:
 
     def winner(self):
         _, n_vamp, n_lg = self.populations()
-        if n_lg:
+        if n_vamp:
             return True
-        elif n_vamp:
+        elif n_lg:
             return False
         else:  # Egalité
             return None
