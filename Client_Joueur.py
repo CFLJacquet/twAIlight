@@ -1,5 +1,4 @@
 import socket
-import time
 import struct
 import sys
 import random
@@ -11,16 +10,19 @@ HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
 class JoueurClient(Thread):
-    NAME = "TwAIlight"
+    __NAME = "TwAIlight"
 
-    def __init__(self, name=NAME):
+    def __init__(self, name=None, debug_mode=False):
         Thread.__init__(self)
-        self.name = name
+        if name is None:
+            name=JoueurClient.__NAME
+        self.name=name
         self.sock = None
         self.home = None
         self.map_content = None
         self.map_size = None
         self.is_vamp = None
+        self.debug_mode=debug_mode
 
     def run(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,51 +33,51 @@ class JoueurClient(Thread):
             command = self.getcommand()
 
             if command == b"SET":
-                print(self.name + ": SET from server")
+                if self.debug_mode:print(self.name + ": SET from server")
                 n, m = struct.unpack("bb", self.sock.recv(2))
-                print("{} lines, {} columns".format(n, m))
+                if self.debug_mode:print("{} lines, {} columns".format(n, m))
                 self.create_map((m, n))  # on intervertit !
 
             elif command == b"HUM":
-                print(self.name + ": HUM from server")
+                if self.debug_mode:print(self.name + ": HUM from server")
                 human_location = []
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 for _ in range(n):
                     human_location.append(struct.unpack("bb", self.sock.recv(2)))
                 self.locate_humans(human_location)
             elif command == b"HME":
-                print(self.name + ": HME from server")
+                if self.debug_mode:print(self.name + ": HME from server")
                 x, y = struct.unpack("bb", self.sock.recv(2))
-                print("({},{}) : start location".format(x, y))
+                if self.debug_mode:print("({},{}) : start location".format(x, y))
                 self.home = (x, y)
             elif command == b"MAP":
-                print(self.name + ": MAP from server")
+                if self.debug_mode:print(self.name + ": MAP from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 positions = []
                 for _ in range(n):
                     x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
-                print(positions)
-                self.update_map(list(positions))
+                    if self.debug_mode:print(positions)
+                self.update_map(positions)
                 self.define_race()
             elif command == b"UPD":
-                print(self.name + ": UPD from server")
+                if self.debug_mode:print(self.name + ": UPD from server")
                 n = struct.unpack("b", self.sock.recv(1))[0]
                 if n:
                     positions = []
                     for _ in range(n):
                         x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
-                    print(positions)
-                    self.update_map(list(positions))
+                    if self.debug_mode:print(positions)
+                    self.update_map(positions)
 
                 self.send_MOV(self.next_moves())
             elif command == b"END":
-                print(self.name + ": END from server")
+                if self.debug_mode:print(self.name + ": END from server")
                 self.init_game()
 
             elif command == b"BYE":
-                print(self.name + ": BYE from server")
+                if self.debug_mode:print(self.name + ": BYE from server")
                 break
         self.sock.close()
 
@@ -86,7 +88,7 @@ class JoueurClient(Thread):
         return commande
 
     def send_NME(self):
-        print(self.name + ": Sending NME for " + self.name)
+        if self.debug_mode:print(self.name + ": Sending NME for " + self.name)
         paquet = bytes()
         t = len(self.name.encode('ascii'))
         paquet += "NME".encode('ascii')
@@ -95,7 +97,7 @@ class JoueurClient(Thread):
         self.sock.send(paquet)
 
     def send_MOV(self, moves):
-        print(self.name + " Sending MOV : " + str(moves))
+        if self.debug_mode:print(self.name + " Sending MOV : " + str(moves))
         n = len(moves)
         paquet = bytes()
         paquet += "MOV".encode("ascii")
@@ -141,7 +143,7 @@ class JoueurClient(Thread):
             members = [elt for elt in self.map_content if self.map_content[elt][1] != 0]
         else:
             members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
-        print(self.name + ' map : ' + str(self.map_content))
+        if self.debug_mode: print(self.name+'/next_moves Map : ' + str(self.map_content))
         self.print_map()
         # On prend une décision pour chaque case occupée par nos armées
         for elt in members:
@@ -157,20 +159,27 @@ class JoueurClient(Thread):
             groupe_1 = random.randint(0, number)
             groupe_2 = number - groupe_1
 
-            def new_position(x_old, y_old, x_max, y_max):
+            def new_position(x_old, y_old, x_max, y_max, end_position):
                 available_positions = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
                                        for j in (-1, 0, 1) \
                                        if (x_old + i, y_old + j) != (x_old, y_old) \
                                        and 0 <= (x_old + i) < x_max \
                                        and 0 <= (y_old + j) < y_max
+                                       and (x_old + i, y_old + j) not in members # Règle 5
                                        ]
-                return random.choice(available_positions)
+                new_pos=random.choice(available_positions)
+
+                # Respect de la règle 5 du tournoi
+                if new_pos in [(i,j) for (i,j,_,_,_) in end_position]:
+                    return new_position(x_old, y_old, x_max, y_max, end_position)
+                else:
+                    return new_pos
 
             if groupe_1:
-                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1])
+                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1], end_position)
                 end_position.append((x_old, y_old, groupe_1, new_pos[0], new_pos[1]))
             if groupe_2:
-                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1])
+                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1], end_position)
                 end_position.append((x_old, y_old, groupe_2, new_pos[0], new_pos[1]))
 
         return end_position
@@ -210,7 +219,7 @@ class JoueurClient(Thread):
 
 if __name__ == "__main__":
     Joueur_1 = JoueurClient()
-    Joueur_2 = JoueurClient("Joueur 3")
+    Joueur_2 = JoueurClient(name="Joueur 3")
 
     Joueur_1.start()
     Joueur_2.start()
