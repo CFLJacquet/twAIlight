@@ -18,4 +18,5 @@ Pour tester un nouvel algo de calcul du prochains mouvements:
  
  # NB
  Le jeu avec le serveur du projet fonctionne bien (première phase de débugage passée)
+ 
  Ce n'est pas encore le cas du serveur en interne
