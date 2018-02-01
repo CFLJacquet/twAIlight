@@ -142,6 +142,7 @@ class JoueurClient(Thread):
         else:
             members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
         print(self.name + ' map : ' + str(self.map_content))
+        self.print_map()
         # On prend une décision pour chaque case occupée par nos armées
         for elt in members:
             x_old = elt[0]
@@ -174,6 +175,38 @@ class JoueurClient(Thread):
 
         return end_position
 
+    def print_map(self):
+        for i in range(self.map_size[0]):
+            # For each row
+            print("_"*(self.map_size[1]*5))
+            for j in range(self.map_size[1]):
+                # For each cell
+                print("| ", end='')
+                cell_text = "   "
+                if (i, j) in self.map_content:
+                    race = ("H", "V", "W")
+                    for r, k in enumerate(self.map_content[(i, j)]):
+                        if k:
+                            try:
+                                cell_text = str(k)+race[r]+" "
+                            except:
+                                import pdb; pdb.set_trace()
+                print(cell_text, end='')
+            print("|")
+        print("_"*(self.map_size[1]*5))
+
+        # Score
+        nb_vampires = sum(v for h,v,w in self.map_content.values())
+        nb_humans = sum(h for h,v,w in self.map_content.values())
+        nb_werewolves = sum(w for h,v,w in self.map_content.values())
+
+        score_text = "Scores \t"
+        score_text +="Vampire: "+str(nb_vampires)
+        score_text += " | "
+        score_text += str(nb_werewolves)+" Werewolves,"
+        score_text += "\tHumans: "+ str(nb_humans)
+
+        print(score_text)
 
 if __name__ == "__main__":
     Joueur_1 = JoueurClient()
