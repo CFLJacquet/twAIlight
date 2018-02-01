@@ -185,10 +185,10 @@ class JoueurClient(Thread):
         return end_position
 
     def print_map(self):
-        for i in range(self.map_size[0]):
+        for i in range(self.map_size[1]):
             # For each row
-            print("_"*(self.map_size[1]*5))
-            for j in range(self.map_size[1]):
+            print("_"*(self.map_size[0]*5))
+            for j in range(self.map_size[0]):
                 # For each cell
                 print("| ", end='')
                 cell_text = "   "
@@ -202,7 +202,7 @@ class JoueurClient(Thread):
                                 import pdb; pdb.set_trace()
                 print(cell_text, end='')
             print("|")
-        print("_"*(self.map_size[1]*5))
+        print("_"*(self.map_size[0]*5))
 
         # Score
         nb_vampires = sum(v for h,v,w in self.map_content.values())
