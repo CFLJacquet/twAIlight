@@ -3,7 +3,7 @@ import random
 
 
 class MapInterne:
-    def __init__(self):
+    def __init__(self, debug_mode=False):
         # Carte The Trap
         self.map_size = (10, 5)
         self.map_content = {(0, 0): (0, 0, 0), (0, 1): (0, 0, 0), (0, 2): (0, 0, 0), (0, 3): (0, 0, 0),
@@ -19,17 +19,18 @@ class MapInterne:
                             (8, 0): (0, 0, 0), (8, 1): (0, 0, 0), (8, 2): (0, 0, 0), (8, 3): (0, 0, 0),
                             (8, 4): (0, 0, 0), (9, 0): (2, 0, 0), (9, 1): (0, 0, 0), (9, 2): (1, 0, 0),
                             (9, 3): (0, 0, 0), (9, 4): (2, 0, 0)}
-        self.UDP = []
-        self.home_1 = self.home_1()
-        self.home_2 = self.home_2()
+        self.UPD = []
+        self.home_1 = self.home_vampire()  # case de départ des vampires
+        self.home_2 = self.home_werewolf()  # case de départ des loups-garous
+        self.debug_mode = debug_mode
 
-    def home_1(self):
+    def home_vampire(self):
         # Par défaut, le premier joueur est un vampire
         for x_y in self.map_content:
             if self.map_content[x_y][1]:
                 return x_y
 
-    def home_2(self):
+    def home_werewolf(self):
         # Par défaut, le deuxième joueur est un loup-garou
         for x_y in self.map_content:
             if self.map_content[x_y][2]:
@@ -45,68 +46,102 @@ class MapInterne:
         return n, elements
 
     def update(self, moves):
-        self.UDP = []
+        self.UPD = []
+        olf_map_content = dict(self.map_content)
         is_vamp = True if self.map_content[(moves[0][0], moves[0][1])][1] else False
-        battles_to_run = defaultdict(
-            int)  # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
+        # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
+        battles_to_run = defaultdict(int)
         for i, j, n, x, y in moves:
             # Free initial position
             if is_vamp:
                 self.map_content[(i, j)] = (0, self.map_content[(i, j)][1] - n, 0)
 
             else:
-                self.map_content[(x, y)] = (0, 0, self.map_content[(i, j)][2] - n)
-            self.UDP.append((i, j, *self.map_content[(i, j)]))
+                self.map_content[(i, j)] = (0, 0, self.map_content[(i, j)][2] - n)
 
             # Then move :
             # On enregistre les modifications sur les cases sans bataille
+
+            n_hum, n_vamp, n_lg = self.map_content[(x, y)]
             # Empty cases
             if self.map_content[(x, y)] == (0, 0, 0):
                 self.map_content[(x, y)] = (0, n * is_vamp, n * (not is_vamp))
-                self.UDP.append((x, y, *self.map_content[(x, y)]))
+
             # Human cases
-            n_hum, n_vamp, n_lg = self.map_content[(x, y)]
             if n_hum:
                 battles_to_run[(x, y)] += n
 
             # Friend cases
             if n_vamp and is_vamp:
-                self.map_content[(i, j)] = (0, (n + n_vamp), 0)
-                self.UDP.append((x, y, *self.map_content[(x, y)]))
+                self.map_content[(x, y)] = (0, (n + n_vamp), 0)
             elif n_lg and not is_vamp:
-                self.map_content[(i, j)] = (0, 0, (n + n_lg))
-                self.UDP.append((x, y, *self.map_content[(x, y)]))
+                self.map_content[(x, y)] = (0, 0, (n + n_lg))
             # Enemy cases
             if n_vamp and not is_vamp or n_lg and is_vamp:
                 battles_to_run[(x, y)] += n
 
         for x, y in battles_to_run:
-            n_att = battles_to_run[(x, y)]
+            n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
             n_hum, n_vamp, n_lg = self.map_content[(x, y)]
             if n_hum:
-                if n_hum < n_att:
-                    self.map_content[(x, y)] = (0, is_vamp * (n_att + n_hum), (not is_vamp) * (n_att + n_hum))
+                if self.debug_mode:
+                    print("Bataille contre humains en ({},{})".format(x, y))
+                if n_hum < n_att:  # victoire assurée
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
+                    n_conv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))
+                    n_surv = sum(self.tirage(n_att, n_hum) for _ in range(n_att))
+                    self.map_content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ({} survivants, {} humains convertis".format(n_surv, n_conv))
                 else:
                     victory = self.tirage(n_att, n_hum)
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} humains vs {} attaquants)".format(
+                            MapInterne.proba_p(n_att, n_hum), n_hum, n_att))
                     if victory:
-                        n_surv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))
-                        self.map_content[(x, y)] = (0, is_vamp * (n_att + n_surv), (not is_vamp) * (n_att + n_surv))
+                        n_conv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))
+                        n_surv = sum(self.tirage(n_att, n_hum) for _ in range(n_att))
+                        self.map_content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
+                        if self.debug_mode:
+                            print("Victoire de l'attaquant ({} survivants, {} humains convertis".format(n_surv, n_conv))
                     else:  # défaite
                         n_surv = n_hum - sum(self.tirage(n_att, n_hum) for _ in range(n_hum))
                         self.map_content[(x, y)] = (n_surv, 0, 0)
+                        if self.debug_mode:
+                            print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
             else:
+                if self.debug_mode:
+                    print("Bataille entres monstres en ({},{})".format(x, y))
                 n_def = n_lg if is_vamp else n_vamp
                 if n_def * 1.5 < n_att:
-                    self.map_content[(x, y)] = (0, is_vamp * (n_att + n_def), (not is_vamp) * (n_att + n_def))
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
+                    n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_att))
+                    self.map_content[(x, y)] = (0, is_vamp * n_surv, (not is_vamp) * n_surv)
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ! {} survivants".format(n_surv))
                 else:
                     victory = self.tirage(n_att, n_def)
+
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} défenseurs vs {} attaquants)".format(
+                            MapInterne.proba_p(n_att, n_def), n_def, n_att))
+
                     if victory:
-                        n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_def))
+                        n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_att))
                         self.map_content[(x, y)] = (0, is_vamp * (n_att + n_surv), (not is_vamp) * (n_att + n_surv))
+                        if self.debug_mode:
+                            print("Victoire de l'attaquant ! {} survivants".format(n_surv))
                     else:  # défaite
-                        n_surv = n_hum - sum(self.tirage(n_att, n_def) for _ in range(n_def))
+                        n_surv = n_def - sum(self.tirage(n_att, n_def) for _ in range(n_def))
                         self.map_content[(x, y)] = (0, (not is_vamp) * n_surv, is_vamp * n_surv)
-            self.UDP.append((x, y, *self.map_content[(x, y)]))
+                        if self.debug_mode:
+                            print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
+
+        for (i, j), (n_hum, n_vamp, n_lg) in self.map_content.items():
+            if olf_map_content[(i, j)] != (n_hum, n_vamp, n_lg):
+                self.UPD.append((i, j, n_hum, n_vamp, n_lg))
 
     @staticmethod
     def proba_p(n_att, n_def):
@@ -117,8 +152,8 @@ class MapInterne:
             return 0.5
         else:
             return min(1, x - 0.5)
-
-    def tirage(self, n_att, n_def):
+    @staticmethod
+    def tirage(n_att, n_def):
         probabilite = MapInterne.proba_p(n_att, n_def)
         return (random.random() / probabilite) <= 1
 
@@ -181,5 +216,7 @@ class MapInterne:
 
 
 if __name__ == "__main__":
-    carte=MapInterne()
+    carte = MapInterne()
+    carte.print_map()
+    carte.update([(4, 1, 3, 3, 2), (4, 1, 1, 3, 2)])
     carte.print_map()

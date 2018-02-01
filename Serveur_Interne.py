@@ -25,6 +25,8 @@ class ServeurInterne(Thread):
         self.map = game_map
         self.round_nb = 1  # Numéro du tour
         self.debug_mode = debug_mode
+        self.updates_for_1 = []  # liste des changements pour mettre à jour la carte du joueur 1
+        self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
 
     def run(self):
         # Démarrage des Joueurs
@@ -48,13 +50,16 @@ class ServeurInterne(Thread):
                 self.p1_winner = False
                 self.send_both_players("END")
                 self.send_both_players("BYE")
-                print("Server :{} gagne !".format(self.player_2.name))
+                print("Server : {} gagne !".format(self.player_2.name))
                 break
 
             self.map.update(moves)
-
+            self.round_nb += 1
+            print("Server : Round " + str(self.round_nb) + " : "
+                  + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
             self.map.print_map()
             if self.debug_mode: print('Server : Map updated')
+
             if self.map.game_over():
                 self.send_both_players("END")
                 if self.map.winner() is None:
@@ -64,17 +69,16 @@ class ServeurInterne(Thread):
                     print("Server : {} gagne !".format(self.player_1.name))
                     self.p1_winner = True
                     self.send_both_players("BYE")
+                    break
                 else:
                     print("Server : {} gagne !".format(self.player_2.name))
                     self.p1_winner = False
                     self.send_both_players("BYE")
+                    break
 
             if self.debug_mode: print("Server : sending UDP")
 
-            self.send_UPD()
-
-            self.round_nb += 1
-            print("Server : Round " + str(self.round_nb))
+            self.send_UPD(to_player_1=False)
 
             moves = self.get_MOV(self.queue_p2_server)
 
@@ -85,6 +89,10 @@ class ServeurInterne(Thread):
                 self.send_both_players("BYE")
                 print("Server : {} gagne !".format(self.player_1.name))
                 break
+
+            self.round_nb += 1
+            print("Server : Round " + str(self.round_nb) + " : "
+                  + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
             self.map.update(moves)
             self.map.print_map()
@@ -98,12 +106,14 @@ class ServeurInterne(Thread):
                     print("Server : {} gagne !".format(self.player_1.name))
                     self.p1_winner = True
                     self.send_both_players("BYE")
+                    break
                 else:
                     print("Server : {} gagne !".format(self.player_2.name))
                     self.p1_winner = False
                     self.send_both_players("BYE")
+                    break
 
-            self.send_UPD()
+            self.send_UPD(to_player_1=True)
 
     def check_moves(self, moves, is_player_1):
         moves_checked = []
@@ -117,6 +127,8 @@ class ServeurInterne(Thread):
             if n_initial < n_checked + n:
                 return False
             moves_checked.append((i, j, n, x, y))
+            if n_initial == 0:
+                return False
         # Règle 5
         for move_1, move_2 in combinations(moves, 2):
             if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
@@ -141,17 +153,31 @@ class ServeurInterne(Thread):
         self.queue_server_p1.put(message)
         self.queue_server_p2.put(message)
 
-    def send_UPD(self):
-        updates = self.map.UDP
-        n = len(updates)
-        self.send_both_players("UPD")
-        self.send_both_players(n)
-        for update in updates:
-            self.send_both_players(update)
+    def send_UPD(self, to_player_1):
+        updates = self.map.UPD
+        self.updates_for_1 += updates
+        self.updates_for_2 += updates
+        if to_player_1:
+            n = len(self.updates_for_1)
+            self.queue_server_p1.put("UPD")
+            self.queue_server_p1.put(n)
+            for update in self.updates_for_1:
+                self.queue_server_p1.put(update)
+            self.updates_for_1 = []
+        else:
+            n = len(self.updates_for_2)
+            self.queue_server_p2.put("UPD")
+            self.queue_server_p2.put(n)
+            for update in self.updates_for_2:
+                self.queue_server_p2.put(update)
+            self.updates_for_2 = []
+        
 
     def start_new_game(self):
         self.round_nb = 1
-        print("Server : Round " + str(self.round_nb))
+        self.UPD_1, self.UPD_2 = [], []
+        print("Server : Round " + str(self.round_nb) + " : " + (
+        "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
         self.send_both_players("SET")
         self.send_both_players(self.map.map_size)
         # pas de HUM
@@ -176,15 +202,10 @@ class ServeurInterne(Thread):
         if self.debug_mode: print("Server : New Game settings sent !")
 
 
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
-    serveur = ServeurInterne(MapInterne(), JoueurInterne, JoueurInterne, name2="Player2")
-    serveur.debug_mode=False
+    serveur = ServeurInterne(MapInterne(debug_mode=True), JoueurInterne, JoueurInterne, name2="Player2")
+    serveur.debug_mode = False
     serveur.start()
+    serveur.join()
+    print(serveur.p1_winner)
+

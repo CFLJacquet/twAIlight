@@ -155,7 +155,6 @@ class JoueurClient(Thread):
                 number = self.map_content[elt][1]
             else:
                 number = self.map_content[elt][2]
-
             groupe_1 = random.randint(0, number)
             groupe_2 = number - groupe_1
 

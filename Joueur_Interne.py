@@ -53,6 +53,8 @@ class JoueurInterne(JoueurClient):
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                     if self.debug_mode: print(positions)
                     self.update_map(positions)
+                else:
+                    _=self.queue_server_player.get()
                 if self.debug_mode: print(self.name + ": UPD received")
                 self.send_MOV(self.next_moves(show_map=False))
                 if self.debug_mode: print(self.name + ": MOV sent")

@@ -16,6 +16,3 @@ Pour tester un nouvel algo de calcul du prochains mouvements:
  * Si on veut un joueur en local (interne), on crée une instance héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
  * Si on veut un joueur avec le serveur du projet, on crée une instance héritée de Joueur_Client, à laquelle on on surcharge la fonction next_moves.
  
- # NB
- Le jeu avec le serveur du projet fonctionne bien (première phase de débugage passée)
- Ce n'est pas encore le cas du serveur en interne
