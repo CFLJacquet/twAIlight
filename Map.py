@@ -1,6 +1,6 @@
 from collections import defaultdict
 import random
-
+import operator
 
 class Map:
     def __init__(self,map_size=None, map_content=None,debug_mode=False):
@@ -185,38 +185,24 @@ class Map:
             return None
 
     def print_map(self):
-        for j in range(self.size[1]):
-            # For each row
+        race = ("H", "V", "W")
+        for j in range(self.size[1]): # For each row
             print("_" * (self.size[0] * 5))
-            for i in range(self.size[0]):
-                # For each cell
-                print("| ", end='')
-                cell_text = "   "
+            for i in range(self.size[0]): # For each cell
+                cell_text = "|" + " "*4
                 if (i, j) in self.content:
-                    race = ("H", "V", "W")
                     for r, k in enumerate(self.content[(i, j)]):
                         if k:
-                            try:
-                                cell_text = str(k) + race[r] + " "
-                            except:
-                                import pdb;
-                                pdb.set_trace()
+                            cell_text = cell_text.replace(" "*3, " {}{}".format(k, race[r]))
                 print(cell_text, end='')
             print("|")
         print("_" * (self.size[0] * 5))
 
         # Score
-        nb_vampires = sum(v for h, v, w in self.content.values())
-        nb_humans = sum(h for h, v, w in self.content.values())
-        nb_werewolves = sum(w for h, v, w in self.content.values())
-
-        score_text = "Scores \t"
-        score_text += "Vampire: " + str(nb_vampires)
-        score_text += " | "
-        score_text += str(nb_werewolves) + " Werewolves,"
-        score_text += "\tHumans: " + str(nb_humans)
-
-        print(score_text)
+        total_races = tuple(map(sum, zip(*list(self.content.values()))))
+        print(
+            "Scores:\t\tVampires {} | {} Werewolves\n\tRemaining Humans: {}".format(
+                total_races[1], total_races[2], total_races[0]))
 
 
 if __name__ == "__main__":
