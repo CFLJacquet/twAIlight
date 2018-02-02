@@ -1,6 +1,6 @@
 from collections import defaultdict
 import random
-
+import operator
 
 class Map:
     """
@@ -304,34 +304,35 @@ class Map:
         """ Affiche la carte et des scores
         :return: None
         """
+        RACE = ("H", "V", "W")
 
         # Carte
         for j in range(self.size[1]):  # Parcours des lignes
-            # For each row
+
             print("_" * (self.size[0] * 5))
             for i in range(self.size[0]):  # Parcours des colonnes
-                # For each cell
-                print("| ", end='')
-                cell_text = "   "
+
+
+                cell_text = "   |"+ " "*4
                 if (i, j) in self.content:
-                    race = ("H", "V", "W")
                     for pos, n_esp in enumerate(self.content[(i, j)]):
                         if n_esp:  # Effectif d'une espèce
-                            cell_text = str(n_esp) + race[pos] + " "  # Texte d'une cellule
+                            cell_text = str(n_esp) + RACE[pos] + " "  # Texte d'une cellule
                 print(cell_text, end='')  # Affichage de la cellule
+                    for r, k in enumerate(self.content[(i, j)]):
+                        if k:
+                            cell_text = cell_text.replace(" "*3, " {}{}".format(k, race[r]))
+                print(cell_text, end='')
             print("|")
         print("_" * (self.size[0] * 5))
 
         # Score
-        n_hum, n_vamp, n_lg = self.populations()
 
-        score_text = "Scores \t"
-        score_text += "Vampire: " + str(n_vamp)
-        score_text += " | "
-        score_text += str(n_lg) + " Werewolves,"
-        score_text += "\tHumans: " + str(n_hum)
 
-        print(score_text)
+n_hum, n_vamp, n_lg = self.populations()
+        print(
+            "Scores:\t\tVampires {} | {} Werewolves\n\tRemaining Humans: {}".format(
+                n_vamp, n_lg, n_hum))
 
 
 if __name__ == "__main__":
