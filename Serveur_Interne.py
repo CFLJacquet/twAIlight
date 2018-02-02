@@ -13,22 +13,24 @@ HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
 class ServeurInterne(Thread):
-    def __init__(self, game_map, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
+    def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
         super().__init__()
-        self.queue_server_p1 = Queue()
-        self.queue_server_p2 = Queue()
-        self.queue_p1_server = Queue()
-        self.queue_p2_server = Queue()
+        self.queue_server_p1 = Queue()  # Queue de communication serveur vers joueur 1
+        self.queue_server_p2 = Queue()  # Queue de communication serveur vers joueur 2
+        self.queue_p1_server = Queue()  # Queue de communication joueur 1 vers serveur
+        self.queue_p2_server = Queue()  # Queue de communication joueur 2 vers serveur
         self.player_1 = player_1_class(self.queue_p1_server, self.queue_server_p1, name=name1, debug_mode=debug_mode)
         self.player_2 = player_2_class(self.queue_p2_server, self.queue_server_p2, name=name2, debug_mode=debug_mode)
         self.updates_for_1 = []  # liste des changements pour mettre à jour la carte du joueur 1
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
-        self.winner = None  # True si c'est le joueur 1 / vampire, False sinon
-        self.map = game_map  # carte du jeu
-        self.round_nb = 0  # Numéro du tour
+
+        self.map = game_map_class(debug_mode=debug_mode)  # carte du jeu
+
         self.debug_mode = debug_mode  # Pour afficher tous les logs
         self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
+        self.winner = None  # True si c'est le joueur 1 / vampire, False sinon
+        self.round_nb = 0  # Numéro du tour
 
     def run(self):
         # Démarrage des Joueurs
@@ -123,20 +125,22 @@ class ServeurInterne(Thread):
 
     def check_moves(self, moves, is_player_1):
         moves_checked = []
-        if len(moves) == 0:
+        if len(moves) == 0:  # Règle 1
+            return False
+        if all(n == 0 for _,_,n,_,_ in moves):  # Règle 6
             return False
         for i, j, n, x, y in moves:
-            if abs(i - x) > 1 or abs(j - y) > 1:
+            if abs(i - x) > 1 or abs(j - y) > 1:  # Règle 4
                 return False
             n_initial = self.map.map_content[(i, j)][1 if is_player_1 else 2]
             n_checked = sum([n_c for (i_c, j_c, n_c, _, _) in moves_checked if (i_c, j_c) == (i, j)])
-            if n_initial < n_checked + n:
+            if n_initial < n_checked + n:  # Règle 3
                 return False
             moves_checked.append((i, j, n, x, y))
-            if n_initial == 0:
+            if n_initial == 0:  # Règle 3 et 2
                 return False
-        # Règle 5
-        for move_1, move_2 in combinations(moves, 2):
+
+        for move_1, move_2 in combinations(moves, 2):  # Règle 5
             if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
                 return False
             if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
@@ -207,7 +211,7 @@ class ServeurInterne(Thread):
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(MapInterne(debug_mode=False), JoueurInterne, JoueurInterne, name2="Player2")
+    serveur = ServeurInterne(MapInterne, JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
     serveur.print_map = False
     serveur.start()
