@@ -5,6 +5,8 @@ import random
 from itertools import product
 from threading import Thread
 
+from Map import Map
+
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
@@ -20,8 +22,7 @@ class JoueurClient(Thread):
         self.name = name
         self.sock = None
         self.home = None
-        self.map_content = None
-        self.map_size = None
+        self.map = None
         self.is_vamp = None
         self.debug_mode = debug_mode
 
@@ -34,7 +35,6 @@ class JoueurClient(Thread):
         if self.debug_mode: print(self.name + " has joined the game.")
         while True:
             command = self.get_command()
-
 
             if command == b"SET":
                 if self.debug_mode: print(self.name + ": SET from server")
@@ -66,7 +66,8 @@ class JoueurClient(Thread):
                     x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 if self.debug_mode: print(positions)
-                self.update_map(positions)
+
+                self.map.update(positions)
                 self.define_race()
                 print(self.name + " is a " + ("vampire" if self.is_vamp else "werewolf"))
 
@@ -79,7 +80,7 @@ class JoueurClient(Thread):
                         x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                     if self.debug_mode: print(positions)
-                    self.update_map(positions)
+                    self.map.update(positions)
 
                 if self.debug_mode: print(self.name + ": UPD received")
                 # On affiche la carte contre le serveur du projet
@@ -136,26 +137,21 @@ class JoueurClient(Thread):
 
     # Méthode de traitement
 
-    def create_map(self, size):
-        self.map_size = size
-        self.map_content = {}
-        for i, j in product(range(size[0]), range(size[1])):
-            self.map_content[(i, j)] = (0, 0, 0)
-
-    def update_map(self, positions):
-        for i, j, n_hum, n_vamp, n_lg in positions:
-            self.map_content[(i, j)] = (n_hum, n_vamp, n_lg)
+    def create_map(self, map_size):
+        map_content = {}
+        for i, j in product(range(map_size[0]), range(map_size[1])):
+            map_content[(i, j)] = (0, 0, 0)
+        self.map = Map(map_size, map_content)
 
     def init_game(self):
         self.home = None
-        self.map_content = None
-        self.map_size = None
+        self.map = None
         self.is_vamp = None
 
     def define_race(self):
-        for i, j in self.map_content:
+        for i, j in self.map.content:
             if (i, j) == self.home:
-                if self.map_content[(i, j)][1]:
+                if self.map.content[(i, j)][1]:
                     self.is_vamp = True
                 else:
                     self.is_vamp = False
@@ -173,20 +169,20 @@ class JoueurClient(Thread):
 
         end_position = []
         if self.is_vamp:
-            members = [elt for elt in self.map_content if self.map_content[elt][1] != 0]
+            members = [elt for elt in self.map.content if self.map.content[elt][1] != 0]
         else:
-            members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
-        if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map_content))
-        if show_map: self.print_map()
+            members = [elt for elt in self.map.content if self.map.content[elt][2] != 0]
+        if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
+        if show_map: self.map.print_map()
         # On prend une décision pour chaque case occupée par nos armées
         for elt in members:
             x_old, y_old = elt
 
             # Scission du groupe ou non
             if self.is_vamp:
-                number = self.map_content[elt][1]
+                number = self.map.content[elt][1]
             else:
-                number = self.map_content[elt][2]
+                number = self.map.content[elt][2]
             groupe_1 = random.randint(0, number)
             groupe_2 = number - groupe_1
 
@@ -207,48 +203,13 @@ class JoueurClient(Thread):
                     return new_pos
 
             if groupe_1:
-                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1], end_position)
+                new_pos = new_position(x_old, y_old, self.map.size[0], self.map.size[1], end_position)
                 end_position.append((x_old, y_old, groupe_1, new_pos[0], new_pos[1]))
             if groupe_2:
-                new_pos = new_position(x_old, y_old, self.map_size[0], self.map_size[1], end_position)
+                new_pos = new_position(x_old, y_old, self.map.size[0], self.map.size[1], end_position)
                 end_position.append((x_old, y_old, groupe_2, new_pos[0], new_pos[1]))
 
         return end_position
-
-    def print_map(self):
-        print('client_Joueur')
-        for j in range(self.map_size[1]):
-            # For each row
-            print("_" * (self.map_size[0] * 5))
-            for i in range(self.map_size[0]):
-                # For each cell
-                print("| ", end='')
-                cell_text = "   "
-                if (i, j) in self.map_content:
-                    race = ("H", "V", "W")
-                    for r, k in enumerate(self.map_content[(i, j)]):
-                        if k:
-                            try:
-                                cell_text = str(k) + race[r] + " "
-                            except:
-                                import pdb;
-                                pdb.set_trace()
-                print(cell_text, end='')
-            print("|")
-        print("_" * (self.map_size[0] * 5))
-
-        # Score
-        nb_vampires = sum(v for h, v, w in self.map_content.values())
-        nb_humans = sum(h for h, v, w in self.map_content.values())
-        nb_werewolves = sum(w for h, v, w in self.map_content.values())
-
-        score_text = "Scores \t"
-        score_text += "Vampire: " + str(nb_vampires)
-        score_text += " | "
-        score_text += str(nb_werewolves) + " Werewolves,"
-        score_text += "\tHumans: " + str(nb_humans)
-
-        print(score_text)
 
 
 if __name__ == "__main__":
@@ -257,4 +218,3 @@ if __name__ == "__main__":
 
     Joueur_1.start()
     Joueur_2.start()
-

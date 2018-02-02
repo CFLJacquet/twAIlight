@@ -6,7 +6,7 @@ from itertools import combinations
 from collections import defaultdict
 
 from Joueur_Interne import JoueurInterne
-from Map_Interne import MapInterne
+from Map import Map
 
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
@@ -61,7 +61,7 @@ class ServeurInterne(Thread):
                 print("Server : {} gagne !".format(self.player_2.name))
                 break
 
-            self.map.update(moves)
+            self.map.update_and_compute(moves)
             self.round_nb += 1
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
@@ -102,7 +102,7 @@ class ServeurInterne(Thread):
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
-            self.map.update(moves)
+            self.map.update_and_compute(moves)
             if self.print_map: self.map.print_map()
             if self.map.game_over():
                 self.send_both_players(b"END")
@@ -132,7 +132,7 @@ class ServeurInterne(Thread):
         for i, j, n, x, y in moves:
             if abs(i - x) > 1 or abs(j - y) > 1:  # Règle 4
                 return False
-            n_initial = self.map.map_content[(i, j)][1 if is_player_1 else 2]
+            n_initial = self.map.content[(i, j)][1 if is_player_1 else 2]
             n_checked = sum([n_c for (i_c, j_c, n_c, _, _) in moves_checked if (i_c, j_c) == (i, j)])
             if n_initial < n_checked + n:  # Règle 3
                 return False
@@ -188,13 +188,13 @@ class ServeurInterne(Thread):
         print("Server : Round " + str(self.round_nb) + " : " + (
             "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
         self.send_both_players(b"SET")
-        self.send_both_players(self.map.map_size[::-1])
+        self.send_both_players(self.map.size[::-1]) # Pour imiter le serveur du projet
         # pas de HUM
 
         self.queue_server_p1.put(b"HME")
-        self.queue_server_p1.put(self.map.home_1)
+        self.queue_server_p1.put(self.map.home_vampire())
         self.queue_server_p2.put(b"HME")
-        self.queue_server_p2.put(self.map.home_2)
+        self.queue_server_p2.put(self.map.home_werewolf())
 
         self.send_both_players(b"MAP")
         n, elements = self.map.MAP_command()
@@ -211,7 +211,7 @@ class ServeurInterne(Thread):
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(MapInterne, JoueurInterne, JoueurInterne, name2="Player2")
+    serveur = ServeurInterne(Map, JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
     serveur.print_map = False
     serveur.start()
