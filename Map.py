@@ -2,6 +2,7 @@ from collections import defaultdict
 import random
 import operator
 
+
 class Map:
     """
     Carte du jeu
@@ -308,28 +309,21 @@ class Map:
 
         # Carte
         for j in range(self.size[1]):  # Parcours des lignes
-
             print("_" * (self.size[0] * 5))
             for i in range(self.size[0]):  # Parcours des colonnes
-
-
-                cell_text = "   |"+ " "*4
+                cell_text = "|" + " " * 4
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
                         if n_esp:  # Effectif d'une espèce
-                            cell_text = str(n_esp) + RACE[pos] + " "  # Texte d'une cellule
+                            cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
                 print(cell_text, end='')  # Affichage de la cellule
-                    for r, k in enumerate(self.content[(i, j)]):
-                        if k:
-                            cell_text = cell_text.replace(" "*3, " {}{}".format(k, race[r]))
-                print(cell_text, end='')
             print("|")
         print("_" * (self.size[0] * 5))
 
         # Score
 
 
-n_hum, n_vamp, n_lg = self.populations()
+        n_hum, n_vamp, n_lg = self.populations()
         print(
             "Scores:\t\tVampires {} | {} Werewolves\n\tRemaining Humans: {}".format(
                 n_vamp, n_lg, n_hum))
