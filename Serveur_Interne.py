@@ -13,7 +13,7 @@ HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
 class ServeurInterne(Thread):
-    def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
+    def __init__(self, game_map, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
         super().__init__()
         self.queue_server_p1 = Queue()  # Queue de communication serveur vers joueur 1
@@ -25,7 +25,7 @@ class ServeurInterne(Thread):
         self.updates_for_1 = []  # liste des changements pour mettre à jour la carte du joueur 1
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
 
-        self.map = game_map_class(debug_mode=debug_mode)  # carte du jeu
+        self.map = game_map  # carte du jeu
 
         self.debug_mode = debug_mode  # Pour afficher tous les logs
         self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
@@ -127,7 +127,7 @@ class ServeurInterne(Thread):
         moves_checked = []
         if len(moves) == 0:  # Règle 1
             return False
-        if all(n == 0 for _,_,n,_,_ in moves):  # Règle 6
+        if all(n == 0 for _, _, n, _, _ in moves):  # Règle 6
             return False
         for i, j, n, x, y in moves:
             if abs(i - x) > 1 or abs(j - y) > 1:  # Règle 4
@@ -184,11 +184,12 @@ class ServeurInterne(Thread):
 
     def start_new_game(self):
         self.round_nb = 1
-        self.UPD_1, self.UPD_2 = [], []
+        self.updates_for_1, self.updates_for_2 = [], []
         print("Server : Round " + str(self.round_nb) + " : " + (
             "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
         self.send_both_players(b"SET")
-        self.send_both_players(self.map.size[::-1]) # Pour imiter le serveur du projet
+        self.send_both_players(self.map.size[::-1])  # Pour imiter le serveur du projet
+
         # pas de HUM
 
         self.queue_server_p1.put(b"HME")
@@ -211,7 +212,7 @@ class ServeurInterne(Thread):
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(Map, JoueurInterne, JoueurInterne, name2="Player2")
+    serveur = ServeurInterne(Map(debug_mode=True), JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
     serveur.print_map = False
     serveur.start()
