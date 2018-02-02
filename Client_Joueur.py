@@ -12,83 +12,111 @@ HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 class JoueurClient(Thread):
     __NAME = "TwAIlight"
 
-    def __init__(self, name=None, debug_mode=False):
+    def __init__(self, name=None, debug_mode=False, joueur_interne=False):
         Thread.__init__(self)
+        self.type_interne = joueur_interne
         if name is None:
-            name=JoueurClient.__NAME
-        self.name=name
+            name = JoueurClient.__NAME
+        self.name = name
         self.sock = None
         self.home = None
         self.map_content = None
         self.map_size = None
         self.is_vamp = None
-        self.debug_mode=debug_mode
+        self.debug_mode = debug_mode
 
     def run(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((HOTE, PORT))
-        self.send_NME()
+        if not self.type_interne:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((HOTE, PORT))
 
+        self.send_NME()
+        if self.debug_mode: print(self.name + " has joined the game.")
         while True:
-            command = self.getcommand()
+            command = self.get_command()
+
 
             if command == b"SET":
-                if self.debug_mode:print(self.name + ": SET from server")
-                n, m = struct.unpack("bb", self.sock.recv(2))
-                if self.debug_mode:print("{} lines, {} columns".format(n, m))
+                if self.debug_mode: print(self.name + ": SET from server")
+                n, m = self.get_couple()
+                if self.debug_mode: print("{} lines, {} columns".format(n, m))
                 self.create_map((m, n))  # on intervertit !
 
             elif command == b"HUM":
-                if self.debug_mode:print(self.name + ": HUM from server")
+                if self.debug_mode: print(self.name + ": HUM from server")
                 human_location = []
-                n = struct.unpack("b", self.sock.recv(1))[0]
+                n = self.get_n()
                 for _ in range(n):
-                    human_location.append(struct.unpack("bb", self.sock.recv(2)))
+                    human_location.append(self.get_couple())
                 self.locate_humans(human_location)
+                if self.debug_mode: print(self.name + ": HUM received")
+
             elif command == b"HME":
-                if self.debug_mode:print(self.name + ": HME from server")
-                x, y = struct.unpack("bb", self.sock.recv(2))
-                if self.debug_mode:print("({},{}) : start location".format(x, y))
+                if self.debug_mode: print(self.name + ": HME from server")
+                x, y = self.get_couple()
+                if self.debug_mode: print("({},{}) : start location".format(x, y))
                 self.home = (x, y)
+
+
             elif command == b"MAP":
-                if self.debug_mode:print(self.name + ": MAP from server")
-                n = struct.unpack("b", self.sock.recv(1))[0]
+                if self.debug_mode: print(self.name + ": MAP from server")
+                n = self.get_n()
                 positions = []
                 for _ in range(n):
-                    x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
+                    x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
-                    if self.debug_mode:print(positions)
+                if self.debug_mode: print(positions)
                 self.update_map(positions)
                 self.define_race()
+                print(self.name + " is a " + ("vampire" if self.is_vamp else "werewolf"))
+
             elif command == b"UPD":
-                if self.debug_mode:print(self.name + ": UPD from server")
-                n = struct.unpack("b", self.sock.recv(1))[0]
+                if self.debug_mode: print(self.name + ": UPD from server")
+                n = self.get_n()
                 if n:
                     positions = []
                     for _ in range(n):
-                        x, y, nb_hum, nb_vamp, nb_wv = struct.unpack("bbbbb", self.sock.recv(5))
+                        x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
-                    if self.debug_mode:print(positions)
+                    if self.debug_mode: print(positions)
                     self.update_map(positions)
 
-                self.send_MOV(self.next_moves())
+                if self.debug_mode: print(self.name + ": UPD received")
+                # On affiche la carte contre le serveur du projet
+                self.send_MOV(self.next_moves(show_map=(not self.type_interne)))
+                if self.debug_mode: print(self.name + ": MOV sent")
+
             elif command == b"END":
-                if self.debug_mode:print(self.name + ": END from server")
+                if self.debug_mode: print(self.name + ": END from server")
                 self.init_game()
 
             elif command == b"BYE":
-                if self.debug_mode:print(self.name + ": BYE from server")
+                if self.debug_mode: print(self.name + ": BYE from server")
                 break
-        self.sock.close()
+            else:  # Command inconnue
+                if self.debug_mode: print(self.name + ' Unknown command :' + str(command))
 
-    def getcommand(self):
+        if not self.type_interne: self.sock.close()
+
+    # Méthodes de communication
+
+    def get_command(self):
         commande = bytes()
         while len(commande) < 3:
             commande += self.sock.recv(3 - len(commande))
         return commande
 
+    def get_n(self):
+        return struct.unpack("b", self.sock.recv(1))[0]
+
+    def get_couple(self):
+        return struct.unpack("bb", self.sock.recv(2))
+
+    def get_quintuplet(self):
+        return struct.unpack("bbbbb", self.sock.recv(5))
+
     def send_NME(self):
-        if self.debug_mode:print(self.name + ": Sending NME for " + self.name)
+        if self.debug_mode: print(self.name + ": Sending NME for " + self.name)
         paquet = bytes()
         t = len(self.name.encode('ascii'))
         paquet += "NME".encode('ascii')
@@ -97,7 +125,7 @@ class JoueurClient(Thread):
         self.sock.send(paquet)
 
     def send_MOV(self, moves):
-        if self.debug_mode:print(self.name + " Sending MOV : " + str(moves))
+        if self.debug_mode: print(self.name + " Sending MOV : " + str(moves))
         n = len(moves)
         paquet = bytes()
         paquet += "MOV".encode("ascii")
@@ -105,6 +133,8 @@ class JoueurClient(Thread):
         for move in moves:
             paquet += struct.pack("bbbbb", *move)
         self.sock.send(paquet)
+
+    # Méthode de traitement
 
     def create_map(self, size):
         self.map_size = size
@@ -136,19 +166,21 @@ class JoueurClient(Thread):
 
     def next_moves(self, show_map=True):
         """ Fonction pour faire bouger nos armées. Il y une probabilité aléatoire uniforme de se déplacer sur les cases
-        adjascentes, et une probabilité aléatoire de casser le groupe en 2 s'il y a suffisamment de membres """
+        adjascentes, et une probabilité aléatoire de casser le groupe en 2 s'il y a suffisamment de membres
+
+        show_map permet d'afficher la carte comprise pour un joueur. Très utile pour les parties avec le serveur du
+        projet"""
 
         end_position = []
         if self.is_vamp:
             members = [elt for elt in self.map_content if self.map_content[elt][1] != 0]
         else:
             members = [elt for elt in self.map_content if self.map_content[elt][2] != 0]
-        if self.debug_mode: print(self.name+'/next_moves Map : ' + str(self.map_content))
+        if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map_content))
         if show_map: self.print_map()
         # On prend une décision pour chaque case occupée par nos armées
         for elt in members:
-            x_old = elt[0]
-            y_old = elt[1]
+            x_old, y_old = elt
 
             # Scission du groupe ou non
             if self.is_vamp:
@@ -164,12 +196,12 @@ class JoueurClient(Thread):
                                        if (x_old + i, y_old + j) != (x_old, y_old) \
                                        and 0 <= (x_old + i) < x_max \
                                        and 0 <= (y_old + j) < y_max
-                                       and (x_old + i, y_old + j) not in members # Règle 5
+                                       and (x_old + i, y_old + j) not in members  # Règle 5
                                        ]
-                new_pos=random.choice(available_positions)
+                new_pos = random.choice(available_positions)
 
                 # Respect de la règle 5 du tournoi
-                if new_pos in [(i,j) for (i,j,_,_,_) in end_position]:
+                if new_pos in [(i, j) for (i, j, _, _, _) in end_position]:
                     return new_position(x_old, y_old, x_max, y_max, end_position)
                 else:
                     return new_pos
@@ -187,7 +219,7 @@ class JoueurClient(Thread):
         print('client_Joueur')
         for j in range(self.map_size[1]):
             # For each row
-            print("_"*(self.map_size[0]*5))
+            print("_" * (self.map_size[0] * 5))
             for i in range(self.map_size[0]):
                 # For each cell
                 print("| ", end='')
@@ -197,25 +229,27 @@ class JoueurClient(Thread):
                     for r, k in enumerate(self.map_content[(i, j)]):
                         if k:
                             try:
-                                cell_text = str(k)+race[r]+" "
+                                cell_text = str(k) + race[r] + " "
                             except:
-                                import pdb; pdb.set_trace()
+                                import pdb;
+                                pdb.set_trace()
                 print(cell_text, end='')
             print("|")
-        print("_"*(self.map_size[0]*5))
+        print("_" * (self.map_size[0] * 5))
 
         # Score
-        nb_vampires = sum(v for h,v,w in self.map_content.values())
-        nb_humans = sum(h for h,v,w in self.map_content.values())
-        nb_werewolves = sum(w for h,v,w in self.map_content.values())
+        nb_vampires = sum(v for h, v, w in self.map_content.values())
+        nb_humans = sum(h for h, v, w in self.map_content.values())
+        nb_werewolves = sum(w for h, v, w in self.map_content.values())
 
         score_text = "Scores \t"
-        score_text +="Vampire: "+str(nb_vampires)
+        score_text += "Vampire: " + str(nb_vampires)
         score_text += " | "
-        score_text += str(nb_werewolves)+" Werewolves,"
-        score_text += "\tHumans: "+ str(nb_humans)
+        score_text += str(nb_werewolves) + " Werewolves,"
+        score_text += "\tHumans: " + str(nb_humans)
 
         print(score_text)
+
 
 if __name__ == "__main__":
     Joueur_1 = JoueurClient()
@@ -223,35 +257,4 @@ if __name__ == "__main__":
 
     Joueur_1.start()
     Joueur_2.start()
-    """
-    time.sleep(1)
-    moves = [(5, 4, 1, 5, 3), (5, 4, 2, 4, 4)]
-    Joueur_1.send_MOV(moves)
 
-    time.sleep(1)
-    moves = [(2, 3, 3, 2, 2)]
-    Joueur_2.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(4, 4, 3, 3, 4), (5, 3, 1, 4, 3)]
-    Joueur_1.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(2, 2, 4, 2, 3)]
-    Joueur_2.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(3, 4, 3, 3, 3), (4, 3, 1, 3, 3)]
-    Joueur_1.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(2, 3, 4, 2, 2)]
-    Joueur_2.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(3, 3, 4, 3, 2)]
-    Joueur_1.send_MOV(moves)
-
-    time.sleep(1)
-    moves = [(2, 2, 4, 3, 2)]
-    Joueur_2.send_MOV(moves)"""

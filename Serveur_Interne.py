@@ -13,7 +13,8 @@ HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
 class ServeurInterne(Thread):
-    def __init__(self, game_map, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False):
+    def __init__(self, game_map, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
+                 print_map=True):
         super().__init__()
         self.queue_server_p1 = Queue()
         self.queue_server_p2 = Queue()
@@ -21,18 +22,20 @@ class ServeurInterne(Thread):
         self.queue_p2_server = Queue()
         self.player_1 = player_1_class(self.queue_p1_server, self.queue_server_p1, name=name1, debug_mode=debug_mode)
         self.player_2 = player_2_class(self.queue_p2_server, self.queue_server_p2, name=name2, debug_mode=debug_mode)
-        self.p1_winner = None
-        self.map = game_map
-        self.round_nb = 1  # Numéro du tour
-        self.debug_mode = debug_mode
         self.updates_for_1 = []  # liste des changements pour mettre à jour la carte du joueur 1
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
+        self.winner = None  # True si c'est le joueur 1 / vampire, False sinon
+        self.map = game_map  # carte du jeu
+        self.round_nb = 0  # Numéro du tour
+        self.debug_mode = debug_mode  # Pour afficher tous les logs
+        self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
 
     def run(self):
         # Démarrage des Joueurs
         self.player_1.start()
         self.player_2.start()
 
+        # Réception des noms des joueurs
         _ = self.queue_p1_server.get()
         _ = self.queue_p2_server.get()
         name_1 = self.queue_p1_server.get()
@@ -40,16 +43,19 @@ class ServeurInterne(Thread):
         print("Server : Joueur 1 : " + str(name_1))
         print("Server : Joueur 2 : " + str(name_2))
 
+        # Initialisation du jeu
         self.start_new_game()
-        self.map.print_map()
+
+        # Affichage de la carte
+        if self.print_map: self.map.print_map()
         while True:
             moves = self.get_MOV(self.queue_p1_server)
             if self.debug_mode: print('Server : MOV received from ' + self.player_1.name)
             if not self.check_moves(moves, is_player_1=True):
                 print("Server : {} a triché !".format(self.player_1.name))
-                self.p1_winner = False
-                self.send_both_players("END")
-                self.send_both_players("BYE")
+                self.winner = False
+                self.send_both_players(b"END")
+                self.send_both_players(b"BYE")
                 print("Server : {} gagne !".format(self.player_2.name))
                 break
 
@@ -57,23 +63,23 @@ class ServeurInterne(Thread):
             self.round_nb += 1
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
-            self.map.print_map()
+            if self.print_map: self.map.print_map()
             if self.debug_mode: print('Server : Map updated')
 
             if self.map.game_over():
-                self.send_both_players("END")
+                self.send_both_players(b"END")
                 if self.map.winner() is None:
                     self.start_new_game()
                     continue
                 elif self.map.winner():
                     print("Server : {} gagne !".format(self.player_1.name))
-                    self.p1_winner = True
-                    self.send_both_players("BYE")
+                    self.winner = True
+                    self.send_both_players(b"BYE")
                     break
                 else:
                     print("Server : {} gagne !".format(self.player_2.name))
-                    self.p1_winner = False
-                    self.send_both_players("BYE")
+                    self.winner = False
+                    self.send_both_players(b"BYE")
                     break
 
             if self.debug_mode: print("Server : sending UDP")
@@ -84,9 +90,9 @@ class ServeurInterne(Thread):
 
             if not self.check_moves(moves, is_player_1=False):
                 print("Server : {} a triché !".format(self.player_2.name))
-                self.p1_winner = True
-                self.send_both_players("END")
-                self.send_both_players("BYE")
+                self.winner = True
+                self.send_both_players(b"END")
+                self.send_both_players(b"BYE")
                 print("Server : {} gagne !".format(self.player_1.name))
                 break
 
@@ -95,22 +101,22 @@ class ServeurInterne(Thread):
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
             self.map.update(moves)
-            self.map.print_map()
+            if self.print_map: self.map.print_map()
             if self.map.game_over():
-                self.send_both_players("END")
+                self.send_both_players(b"END")
                 if self.map.winner() is None:
                     self.start_new_game()
                     print('Server : Starting a new game')
                     continue
                 elif self.map.winner():
                     print("Server : {} gagne !".format(self.player_1.name))
-                    self.p1_winner = True
-                    self.send_both_players("BYE")
+                    self.winner = True
+                    self.send_both_players(b"BYE")
                     break
                 else:
                     print("Server : {} gagne !".format(self.player_2.name))
-                    self.p1_winner = False
-                    self.send_both_players("BYE")
+                    self.winner = False
+                    self.send_both_players(b"BYE")
                     break
 
             self.send_UPD(to_player_1=True)
@@ -159,53 +165,51 @@ class ServeurInterne(Thread):
         self.updates_for_2 += updates
         if to_player_1:
             n = len(self.updates_for_1)
-            self.queue_server_p1.put("UPD")
+            self.queue_server_p1.put(b"UPD")
             self.queue_server_p1.put(n)
             for update in self.updates_for_1:
                 self.queue_server_p1.put(update)
             self.updates_for_1 = []
         else:
             n = len(self.updates_for_2)
-            self.queue_server_p2.put("UPD")
+            self.queue_server_p2.put(b"UPD")
             self.queue_server_p2.put(n)
             for update in self.updates_for_2:
                 self.queue_server_p2.put(update)
             self.updates_for_2 = []
-        
 
     def start_new_game(self):
         self.round_nb = 1
         self.UPD_1, self.UPD_2 = [], []
         print("Server : Round " + str(self.round_nb) + " : " + (
-        "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
-        self.send_both_players("SET")
-        self.send_both_players(self.map.map_size)
+            "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
+        self.send_both_players(b"SET")
+        self.send_both_players(self.map.map_size[::-1])
         # pas de HUM
 
-        self.send_both_players("MAP")
+        self.queue_server_p1.put(b"HME")
+        self.queue_server_p1.put(self.map.home_1)
+        self.queue_server_p2.put(b"HME")
+        self.queue_server_p2.put(self.map.home_2)
+
+        self.send_both_players(b"MAP")
         n, elements = self.map.MAP_command()
 
         self.send_both_players(n)
         for quintuplet in elements:
             self.send_both_players(quintuplet)
 
-        self.queue_server_p1.put("HME")
-        self.queue_server_p1.put(self.map.home_1)
-        self.queue_server_p2.put("HME")
-        self.queue_server_p2.put(self.map.home_2)
-
         # Let's start the game
-        self.queue_server_p1.put("UPD")
+        self.queue_server_p1.put(b"UPD")
         self.queue_server_p1.put(0)
-        self.queue_server_p1.put([])
 
         if self.debug_mode: print("Server : New Game settings sent !")
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(MapInterne(debug_mode=True), JoueurInterne, JoueurInterne, name2="Player2")
+    serveur = ServeurInterne(MapInterne(debug_mode=False), JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
+    serveur.print_map = False
     serveur.start()
     serveur.join()
-    print(serveur.p1_winner)
-
+    print(serveur.winner)
