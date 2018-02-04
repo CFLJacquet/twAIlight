@@ -245,6 +245,7 @@ class JoueurClient(Thread):
             starting_positions = [x_y for x_y in self.map.content if self.map.content[x_y][1] != 0]
         else:  # Le joueur est un loup-garou
             starting_positions = [x_y for x_y in self.map.content if self.map.content[x_y][2] != 0]
+            print(starting_positions)
         if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
         if show_map: self.map.print_map()
         # On prend une décision pour chaque case occupée par nos armées
@@ -271,6 +272,7 @@ class JoueurClient(Thread):
                 :param starting_positions: Positions des cases contenant notre joueur
                 :return: une nouvelle position
                 """
+
                 available_positions = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
                                        for j in (-1, 0, 1) \
                                        if (x_old + i, y_old + j) != (x_old, y_old) \
@@ -283,10 +285,10 @@ class JoueurClient(Thread):
                 return new_pos
 
             if n_1:  # Si on a des individus dans le groupe 1, on rajoute un mouvement dans la liste moves
-                new_move = new_position(x_old, y_old, self.map.size[0], self.map.size[1], moves)
+                new_move = new_position(x_old, y_old, self.map.size[0], self.map.size[1], starting_positions)
                 moves.append((x_old, y_old, n_1, new_move[0], new_move[1]))
             if n_2:  # Idem pour le groupe 2
-                new_move = new_position(x_old, y_old, self.map.size[0], self.map.size[1], moves)
+                new_move = new_position(x_old, y_old, self.map.size[0], self.map.size[1], starting_positions)
                 moves.append((x_old, y_old, n_2, new_move[0], new_move[1]))
 
         return moves
