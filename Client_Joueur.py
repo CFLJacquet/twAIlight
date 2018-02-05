@@ -202,7 +202,7 @@ class JoueurClient(Thread):
         map_content = {}
         for i, j in product(range(map_size[0]), range(map_size[1])):
             map_content[(i, j)] = (0, 0, 0)
-        self.map = Map(map_size, map_content)
+        self.map = Map(map_size=map_size, map_content=map_content)
 
     def init_game(self):
         """ Initialise les attributs du joueur pour commencer une partie

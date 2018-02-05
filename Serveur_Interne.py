@@ -19,11 +19,11 @@ class ServeurInterne(Thread):
     Par défaut, le premier joueur est un vampire.
     """
 
-    def __init__(self, game_map, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
+    def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
         """
         Initialse le serveur interne  avec une carte et deux joueurs
-        :param game_map: carte du jeu
+        :param game_map_class: classe de la carte du jeu
         :param player_1_class: classe du joueur 1
         :param player_2_class: classe du joueur 2
         :param name1: nom du joueur 1
@@ -41,7 +41,8 @@ class ServeurInterne(Thread):
         self.updates_for_1 = []  # liste des changements pour mettre à jour la carte du joueur 1
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
 
-        self.map = game_map  # carte du jeu
+        self.map = game_map_class(debug_mode=debug_mode)  # carte de la première partie
+        self.map_class= game_map_class # classe de la carte du jeu (pour les rematchs en cas de match nul)
 
         self.debug_mode = debug_mode  # Pour afficher tous les logs
         self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
@@ -166,6 +167,7 @@ class ServeurInterne(Thread):
 
                 # match nul
                 if self.map.winner() is None:
+                    print('Server : Close Game')
                     self.start_new_game()
                     print('Server : Starting a new game')
                     continue
@@ -288,6 +290,10 @@ class ServeurInterne(Thread):
         Initialise la partie pour les deux joueurs
         :return: None
         """
+
+        # Remise à zéro de la carte
+
+        self.map=self.map_class(debug_mode=self.debug_mode)
         # Compteur de tours
         self.round_nb = 1
 
@@ -327,7 +333,8 @@ class ServeurInterne(Thread):
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(Map(debug_mode=True), JoueurInterne, JoueurInterne, name2="Player2")
+    from Cartes.Map_Ligne13 import MapLigne13
+    serveur = ServeurInterne(MapLigne13, JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
     serveur.print_map = True
     serveur.start()
