@@ -328,7 +328,10 @@ class Map:
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
                         if n_esp:  # Effectif d'une espèce
-                            cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
+                            if n_esp <10:
+                                cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
+                            else:
+                                cell_text = cell_text.replace(" " * 4, " {}{}".format(n_esp, RACE[pos]))
                 print(cell_text, end='')  # Affichage de la cellule
             print("|")
         print("_" * (self.size[0] * 5))
