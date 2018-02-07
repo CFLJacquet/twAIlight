@@ -243,7 +243,7 @@ class SommetDuJeu:
         t = deepcopy(objet)
         return t
 
-    # MaxValue et MinValue vont devoir utiliser un parcours de graph type BFS
+    # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
     def MinValue(self):
         pass
 
