@@ -1,4 +1,5 @@
 from copy import deepcopy
+from queue import Queue
 
 class Morpion:
     """Par défaut, True commence"""
@@ -182,53 +183,71 @@ class SommetDuJeu:
         t = deepcopy(objet)
         return t
 
+    # MaxValue et MinValue vont devoir utiliser un parcours de graph type BFS
     def MinValue(self):
         pass
 
     def MaxValue(self):
-        self.max_val=-10
-        for possibility in self.children:
-            val = possibility.etat.state_evaluation(self.is_ami)
-            if val > self.max_val:
-                self.max_val=val
-                self.best_scenario = possibility.etat.etat[-1]
+        val = possibility.etat.state_evaluation(self.is_ami)
+        return val
 
 
 def select_move_to_study(self,data):
 
     return data
 
-def alpha_beta_morpion(morpion_state,is_ami):
+def get_graph(morpion_state,is_ami,level,total_level,child_vertice,graph_du_jeu,i):
     """
-    cette fonction doit retourner le meilleur mouvement étant donné un état du jeu à horizon 1
-
+    Fonction de generation recursive de graph
+    A un level
     """
-    graphe_du_jeu=GrapheDeJeu()
+    # On genere un graph dont la racine est morpion_state
     cur_vertice=SommetDuJeu(is_ami)
     cur_vertice.etat=cur_vertice.etat.__copy__(morpion_state)
-
-
-    graphe_du_jeu.add_vertice(cur_vertice)
-
+    graph_du_jeu.add_vertice(cur_vertice)
     is_ami=not is_ami
-    i=0
-    child_vertice={}
-    for move in select_move_to_study(cur_vertice.etat.next_possible_moves()):
-        # La copy d'une classe en python se fait :
-        child_vertice[i]=SommetDuJeu(is_ami)
-        child_vertice[i]=child_vertice[i].__copy__(cur_vertice)
+    child_vertice[level]={}
+    # on commence par le base case: l'etat que l'on nous envoie est il un etat final ?
+    if morpion_state.game_over() or level>=total_level:
+        # dans ce cas la on s'arrete et on sort de la boucle
+        pass;
 
-        child_vertice[i].etat.add_move(move)
+    else:
+        # Dans ce cas on peut rajouter des vertices avec des etats
+        # On ajoute chacun des états possibles qui peut succéder à l'état actuel
+        for move in cur_vertice.etat.next_possible_moves():
+            # On copie l'état actuel du jeu:
+            child_vertice[level][i]=SommetDuJeu(is_ami)
+            child_vertice[level][i]=child_vertice[level][i].__copy__(cur_vertice)
+            # On ajoute au nouvel état le nouveau move possible
+            child_vertice[level][i].etat.add_move(move)
 
-        cur_vertice.children.append(child_vertice[i])
-        graphe_du_jeu.add_vertice(child_vertice[i])
-        i=i+1
+            # On lie au noeud père le noeuf enfant
+            cur_vertice.children.append(child_vertice[i])
+            graph_du_jeu.add_vertice(child_vertice[i])
+            # On ajoute les noeufs enfants du noeuf enfant
 
-    #print(cur_vertice.children[1].etat)
+            get_graph(child_vertice[level][i].etat,is_ami,level+1,total_level,child_vertice,graph_du_jeu,i+1)
 
-    cur_vertice.MaxValue()
-    return cur_vertice.best_scenario
+    return graph_du_jeu
 
+def minimax(morpion_state,is_ami):
+    """
+    cette fonction doit retourner le meilleur mouvement étant donné un état du jeu
+    """
+    # On commence par générer un graph avec tous les états du jeu
+    horizon = 1
+    graph_du_jeu=GrapheDeJeu()
+    graph = get_graph(morpion_state,is_ami,0,horizon,{},graph_du_jeu,0)
+    print(graph)
+    # On parcourt ce graph et on regarde la Max,MinValue de chacun des etats feuilles
+    Q = Queue()
+    for child in graph.noeuds:
+        q.put(child)
+        child.maxValue()
+        print(child.maxValue())
+    #cur_vertice.MaxValue()
+    return 0
 
 
 if __name__ == "__main__":
@@ -237,7 +256,7 @@ if __name__ == "__main__":
     print(morpion.next_possible_moves())
     morpion.add_moves([(0, 1),(1,0)])
     print(morpion)
-    best_next_move = alpha_beta_morpion(morpion,False)
+    best_next_move = minimax(morpion,False)
     morpion.add_move(best_next_move)
     print(morpion)
 
