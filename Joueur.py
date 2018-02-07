@@ -11,7 +11,7 @@ PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
-class JoueurClient(Thread):
+class Joueur(Thread):
     """
     Classe représentant un joueur du jeu, communiquant avec le serveur du projet
     """
@@ -27,13 +27,14 @@ class JoueurClient(Thread):
         Thread.__init__(self)
         self.type_interne = joueur_interne
         if name is None:
-            name = JoueurClient.__NAME
+            name = Joueur.__NAME
         self.name = name  # Nom du joueur
         self.sock = None  # Socket de communication avec le serveur (reste à None si le serveur est interne)
         self.home = None  # Case de départ du joueur
         self.map = None  # Carte d'après le joueur
         self.is_vamp = None  # Vrai si le joueur est un vampire, Faux si c'est un loup-garou
         self.debug_mode = debug_mode  # mode debug, pour afficher les logs
+        self.round_played=0 # Compte de tours joués par le joueur
 
     def run(self):
         """ Méthode appelée quand on lance le thread.
@@ -113,6 +114,11 @@ class JoueurClient(Thread):
                 # Explication du show_map : On affiche la carte quand notre joueur n'est pas interne
                 self.send_MOV(self.next_moves(show_map=(not self.type_interne)))
                 if self.debug_mode: print(self.name + ": MOV sent")
+
+                # On incrémente notre compte de tours joués
+                self.round_played+=1
+                if self.debug_mode:
+                    print(self.name + ": {} round(s) played".format(self.round_played))
 
             # Le serveur nous signale la fin de la partie
             elif command == b"END":
@@ -295,8 +301,8 @@ class JoueurClient(Thread):
 
 if __name__ == "__main__":
     # Création des joueurs
-    Joueur_1 = JoueurClient()
-    Joueur_2 = JoueurClient(name="Silvestre")
+    Joueur_1 = Joueur(debug_mode=True)
+    Joueur_2 = Joueur(name="Silvestre")
 
     # Lancement des deux threads des joueurs
     Joueur_1.start()

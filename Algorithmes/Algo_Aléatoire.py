@@ -1,9 +1,9 @@
-from Client_Joueur import JoueurClient
+from Joueur import Joueur
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
 from Map import Map
 
-class AlgoAleatoire(JoueurClient):
+class AlgoAleatoire(Joueur):
     """
     Joueur avec la fonction de décision aléatoire de Charles
     """

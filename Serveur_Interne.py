@@ -1,9 +1,6 @@
 from threading import Thread
-import xml.etree.ElementTree as ET
-import random
 from queue import Queue
-from itertools import combinations
-from collections import defaultdict
+import time
 
 from Joueur_Interne import JoueurInterne
 from Map import Map
@@ -47,7 +44,8 @@ class ServeurInterne(Thread):
         self.debug_mode = debug_mode  # Pour afficher tous les logs
         self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
         self.winner = None  # True si c'est le joueur 1 / vampire, False sinon
-        self.round_nb = 0  # Numéro du tour
+        self.round_nb = 0  # Numéro de tour joué
+        self.start_time=0 # Date de début de la partie
 
     def run(self):
         """
@@ -80,7 +78,7 @@ class ServeurInterne(Thread):
             if self.debug_mode: print('Server : MOV received from ' + self.player_1.name)
 
             # Vérification des mouvements du joueur 1
-            if not self.is_valid_moves(moves, is_player_1=True):  # mouvements incorrects
+            if not self.map.is_valid_moves(moves, is_vamp=True):  # mouvements incorrects
                 print("Server : {} a triché !".format(self.player_1.name))
                 self.winner = False  # le joueur 1 a perdu
                 self.send_both_players(b"END")  # Fin de la partie
@@ -140,7 +138,7 @@ class ServeurInterne(Thread):
             moves = self.get_MOV(self.queue_p2_server)
 
             # Vérification des mouvements proposés de joueur 2
-            if not self.is_valid_moves(moves, is_player_1=False):
+            if not self.map.is_valid_moves(moves, is_vamp=False):
                 print("Server : {} a triché !".format(self.player_2.name))
                 self.winner = True  # Le joueur 1 a gagné
                 self.send_both_players(b"END")  # Fin de la partie
@@ -243,47 +241,6 @@ class ServeurInterne(Thread):
 
     # Méthodes de traitement
 
-    def is_valid_moves(self, moves, is_player_1):
-        """Vérifie les mouvements proposés par un joueur. Renvoie Vrai si les mouvements sont corrects, faux sinon.
-
-        :param moves: list liste des mouvements proposés par un joueur
-        :param is_player_1: Boolean Vrai si c'est le joueur 1 qui propose ses mouvements, Faux si c'est le joueur 2
-        :return: Boolean
-        """
-        moves_checked = []  # liste des mouvements vérifiés parmi ceux proposés
-
-        # Règle 1 : Au moins un mouvement
-        if len(moves) == 0:
-            return False
-
-        # Règle 6 : Au moins un pion qui bouge
-        if all(n == 0 for _, _, n, _, _ in moves):
-            return False
-
-        for i, j, n, x, y in moves:
-            # Règle 4 : 8 cases adjacentes
-            if abs(i - x) > 1 or abs(j - y) > 1:
-                return False
-
-            n_initial = self.map.content[(i, j)][1 if is_player_1 else 2]
-            n_checked = sum([n_c for (i_c, j_c, n_c, _, _) in moves_checked if (i_c, j_c) == (i, j)])
-
-            # Règle 3 : On ne peut pas bouger plus que nos pions
-            if n_initial < n_checked + n:
-                return False
-            moves_checked.append((i, j, n, x, y))
-
-            # Règle 3 et 2 : On ne bouge que nos pions
-            if n_initial == 0:
-                return False
-
-        # Règle 5 : Une case ne pas se retrouver cible et source
-        for move_1, move_2 in combinations(moves, 2):
-            if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
-                return False
-            if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
-                return False
-        return True
 
     def start_new_game(self):
         """
@@ -329,12 +286,14 @@ class ServeurInterne(Thread):
         self.queue_server_p1.put(b"UPD")
         self.queue_server_p1.put(0)
 
+        # On enregistre la date du début de la partie
+        self.start_time=time.time()
+
         if self.debug_mode: print("Server : New Game settings sent !")
 
 
 if __name__ == "__main__":
-    from Cartes.Map_Ligne13 import MapLigne13
-    serveur = ServeurInterne(MapLigne13, JoueurInterne, JoueurInterne, name2="Player2")
+    serveur = ServeurInterne(Map, JoueurInterne, JoueurInterne, name2="Player2")
     serveur.debug_mode = False
     serveur.print_map = True
     serveur.start()
