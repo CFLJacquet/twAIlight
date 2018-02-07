@@ -16,3 +16,5 @@ ServeurInterne est initialisé avec deux joueurs internes et une carte (classe M
  * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next\_moves,
  * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur\_Client, à laquelle on surcharge la fonction next\_moves.
  
+ Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre différents algo de décision (du dossier Algorithmes), sur plusieurs cartes données (du dossier Cartes).
+ 
