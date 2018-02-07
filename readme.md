@@ -10,7 +10,7 @@ Le fichier Joueur\_Interne.py contient une classe héritée de Joueur, qui commu
 
 Notre serveur interne est dans le fichier Serveur\_Interne.py. 
 Pour lancer le jeu en interne, on 'start' (comme un thread) une instance de ServeurInterne.
-ServeurInterne est initialisé avec deux joueurs internes et une carte (classe Map du fichier Map.py ou héritées).
+ServeurInterne est initialisé avec deux classes de joueurs internes et une carte (classe Map du fichier Map.py ou héritées).
 
 # Pour tester un nouvel algo de décision: 
  * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next\_moves,
