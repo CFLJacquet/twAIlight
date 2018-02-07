@@ -1,13 +1,13 @@
-from Client_Joueur import JoueurClient
+from Joueur import Joueur
 
 
-class JoueurInterne(JoueurClient):
+class JoueurInterne(Joueur):
     """
-    Classe héritée de JoueurClient, ce joueur peut communiquer avec le serveur interne.
+    Classe héritée de Joueur, ce joueur peut communiquer avec le serveur interne.
     """
 
     def __init__(self, q_p_s, q_s_p, name=None, debug_mode=False):
-        """ On reprend l'initialisation de JoueurClient, en y ajoutant nos deux queues de communication
+        """ On reprend l'initialisation de Joueur, en y ajoutant nos deux queues de communication
         avec le serveur interne.
 
         :param q_p_s: queue de communication du joueur au serveur (Player --> Server)

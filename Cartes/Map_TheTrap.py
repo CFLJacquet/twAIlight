@@ -1,5 +1,6 @@
 from Map import Map
 
+
 class MapTheTrap(Map):
     """
 
@@ -17,6 +18,7 @@ class MapTheTrap(Map):
     __________________________________________________
     """
 
-if __name__=="__main__":
-    carte=MapTheTrap()
+
+if __name__ == "__main__":
+    carte = MapTheTrap()
     carte.print_map()

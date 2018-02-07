@@ -1,6 +1,6 @@
 from collections import defaultdict
 import random
-import operator
+from itertools import combinations
 
 
 class Map:
@@ -279,6 +279,50 @@ class Map:
         else:  # Si la probabilité est nulle (cas dégénéré, impossible en temps normal)
             return False
 
+    def is_valid_moves(self, moves, is_vamp):
+        """Vérifie les mouvements proposés par un joueur. Renvoie Vrai si les mouvements sont corrects, faux sinon.
+
+        :param moves: list liste des mouvements proposés par un joueur
+        :param is_vamp: Boolean Vrai si c'est le joueur 1/ Vampire qui propose ses mouvements, Faux sinon
+        :return: Boolean
+        """
+        moves_checked = []  # liste des mouvements vérifiés parmi ceux proposés
+
+        # Règle 1 : Au moins un mouvement
+        if len(moves) == 0:
+            return False
+
+        # Règle 6 : Au moins un pion qui bouge
+        if all(n == 0 for _, _, n, _, _ in moves):
+            return False
+
+        for i, j, n, x, y in moves:
+            # Règle 4 : 8 cases adjacentes
+            if abs(i - x) > 1 or abs(j - y) > 1:
+                return False
+
+            n_initial = self.content[(i, j)][1 if is_vamp else 2]
+            n_checked = sum([n_c for (i_c, j_c, n_c, _, _) in moves_checked if (i_c, j_c) == (i, j)])
+
+            # Règle 3 : On ne peut pas bouger plus que nos pions
+            if n_initial < n_checked + n:
+                return False
+            moves_checked.append((i, j, n, x, y))
+
+            # Règle 3 et 2 : On ne bouge que nos pions
+            if n_initial == 0:
+                return False
+
+        # Règle 5 : Une case ne pas se retrouver cible et source
+        for move_1, move_2 in combinations(moves, 2):
+            if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
+                return False
+            if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
+                return False
+
+        # Si toutes les règles sont respectées, on renvoie vrai
+        return True
+
     def populations(self):
         """Renvoie les populations des différentes espèces sur la carte
 
@@ -328,7 +372,10 @@ class Map:
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
                         if n_esp:  # Effectif d'une espèce
-                            cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
+                            if n_esp <10:
+                                cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
+                            else:
+                                cell_text = cell_text.replace(" " * 4, " {}{}".format(n_esp, RACE[pos]))
                 print(cell_text, end='')  # Affichage de la cellule
             print("|")
         print("_" * (self.size[0] * 5))

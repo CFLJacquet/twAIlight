@@ -3,6 +3,7 @@ import random
 
 from Map import Map
 
+
 class MapLigne13(Map):
     """
 
@@ -51,19 +52,21 @@ class MapLigne13(Map):
     ____________________________________________________________________________________________________
 
     """
+
     def __init__(self, debug_mode=False):
-        map_size=(20,20)
+        map_size = (20, 20)
         map_content = {}
         for i, j in product(range(map_size[0]), range(map_size[1])):
             map_content[(i, j)] = (0, 0, 0)
 
-        for i, j in product(range(map_size[0]), range(map_size[1]-1)):
-            if i%2==j%2:
-                map_content[(i, j)] = (1, 0, 0) # Quadrillage d'humains
-        map_content[(0,19)]=(0,10,0) # 10 vampire
-        map_content[(19,19)]=(0,0,10) # 10 loup-garou
+        for i, j in product(range(map_size[0]), range(map_size[1] - 1)):
+            if i % 2 == j % 2:
+                map_content[(i, j)] = (1, 0, 0)  # Quadrillage d'humains
+        map_content[(0, 19)] = (0, 10, 0)  # 10 vampire
+        map_content[(19, 19)] = (0, 0, 10)  # 10 loup-garou
         super().__init__(map_size=map_size, map_content=map_content, debug_mode=debug_mode)
 
-if __name__=="__main__":
-    carte=MapLigne13()
+
+if __name__ == "__main__":
+    carte = MapLigne13()
     carte.print_map()

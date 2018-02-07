@@ -194,7 +194,9 @@ class SommetDuJeu:
                 self.best_scenario = possibility.etat.etat[-1]
 
 
+def select_move_to_study(self,data):
 
+    return data
 
 def alpha_beta_morpion(morpion_state,is_ami):
     """
@@ -211,7 +213,7 @@ def alpha_beta_morpion(morpion_state,is_ami):
     is_ami=not is_ami
     i=0
     child_vertice={}
-    for move in cur_vertice.etat.next_possible_moves():
+    for move in select_move_to_study(cur_vertice.etat.next_possible_moves()):
         # La copy d'une classe en python se fait :
         child_vertice[i]=SommetDuJeu(is_ami)
         child_vertice[i]=child_vertice[i].__copy__(cur_vertice)
