@@ -94,6 +94,30 @@ class Map:
         for i, j, n_hum, n_vamp, n_lg in positions:
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
 
+
+    def next_possible_moves(self):
+        """
+        Une fonction qi génère automatiquement tous les états potentiels du tour n+1
+
+        """
+        possible_moves=[]
+
+
+        return possible_moves
+
+
+    def state_evaluation(self):
+        """
+        Une fonction qui évalue la qualité des états
+
+        """
+        evaluation=0
+
+
+        return evaluation
+
+
+
     def update_and_compute(self, moves):
         """
         Met à jour et traite les déplacements d'un joueur sur la carte
