@@ -70,7 +70,6 @@ class Morpion:
         else:
             op_c = self.open_positions(curr_player)
             op_o = self.open_positions(other_player)
-<<<<<<< HEAD:minimax.py
         return op_o - op_c
 
     def open_positions(self,player):
@@ -80,66 +79,27 @@ class Morpion:
 
         for i in range(3):
             # Quoiqu'il arrive on ajoute toutes les lignes blanches ou colonnes blanche
-            if i not in [k[0] for k in self.etat]:
+            if i not in [k[0] for k in self.etats]:
                 count=count+1
-            if i not in [k[1] for k in self.etat]:
+            if i not in [k[1] for k in self.etats]:
                 count=count+1
             # On parcourt ensuite les état qui pourraient donner lieu à une victoire
 
         #print("Je ne garde que mes états")
         #print([state for state in self.etat if state[2]!=other_player])
-        for i in [state for state in self.etat if state[2]!=other_player]:
+        for i in [state for state in self.etats if state[2]!=other_player]:
             # si une ligne n'est occupée que par nos pions, c'est une victoire potentielle
             #print([k[0] for k in self.etat if k!=i and k[2]==other_player])
-            if i[0] not in [k[0] for k in self.etat if k!=i and k[2]==other_player]:
+            if i[0] not in [k[0] for k in self.etats if k!=i and k[2]==other_player]:
                 count=count+1
             # Si une colonne n'est occupée que par nos pions c'est aussi une victoire potentielle
-            if i[1] not in [k[1] for k in self.etat if k!=i and k[2]==other_player]:
+            if i[1] not in [k[1] for k in self.etats if k!=i and k[2]==other_player]:
                 count=count+1
         # Cas particulier des diagonales
-        if (1,1,other_player) in self.etat:
+        if (1,1,other_player) in self.etats:
             # Si l'autre n'occupe pas le centre (donc soit nous l'occupons, soit il est vide), on regarde qui occupe les coins
-            if other_player not in [k[2] for k in self.etat if k[0:2]==(0,1) or k[0:2]==(0,2) or k[0:2]==(2,0) or k[0:2]==(2,2)]:
+            if other_player not in [k[2] for k in self.etats if k[0:2]==(0,1) or k[0:2]==(0,2) or k[0:2]==(2,0) or k[0:2]==(2,2)]:
                 count=count+1
-=======
-        return op_c - op_o # Nombre de positions ouvertes pour nous - Nombre de positions ouevrtes pour notre adversaire
-
-    def open_positions(self, curr_player):
-        """ Renvoie le nombre de ligne/Colonne/Diagonale ouverte pour le joueur actuel
-
-        :param curr_player: race du joueur actuel (boolean)
-        :return: Nombre d'ouvertures
-        """
-        count = 0 # Compte d'ouverture
-
-        other_player = not curr_player
-
-        # Quoiqu'il arrive on ajoute toutes les lignes vides ou colonnes vides
-        for i in range(3):
-            if i not in [k[0] for k in self.etats]:
-                count = count + 1
-            if i not in [k[1] for k in self.etats]:
-                count = count + 1
-
-        # On parcourt ensuite les état qui pourraient donner lieu à une victoire
-        for i,j,race_joueur in self.etats:
-            # si une ligne n'est occupée que par nos pions, c'est une victoire potentielle
-            if i not in [x for x,y,race in self.etats if (i,j,race_joueur) != (x,y,race) and race == other_player]:
-                count = count + 1
-            # Si une colonne n'est occupée que par nos pions c'est aussi une victoire potentielle
-            if j not in [y for x,y,race in self.etats if (i,j,race_joueur) != (x,y,race) and race == other_player]:
-                count = count + 1
-
-        # Cas particulier des diagonales
-        #  Si l'adversaire n'occupe pas le centre
-        if (1, 1, other_player) not in self.etats:
-            # soit nous l'occupons, soit il est vide --> on regarde qui occupe les coins
-            if other_player not in [race for x,y,race in self.etats if (x,y) in [(0, 2),(2, 0)]]:
-                count = count + 1
-            if other_player not in [race for x,y,race in self.etats if (x,y) in [(0, 0),(2, 2)]]:
-                count = count + 1
-
->>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
         return count
 
     def winner(self):
@@ -330,13 +290,12 @@ def minimax(morpion_state, is_ami):
     cette fonction doit retourner le meilleur mouvement étant donné un état du jeu
     """
     # On commence par générer un graph avec tous les états du jeu
-    horizon = 1
+    horizon = 8
     graph_du_jeu = GrapheDeJeu()
     graph = get_graph(morpion_state, is_ami, 0, horizon, {}, graph_du_jeu, 0)
     print(graph)
     # On parcourt ce graph et on regarde la Max,MinValue de chacun des etats feuilles
     Q = Queue()
-<<<<<<< HEAD:minimax.py
     # Initialisation du parcours de graph
     Q.put(graph.noeuds[0])
     # parcours de graph
@@ -349,8 +308,8 @@ def minimax(morpion_state, is_ami):
         if val > max_val:
             max_val=val
             print("best configuration updated:")
-            print(cur.etat.etat)
-            best_scenario = cur.etat.etat
+            print(cur.etat.etats)
+            best_scenario = cur.etat.etats
         # Ajout des enfants
         for c in cur.children:
             Q.put(c)
@@ -358,21 +317,12 @@ def minimax(morpion_state, is_ami):
     # il faut faire remonter certaines valeurs et baisser les autres
 
     return best_scenario
-=======
-    for child in graph.noeuds:
-        q.put(child)
-        child.maxValue()
-        print(child.maxValue())
-    # cur_vertice.MaxValue()
-    return 0
->>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
 
 
 if __name__ == "__main__":
     morpion = Morpion()
     print(morpion.game_over())
     print(morpion.next_possible_moves())
-<<<<<<< HEAD:minimax.py
     morpion.add_moves([(0, 1),(2,0)])
     count=0
     #print(morpion.state_evaluation(False))
@@ -381,13 +331,3 @@ if __name__ == "__main__":
     print(morpion)
     #print(morpion.game_over())
     #print(morpion.winner())
-=======
-    morpion.add_moves([(0, 1), (1, 0)])
-    print(morpion)
-    best_next_move = minimax(morpion, False)
-    morpion.add_move(best_next_move)
-    print(morpion)
-
-    # print(morpion.game_over())
-    # print(morpion.winner())
->>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
