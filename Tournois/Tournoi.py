@@ -8,15 +8,16 @@ from Algorithmes.Algo_Aléatoire import AlgoAleatoireInterne
 from Cartes.Map_Ligne13 import MapLigne13
 from Cartes.Map_Dust2 import MapDust2
 from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import Map8
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
-MAPS = {"dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap}
+MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"aléatoire": AlgoAleatoireInterne}
 
-# Nombre de partie par tour
-N_GAME = 100
+# Nombre de parties par carte
+N_GAME = 10
 
 
 def main():
@@ -26,7 +27,7 @@ def main():
     :return: dictionnaire des scores
     """
     # Dictionnaire de scores
-    # de la forme result[attaquant][defenseur][carte]=[nombre partie gagnée attaquant, nombre partie gagné défenseur]
+    # de la forme result[1er_joueur][2eme_joueur][carte]=[nombre partie gagnée attaquant, nombre partie gagné défenseur]
     result = {}
 
     # Parcours de toutes les paires possibles de joueurs
@@ -37,7 +38,7 @@ def main():
         for game_map_name, game_map in MAPS.items():
             result[algo_1_name][algo_2_name][game_map_name] = [0, 0]
 
-            # On joue les N_GAME
+            # On joue les N_GAME parties
             for _ in range(N_GAME):
                 server_game = ServeurInterne(game_map, algo_1, algo_2, name1=algo_1_name, name2=algo_2_name)
                 server_game.print_map = False
