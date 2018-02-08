@@ -4,14 +4,17 @@ from Joueur import Joueur
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
 from Map import Map
+from Sommet_du_jeu import SommetDuJeu
 
 class AlgoMinMaxH2(Joueur):
+
     def next_moves(self, show_map=True):
         """ Fonction pour faire bouger nos armées qui utile le meilleur coup à horizon 2
 
         :param show_map: permet d'afficher la carte comprise pour un joueur. Très utile pour les parties avec le serveur du
         projet
         """
+
 
         moves = []
         if self.is_vamp:  # Le joueur est un loup-garou
@@ -21,6 +24,10 @@ class AlgoMinMaxH2(Joueur):
         if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
         if show_map: self.map.print_map()
         # On prend une décision pour chaque case occupée par nos armées
+
+        # On commence par générer un graph dont la racine est l'état actuel du jeu, les enfants nos mouvements possibles
+        # Les feuilles du graph sont les réactions du joueur contre nos avancées
+
         for x_y in starting_positions:
             x_old, y_old = x_y
 
@@ -64,6 +71,11 @@ class AlgoMinMaxH2(Joueur):
                 moves.append((x_old, y_old, n_2, new_move[0], new_move[1]))
 
         return moves
+
+class AlgoAleatoireInterne(JoueurInterne):
+    """
+    Joueur avec la fonction de décision aléatoire de Charles
+    """
 
 if __name__=="__main__":
     Joueur1=AlgoAleatoireInterne
