@@ -2,7 +2,7 @@ from itertools import combinations_with_replacement
 from Serveur_Interne import ServeurInterne
 
 # Importation des algorithmes de décision
-from Algorithmes.Algo_Aléatoire import AlgoAleatoireInterne
+from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
 
 # Importation des des cartes du tournoi
 from Cartes.Map_Ligne13 import MapLigne13

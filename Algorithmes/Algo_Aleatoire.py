@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from Joueur import Joueur
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
