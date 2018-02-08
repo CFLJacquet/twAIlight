@@ -58,12 +58,12 @@ class ServeurInterne(Thread):
 
         # Réception des noms des joueurs
 
-        command = self.queue_p1_server.get()  # commande NME
-        name_1 = self.queue_p1_server.get()
+        command = self.queue_p1_server.get()
+        name_1 = self.queue_p1_server.get() # commande NME
         print("Server : Joueur 1 : " + str(name_1))
 
-        command = self.queue_p2_server.get()  # commande NME
-        name_2 = self.queue_p2_server.get()
+        command = self.queue_p2_server.get()
+        name_2 = self.queue_p2_server.get() # commande NME
         print("Server : Joueur 2 : " + str(name_2))
 
         # Initialisation du jeu

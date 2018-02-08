@@ -40,8 +40,7 @@ def main():
 
             # On joue les N_GAME parties
             for _ in range(N_GAME):
-                server_game = ServeurInterne(game_map, algo_1, algo_2, name1=algo_1_name, name2=algo_2_name)
-                server_game.print_map = False
+                server_game = ServeurInterne(game_map, algo_1, algo_2, name1=algo_1_name, name2=algo_2_name, print_map= False)
                 server_game.start()
                 server_game.join()
 
