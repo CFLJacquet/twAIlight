@@ -70,6 +70,38 @@ class Morpion:
         else:
             op_c = self.open_positions(curr_player)
             op_o = self.open_positions(other_player)
+<<<<<<< HEAD:minimax.py
+        return op_o - op_c
+
+    def open_positions(self,player):
+        count=0
+        row_line_blanks=[]
+        other_player = not player
+
+        for i in range(3):
+            # Quoiqu'il arrive on ajoute toutes les lignes blanches ou colonnes blanche
+            if i not in [k[0] for k in self.etat]:
+                count=count+1
+            if i not in [k[1] for k in self.etat]:
+                count=count+1
+            # On parcourt ensuite les état qui pourraient donner lieu à une victoire
+
+        #print("Je ne garde que mes états")
+        #print([state for state in self.etat if state[2]!=other_player])
+        for i in [state for state in self.etat if state[2]!=other_player]:
+            # si une ligne n'est occupée que par nos pions, c'est une victoire potentielle
+            #print([k[0] for k in self.etat if k!=i and k[2]==other_player])
+            if i[0] not in [k[0] for k in self.etat if k!=i and k[2]==other_player]:
+                count=count+1
+            # Si une colonne n'est occupée que par nos pions c'est aussi une victoire potentielle
+            if i[1] not in [k[1] for k in self.etat if k!=i and k[2]==other_player]:
+                count=count+1
+        # Cas particulier des diagonales
+        if (1,1,other_player) in self.etat:
+            # Si l'autre n'occupe pas le centre (donc soit nous l'occupons, soit il est vide), on regarde qui occupe les coins
+            if other_player not in [k[2] for k in self.etat if k[0:2]==(0,1) or k[0:2]==(0,2) or k[0:2]==(2,0) or k[0:2]==(2,2)]:
+                count=count+1
+=======
         return op_c - op_o # Nombre de positions ouvertes pour nous - Nombre de positions ouevrtes pour notre adversaire
 
     def open_positions(self, curr_player):
@@ -107,6 +139,7 @@ class Morpion:
             if other_player not in [race for x,y,race in self.etats if (x,y) in [(0, 0),(2, 2)]]:
                 count = count + 1
 
+>>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
         return count
 
     def winner(self):
@@ -248,7 +281,7 @@ class SommetDuJeu:
         pass
 
     def MaxValue(self):
-        val = possibility.etat.state_evaluation(self.is_ami)
+        val = self.etat.state_evaluation(self.is_ami)
         return val
 
 
@@ -283,8 +316,8 @@ def get_graph(morpion_state, is_ami, level, total_level, child_vertice, graph_du
             child_vertice[level][i].etat.add_move(move)
 
             # On lie au noeud père le noeuf enfant
-            cur_vertice.children.append(child_vertice[i])
-            graph_du_jeu.add_vertice(child_vertice[i])
+            cur_vertice.children.append(child_vertice[level][i])
+            graph_du_jeu.add_vertice(child_vertice[level][i])
             # On ajoute les noeufs enfants du noeuf enfant
 
             get_graph(child_vertice[level][i].etat, is_ami, level + 1, total_level, child_vertice, graph_du_jeu, i + 1)
@@ -303,18 +336,52 @@ def minimax(morpion_state, is_ami):
     print(graph)
     # On parcourt ce graph et on regarde la Max,MinValue de chacun des etats feuilles
     Q = Queue()
+<<<<<<< HEAD:minimax.py
+    # Initialisation du parcours de graph
+    Q.put(graph.noeuds[0])
+    # parcours de graph
+    print("Parcours de graph")
+    max_val=0
+    while not Q.empty():
+        cur=Q.get()
+        val = cur.MaxValue()
+
+        if val > max_val:
+            max_val=val
+            print("best configuration updated:")
+            print(cur.etat.etat)
+            best_scenario = cur.etat.etat
+        # Ajout des enfants
+        for c in cur.children:
+            Q.put(c)
+
+    # il faut faire remonter certaines valeurs et baisser les autres
+
+    return best_scenario
+=======
     for child in graph.noeuds:
         q.put(child)
         child.maxValue()
         print(child.maxValue())
     # cur_vertice.MaxValue()
     return 0
+>>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
 
 
 if __name__ == "__main__":
     morpion = Morpion()
     print(morpion.game_over())
     print(morpion.next_possible_moves())
+<<<<<<< HEAD:minimax.py
+    morpion.add_moves([(0, 1),(2,0)])
+    count=0
+    #print(morpion.state_evaluation(False))
+    best_next_move = minimax(morpion,False)
+    morpion.add_move(best_next_move[-1])
+    print(morpion)
+    #print(morpion.game_over())
+    #print(morpion.winner())
+=======
     morpion.add_moves([(0, 1), (1, 0)])
     print(morpion)
     best_next_move = minimax(morpion, False)
@@ -323,3 +390,4 @@ if __name__ == "__main__":
 
     # print(morpion.game_over())
     # print(morpion.winner())
+>>>>>>> c1a606a8044b24ea5ecbd5ec310ae62094ae815f:alpha_beta.py
