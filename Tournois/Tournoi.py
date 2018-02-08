@@ -52,7 +52,14 @@ def main():
                     result[algo_1_name][algo_2_name][game_map_name][1] += 1
 
         # Affichage des résultats du tournoi
-        print(result)
+        for algo_att_name in result:
+            for algo_def_name in result[algo_att_name]:
+                for carte in result[algo_att_name][algo_def_name]:
+                    print("Match {0} vs {1} sur {2}: score {3}".format(algo_att_name,
+                                                                       algo_def_name,
+                                                                       carte,
+                                                                       result[algo_att_name][algo_def_name][carte])
+                          )
 
 
 if __name__ == "__main__":
