@@ -16,13 +16,13 @@ class ServeurInterne(Thread):
     Par défaut, le premier joueur est un vampire.
     """
 
-    # MAX_PLAY_DURATION = None  # Temps maximal d'un tour (en seconde), si None, non pris en compte
-    # MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
-    # MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+    MAX_PLAY_DURATION = None  # Temps maximal d'un tour (en seconde), si None, non pris en compte
+    MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
+    MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
-    MAX_PLAY_DURATION = 5  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
-    MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
-    MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+    # MAX_PLAY_DURATION = 5  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
+    # MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
+    # MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
     def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
