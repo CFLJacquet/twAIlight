@@ -52,8 +52,6 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
         if debug_mode: print(sommet_2.etat)
         if debug_mode: print("{} joue".format(sommet_2.is_ami))
 
-        previous_moves = list(sommet_2.etat.previous_moves)  # liste des coups joués
-
         start_play = time.time()
         updated_moves += [sommet_2.next_move()]  # Mise à jour de l'historique des coups
         end_play = time.time()
