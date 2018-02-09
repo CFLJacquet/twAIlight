@@ -1,10 +1,11 @@
-from copy import deepcopy
-
 from Morpion.Map_Morpion import Morpion
 
 
-class SommetDuJeu:
+class SommetDuJeuMinMax:
+    __vertices_created = 0
+
     def __init__(self, is_ami=True):
+        SommetDuJeuMinMax.__vertices_created += 1
         self.parent = None
         self._children = list()
         self.alpha = None
@@ -13,24 +14,9 @@ class SommetDuJeu:
         self.etat = Morpion()
         self.is_ami = is_ami
 
-    def __copy__(self, objet):
-        t = deepcopy(objet)
-        return t
-
-    # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
-    def MinValue(self):
-        if self.etat.game_over():
-            return self.score
-        else:
-            children_scores = [child.MaxValue() for child in self.children]
-            return min(children_scores)
-
-    def MaxValue(self):
-        if self.etat.game_over():
-            return self.score
-        else:
-            children_scores = [child.MinValue() for child in self.children]
-            return max(children_scores)
+    @classmethod
+    def nb_vertices_created(cls):
+        return cls.__vertices_created
 
     @property
     def score(self):
@@ -49,7 +35,7 @@ class SommetDuJeu:
                 next_ami = not self.is_ami
 
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu(next_ami)
+                new_child_vertice = SommetDuJeuMinMax(next_ami)  # Je dois avoir des fils de la même classe
 
                 # On met la partie du sommet fils à jour
                 moves = self.etat.previous_moves + [move]
@@ -60,6 +46,21 @@ class SommetDuJeu:
 
             return self._children
 
+    # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
+    def MinValue(self):
+        if self.etat.game_over():
+            return self.score
+        else:
+            children_scores = [child.MaxValue() for child in self.children]
+            return min(children_scores)
+
+    def MaxValue(self):
+        if self.etat.game_over():
+            return self.score
+        else:
+            children_scores = [child.MinValue() for child in self.children]
+            return max(children_scores)
+
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.
         C'est la fonction Minimax-Decision du cours 4 s.54
@@ -69,10 +70,11 @@ class SommetDuJeu:
         :return: le prochain mouvement
         """
 
-        # On sélectione le noeud fils selon sa race
+        # On sélectionne le noeud fils selon sa race
         if self.is_ami:
             next_child = max(self.children, key=lambda x: x.MinValue())
         else:
+
             next_child = min(self.children, key=lambda x: x.MaxValue())
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
@@ -80,20 +82,22 @@ class SommetDuJeu:
 
 
 if __name__ == "__main__":
-    sommet = SommetDuJeu()
+
+    sommet = SommetDuJeuMinMax()
+
+    moves = []
 
     while not sommet.etat.game_over():
         print(sommet.etat)
         print("{} joue".format(sommet.is_ami))
 
-        previous_moves=list(sommet.etat.previous_moves)
-        previous_ami=sommet.is_ami
+        moves += [sommet.next_move()]
 
-        updated_moves=previous_moves+[sommet.next_move()]
-
-        sommet=SommetDuJeu(not previous_ami)
-        sommet.etat.add_moves(updated_moves)
+        sommet = SommetDuJeuMinMax(is_ami=not sommet.is_ami)
+        sommet.etat.add_moves(moves)
 
     print(sommet.etat)
     print("Vainqueur : {}".format(sommet.etat.winner()))
 
+    print("{} sommets ont été créés pour les besoins de cette simulation.".format(
+        SommetDuJeuMinMax.nb_vertices_created()))
