@@ -16,6 +16,14 @@ class ServeurInterne(Thread):
     Par défaut, le premier joueur est un vampire.
     """
 
+    # MAX_PLAY_DURATION = None  # Temps maximal d'un tour (en seconde), si None, non pris en compte
+    # MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
+    # MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+
+    MAX_PLAY_DURATION = 5  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
+    MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
+    MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+
     def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
         """
@@ -39,13 +47,15 @@ class ServeurInterne(Thread):
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
 
         self.map = game_map_class(debug_mode=debug_mode)  # carte de la première partie
-        self.map_class= game_map_class # classe de la carte du jeu (pour les rematchs en cas de match nul)
+        self.map_class = game_map_class  # classe de la carte du jeu (pour les rematchs en cas de match nul)
 
         self.debug_mode = debug_mode  # Pour afficher tous les logs
         self.print_map = print_map  # Pour afficher ou non la carte au cours de la partie
         self.winner = None  # True si c'est le joueur 1 / vampire, False sinon
         self.round_nb = 0  # Numéro de tour joué
-        self.start_time=0 # Date de début de la partie
+        self.game_start_time = 0  # Date de début de la partie
+        self.play_start_time = 0  # Date de début d'un tour
+        self.play_end_time = 0  # Date de fin d'un tour
 
     def run(self):
         """
@@ -59,11 +69,11 @@ class ServeurInterne(Thread):
         # Réception des noms des joueurs
 
         command = self.queue_p1_server.get()
-        name_1 = self.queue_p1_server.get() # commande NME
+        name_1 = self.queue_p1_server.get()  # commande NME
         print("Server : Joueur 1 : " + str(name_1))
 
         command = self.queue_p2_server.get()
-        name_2 = self.queue_p2_server.get() # commande NME
+        name_2 = self.queue_p2_server.get()  # commande NME
         print("Server : Joueur 2 : " + str(name_2))
 
         # Initialisation du jeu
@@ -71,14 +81,15 @@ class ServeurInterne(Thread):
 
         # Affichage de la carte
         if self.print_map: self.map.print_map()
+
         while True:
             # Réception des mouvements du joueur 1
             moves = self.get_MOV(self.queue_p1_server)
 
             if self.debug_mode: print('Server : MOV received from ' + self.player_1.name)
 
-            # Vérification des mouvements du joueur 1
-            if not self.map.is_valid_moves(moves, is_vamp=True):  # mouvements incorrects
+            # Vérification des mouvements du joueur 1 et de la durée de son tour
+            if not self.map.is_valid_moves(moves, is_vamp=True) or self.is_play_too_long():
                 print("Server : {} a triché !".format(self.player_1.name))
                 self.winner = False  # le joueur 1 a perdu
                 self.send_both_players(b"END")  # Fin de la partie
@@ -138,7 +149,7 @@ class ServeurInterne(Thread):
             moves = self.get_MOV(self.queue_p2_server)
 
             # Vérification des mouvements proposés de joueur 2
-            if not self.map.is_valid_moves(moves, is_vamp=False):
+            if not self.map.is_valid_moves(moves, is_vamp=False) or self.is_play_too_long():
                 print("Server : {} a triché !".format(self.player_2.name))
                 self.winner = True  # Le joueur 1 a gagné
                 self.send_both_players(b"END")  # Fin de la partie
@@ -158,7 +169,7 @@ class ServeurInterne(Thread):
             if self.print_map: self.map.print_map()
 
             # Cas : la partie est terminée
-            if self.map.game_over():
+            if self.map.game_over() or self.is_game_too_long():
 
                 # Envoi au deux joueurs de la fin de la partie
                 self.send_both_players(b"END")
@@ -196,6 +207,7 @@ class ServeurInterne(Thread):
         :return: moves: liste des mouvements
         """
         command = queue.get()  # MOV command
+        self.play_end_time = time.time()  # On enregistre la date de réception des mouvements comme fin du tour
         if self.debug_mode: print("Server/MOV : " + str(command))
         n_move = queue.get()  # Nombre de mouvements
         if self.debug_mode: print("Server/MOV : " + str(n_move))
@@ -239,6 +251,9 @@ class ServeurInterne(Thread):
                 self.queue_server_p2.put(update)  # Envoi de chaque de mise à jour au joueur 2
             self.updates_for_2 = []  # On vide la liste tampon des modifications de la carte du joueur 1
 
+        # Enregistrement de la date de début du tour
+        self.play_start_time = time.time()
+
     # Méthodes de traitement
 
 
@@ -250,7 +265,7 @@ class ServeurInterne(Thread):
 
         # Remise à zéro de la carte
 
-        self.map=self.map_class(debug_mode=self.debug_mode)
+        self.map = self.map_class(debug_mode=self.debug_mode)
         # Compteur de tours
         self.round_nb = 1
 
@@ -286,10 +301,59 @@ class ServeurInterne(Thread):
         self.queue_server_p1.put(b"UPD")
         self.queue_server_p1.put(0)
 
-        # On enregistre la date du début de la partie
-        self.start_time=time.time()
+        # On enregistre la date du début de la partie et du tour
+        self.game_start_time = time.time()
+        self.play_start_time = time.time()
 
         if self.debug_mode: print("Server : New Game settings sent !")
+
+    def is_play_too_long(self):
+        """
+        Renvoie Vrai si le tour du joueur a été trop long, Faux sinon
+        :return: boolean
+        """
+
+        # Durée du tour
+        play_duration = self.play_end_time - self.play_start_time
+        if self.debug_mode: print("Play duration : {}".format(play_duration))
+
+        if ServeurInterne.MAX_PLAY_DURATION is not None:
+
+            # Cas où le tour a duré trop longtemps
+            if play_duration > ServeurInterne.MAX_PLAY_DURATION:
+
+                if self.debug_mode: print("Play too long !")
+                return True
+
+        # Sinon le tour a une durée valide
+        return False
+
+    def is_game_too_long(self):
+        """ Renvoie Vrai s'il faut arrêter la partie car elle est trop longue (en nombre de tours joués et en durée).
+        On prend en compte
+
+        :return: boolean
+        """
+        game_duration = time.time() - self.game_start_time
+        if self.debug_mode: print("Game duration : {}s".format(game_duration))
+        if self.debug_mode: print("Nb of round played : {}".format(self.round_nb))
+
+        # Si on prend en compte la durée maximale d'une partie
+        if ServeurInterne.MAX_GAME_DURATION is not None:
+            # Si la partie est trop longue par rapport à la durée maximale
+            if game_duration > ServeurInterne.MAX_GAME_DURATION * 60:
+                # Si chaque joueur a joué autant de fois
+                if self.round_nb % 2 == 0:
+                    return True
+
+        # Si on prend en compte le nombre maximal de tour
+        if ServeurInterne.MAX_PLAYS is not None:
+            # Si le nombre de tour joué excède la limite
+            if self.round_nb >= ServeurInterne.MAX_PLAYS:
+                return True
+
+        # Sinon on renvoie Faux
+        return False
 
 
 if __name__ == "__main__":

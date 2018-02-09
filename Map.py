@@ -351,11 +351,11 @@ class Map:
         :return: True pour vampires ont gagné, False pour loups-garous ont gagnés, None pour match nul
         """
         _, n_vamp, n_lg = self.populations()
-        if n_vamp:  # Il reste de vampires
+        if n_vamp > n_lg:  # Il reste de vampires
             return True
-        elif n_lg:  # Il reste des loups-garous
+        elif n_lg < n_vamp:  # Il reste des loups-garous
             return False
-        else:  # Plus de loups-garous ni de vampires ==> Match Nul
+        else:  # Autant de loups-garous ni de vampires ==> Match Nul
             return None
 
     def print_map(self):
@@ -372,7 +372,7 @@ class Map:
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
                         if n_esp:  # Effectif d'une espèce
-                            if n_esp <10:
+                            if n_esp < 10:
                                 cell_text = cell_text.replace(" " * 3, " {}{}".format(n_esp, RACE[pos]))
                             else:
                                 cell_text = cell_text.replace(" " * 4, " {}{}".format(n_esp, RACE[pos]))

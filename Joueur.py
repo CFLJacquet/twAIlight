@@ -4,12 +4,16 @@ import sys
 import random
 from itertools import product
 from threading import Thread
+import time
 
 from Map import Map
 
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
+
+# HOTE = sys.argv[1]
+# PORT = int(sys.argv[2])
 
 class Joueur(Thread):
     """
@@ -34,7 +38,7 @@ class Joueur(Thread):
         self.map = None  # Carte d'après le joueur
         self.is_vamp = None  # Vrai si le joueur est un vampire, Faux si c'est un loup-garou
         self.debug_mode = debug_mode  # mode debug, pour afficher les logs
-        self.round_played=0 # Compte de tours joués par le joueur
+        self.round_played = 0  # Compte de tours joués par le joueur
 
     def run(self):
         """ Méthode appelée quand on lance le thread.
@@ -116,7 +120,7 @@ class Joueur(Thread):
                 if self.debug_mode: print(self.name + ": MOV sent")
 
                 # On incrémente notre compte de tours joués
-                self.round_played+=1
+                self.round_played += 1
                 if self.debug_mode:
                     print(self.name + ": {} round(s) played".format(self.round_played))
 
