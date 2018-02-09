@@ -1,5 +1,6 @@
 from copy import deepcopy
-from queue import Queue
+
+from Morpion.Map_Morpion import Morpion
 
 
 class SommetDuJeu:
