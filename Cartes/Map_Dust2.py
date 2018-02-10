@@ -1,5 +1,4 @@
 from itertools import product
-
 from Map import Map
 
 
