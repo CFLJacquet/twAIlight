@@ -1,15 +1,13 @@
 from Morpion.Map_Morpion import Morpion
 
 
-class SommetDuJeuMinMax:
+class SommetDuJeuMinMaxTransposition:
     __vertices_created = 0
+    __transposion_table = {}
 
     def __init__(self, is_ami=True):
-        SommetDuJeuMinMax.__vertices_created += 1
-        self.parent = None
+        SommetDuJeuMinMaxTransposition.__vertices_created += 1
         self._children = list()
-        self.alpha = None
-        self.beta = None
         self._score = None
         self.map = Morpion()
         self.is_ami = is_ami
@@ -17,6 +15,19 @@ class SommetDuJeuMinMax:
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
+
+    @classmethod
+    def transposition_table(cls):
+        return cls.__transposion_table
+
+    def get_score_tt(self):
+        if self.map.hash in SommetDuJeuMinMaxTransposition.__transposion_table:
+            return SommetDuJeuMinMaxTransposition.__transposion_table[self.map.hash]
+        else:
+            return None
+
+    def set_score_tt(self, score):
+        SommetDuJeuMinMaxTransposition.__transposion_table[self.map.hash] = score
 
     @property
     def score(self):
@@ -35,7 +46,7 @@ class SommetDuJeuMinMax:
                 next_ami = not self.is_ami
 
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeuMinMax(next_ami)  # Je dois avoir des fils de la même classe
+                new_child_vertice = SommetDuJeuMinMaxTransposition(next_ami)  # Je dois avoir des fils de la même classe
 
                 # On met la partie du sommet fils à jour
                 moves = self.map.previous_moves + [move]
@@ -48,22 +59,42 @@ class SommetDuJeuMinMax:
 
     # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
     def MinValue(self):
+        score_from_tt = self.get_score_tt()
+
+        if score_from_tt is not None:
+            return score_from_tt
+
         if self.map.game_over():
+            self.set_score_tt(self.score)
             return self.score
+
+
         else:
             children_scores = [child.MaxValue() for child in self.children]
-            return min(children_scores)
+            min_value=min(children_scores)
+            self.set_score_tt(min_value)
+            return min_value
 
     def MaxValue(self):
+
+        score_from_tt = self.get_score_tt()
+        if score_from_tt is not None:
+            return score_from_tt
+
         if self.map.game_over():
+            self.set_score_tt(self.score)
             return self.score
+
         else:
             children_scores = [child.MinValue() for child in self.children]
-            return max(children_scores)
+            max_value=max(children_scores)
+            self.set_score_tt(max_value)
+            return max_value
 
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.
-        C'est la fonction Minimax-Decision du cours 4 s.54
+        C'est la fonction Minimax-Decision du cours 4 s.54.
+        On utilise un table de transposition (hashage) pour stocker les scores des plateaux avec un score
 
         Parcourt le graphe en DFS
 
@@ -72,9 +103,10 @@ class SommetDuJeuMinMax:
 
         # On sélectionne le noeud fils selon sa race
         if self.is_ami:
+            print([child.MinValue() for child in self.children])
             next_child = max(self.children, key=lambda x: x.MinValue())
         else:
-
+            print([child.MaxValue() for child in self.children])
             next_child = min(self.children, key=lambda x: x.MaxValue())
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
@@ -83,21 +115,24 @@ class SommetDuJeuMinMax:
 
 if __name__ == "__main__":
 
-    sommet = SommetDuJeuMinMax()
+    sommet = SommetDuJeuMinMaxTransposition()
 
     moves = []
-
-    while not sommet.map.game_over():
+    i=0
+    while not sommet.map.game_over() and i<1:
         print(sommet.map)
         print("{} joue".format(sommet.is_ami))
 
         moves += [sommet.next_move()]
 
-        sommet = SommetDuJeuMinMax(is_ami=not sommet.is_ami)
+        sommet = SommetDuJeuMinMaxTransposition(is_ami=not sommet.is_ami)
         sommet.map.add_moves(moves)
 
+        i+=1
     print(sommet.map)
     print("Vainqueur : {}".format(sommet.map.winner()))
 
     print("{} sommets ont été créés pour les besoins de cette simulation.".format(
-        SommetDuJeuMinMax.nb_vertices_created()))
+        SommetDuJeuMinMaxTransposition.nb_vertices_created()))
+
+    print(SommetDuJeuMinMaxTransposition.transposition_table())

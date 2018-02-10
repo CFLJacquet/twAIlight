@@ -9,7 +9,7 @@ class SommetDuJeuAleatoire:
     def __init__(self, is_ami=True):
         SommetDuJeuAleatoire.__vertices_created += 1
         self._children = list()
-        self.etat = Morpion()
+        self.map = Morpion()
         self.is_ami = is_ami
 
     @classmethod
@@ -19,7 +19,7 @@ class SommetDuJeuAleatoire:
     @property
     def score(self):
         if self._score is None:
-            self._score = self.etat.state_evaluation()
+            self._score = self.map.state_evaluation()
         return self._score
 
     @property
@@ -29,15 +29,15 @@ class SommetDuJeuAleatoire:
             return self._children
         # Si la liste est vide alors on la recalcule
         else:
-            for move in self.etat.next_possible_moves():
+            for move in self.map.next_possible_moves():
                 next_ami = not self.is_ami
 
                 # Création du sommet fils
                 new_child_vertice = SommetDuJeuAleatoire(next_ami)
 
                 # On met la partie du sommet fils à jour
-                moves = self.etat.previous_moves + [move]
-                new_child_vertice.etat.add_moves(moves)
+                moves = self.map.previous_moves + [move]
+                new_child_vertice.map.add_moves(moves)
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
                 self._children.append(new_child_vertice)
@@ -50,23 +50,23 @@ class SommetDuJeuAleatoire:
         :return: le prochain mouvement
         """
 
-        return random.choice(list(self.etat.next_possible_moves()))
+        return random.choice(list(self.map.next_possible_moves()))
 
 
 if __name__ == "__main__":
     sommet = SommetDuJeuAleatoire()
 
-    while not sommet.etat.game_over():
-        print(sommet.etat)
+    while not sommet.map.game_over():
+        print(sommet.map)
         print("{} joue".format(sommet.is_ami))
 
-        previous_moves = list(sommet.etat.previous_moves)
+        previous_moves = list(sommet.map.previous_moves)
         previous_ami = sommet.is_ami
 
         updated_moves = previous_moves + [sommet.next_move()]
 
         sommet = SommetDuJeuAleatoire(not previous_ami)
-        sommet.etat.add_moves(updated_moves)
+        sommet.map.add_moves(updated_moves)
 
-    print(sommet.etat)
-    print("Vainqueur : {}".format(sommet.etat.winner()))
+    print(sommet.map)
+    print("Vainqueur : {}".format(sommet.map.winner()))
