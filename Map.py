@@ -140,14 +140,9 @@ class Map:
     def state_evaluation(self,is_vamp):
         total=0
         for x_y in self.content:
-            if is_vamp:
-                nbr_of_monsters = self.content[x_y][1]  # Nombre de vampires sur la case
-                nbr_of_ennemies = self.content[x_y][2]
-            else:
-                nbr_of_monsters= self.content[x_y][2]  # Nombre de loup-garous sur la case
-                nbr_of_ennemies = self.content[x_y][1]
+            nbr_of_monsters = self.content[x_y][1]  # Nombre de vampires sur la case
+            nbr_of_ennemies = self.content[x_y][2]
             total=total+nbr_of_monsters-nbr_of_ennemies
-
         return total
 
     def update_and_compute(self, moves):
