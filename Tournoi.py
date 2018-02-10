@@ -3,6 +3,7 @@ from Serveur_Interne import ServeurInterne
 
 # Importation des algorithmes de décision
 from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
+from Algorithmes.Algo_minmax_h2 import AlgoMinMaxH2
 
 # Importation des des cartes du tournoi
 from Cartes.Map_Ligne13 import MapLigne13
@@ -12,12 +13,13 @@ from Cartes.Map_Map8 import Map8
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
+#MAPS = {"Dust_2": MapDust2}
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
-ALGOS = {"aléatoire": AlgoAleatoireInterne}
+ALGOS = {"AlgoAleatoire":AlgoAleatoireInterne,"AlgoMinMax":AlgoMinMaxH2}
 
 # Nombre de parties par carte
-N_GAME = 10
+N_GAME = 1
 
 
 def main():
@@ -39,7 +41,7 @@ def main():
             result[algo_1_name][algo_2_name][game_map_name] = [0, 0]
 
             # On joue les N_GAME /2 parties
-            for _ in range(N_GAME //2):
+            for _ in range(N_GAME-(N_GAME //2)):
                 server_game = ServeurInterne(game_map, algo_1, algo_2, name1=algo_1_name, name2=algo_2_name, print_map= False)
                 server_game.start()
                 server_game.join()

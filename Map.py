@@ -1,7 +1,7 @@
 from collections import defaultdict
 import random
 from itertools import combinations
-
+from copy import deepcopy
 
 class Map:
     """
@@ -94,40 +94,70 @@ class Map:
         for i, j, n_hum, n_vamp, n_lg in positions:
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
 
+    def __copy__(self, objet):
+        t = deepcopy(objet)
+        return t
 
-    def next_possible_moves(self):
+    def next_possible_moves(self,is_vamp):
         """
-        Une fonction qi génère automatiquement tous les états potentiels du tour n+1
+        Une fonction qui génère tous les combinaisons états possibles à partir d'une carte (8 mouvements pour chaque groupe)
 
+        :return: un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
         """
-        possible_moves=[]
 
+        # On récupère toutes les positions initiales possibles
+        if is_vamp:  # Le joueur est un loup-garou
+            starting_positions = [x_y for x_y in self.content if self.content[x_y][1] != 0]
+        else:  # Le joueur est un loup-garou
+            starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
 
-        return possible_moves
+        # On gère ici la possibilité pour un groupe de se séparer
+        # -> NON GERE POUR L'INSTANT
+        # Definir available position
+        x_max = self.size[0]
+        y_max = self.size[1]
+        new_pos= {}
+        available_positions={}
+        for g in starting_positions:
+            x_old, y_old = g
+            if is_vamp:
+                pop_of_monsters = self.content[g][1]  # Nombre de vampires sur la case
+            else:
+                pop_of_monsters = self.content[g][2]  # Nombre de loup-garous sur la case
+            available_positions[(x_old,y_old)] = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
+                                   for j in (-1, 0, 1) \
+                                   if (x_old + i, y_old + j) != (x_old, y_old) \
+                                   and 0 <= (x_old + i) < x_max \
+                                   and 0 <= (y_old + j) < y_max
+                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
+                                   ]
+            for new_move in available_positions[g]:
+                if g not in new_pos:
+                    new_pos[g]=[]
+                new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
+        return new_pos
 
+    def state_evaluation(self,is_vamp):
+        total=0
+        for x_y in self.content:
+            if is_vamp:
+                nbr_of_monsters = self.content[x_y][1]  # Nombre de vampires sur la case
+                nbr_of_ennemies = self.content[x_y][2]
+            else:
+                nbr_of_monsters= self.content[x_y][2]  # Nombre de loup-garous sur la case
+                nbr_of_ennemies = self.content[x_y][1]
+            total=total+nbr_of_monsters-nbr_of_ennemies
 
-    def state_evaluation(self):
-        """
-        Une fonction qui évalue la qualité des états
-
-        """
-        evaluation=0
-
-
-        return evaluation
-
-
+        return total
 
     def update_and_compute(self, moves):
         """
         Met à jour et traite les déplacements d'un joueur sur la carte
-        :param moves: liste de quintuplets de la forme (i,j,n_hum, h_vampire, n_loup_garou) avec i,j les coordonnées de la case
-        n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
+        :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
         :return: None
         """
         # Mise à zéro de la liste des modifications de la carte
         self.UPD = []
-
         # On enregistre la carte actuelle pour la comparer avec sa version à jour
         old_map_content = dict(self.content)
 
@@ -146,7 +176,6 @@ class Map:
 
             # Chargement des cases cibles
             # On enregistre les modifications sur les cases sans bataille
-
             # Population de la case cible
             n_hum, n_vamp, n_lg = self.content[(x, y)]
             # Si case cible est vide

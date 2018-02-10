@@ -37,6 +37,9 @@ class ServeurInterne(Thread):
         :param print_map: (boolean) si vrai affiche la carte du jeu à chaque tour
         """
         super().__init__()
+        print(name1)
+        print(name2)
+        print("husici")
         self.queue_server_p1 = Queue()  # Queue de communication serveur vers joueur 1
         self.queue_server_p2 = Queue()  # Queue de communication serveur vers joueur 2
         self.queue_p1_server = Queue()  # Queue de communication joueur 1 vers serveur
@@ -47,6 +50,7 @@ class ServeurInterne(Thread):
         self.updates_for_2 = []  # liste des changements pour mettre à jour la carte du joueur 2
 
         self.map = game_map_class(debug_mode=debug_mode)  # carte de la première partie
+
         self.map_class = game_map_class  # classe de la carte du jeu (pour les rematchs en cas de match nul)
 
         self.debug_mode = debug_mode  # Pour afficher tous les logs
