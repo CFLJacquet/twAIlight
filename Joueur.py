@@ -242,6 +242,15 @@ class Joueur(Thread):
         On a assez d'informations, pour s'en passer."""
         pass
 
+    def state_evaluation(self):
+        """
+        Une fonction pour évaluer la qualité d'un état pour notre joueurs.
+        Il faut aussi faire les combats dans cette fonction
+        """
+        evaluation=0
+        return 1
+
+
     def next_moves(self, show_map=True):
         """ Fonction pour faire bouger nos armées. Il y une probabilité aléatoire uniforme de se déplacer sur les cases
         adjascentes, et une probabilité aléatoire de casser le groupe en 2 s'il y a suffisamment de membres
@@ -249,7 +258,7 @@ class Joueur(Thread):
         :param show_map: permet d'afficher la carte comprise pour un joueur. Très utile pour les parties avec le serveur du
         projet
         """
-
+        print("Alea is looking for a move")
         moves = []
         if self.is_vamp:  # Le joueur est un loup-garou
             starting_positions = [x_y for x_y in self.map.content if self.map.content[x_y][1] != 0]
@@ -260,7 +269,6 @@ class Joueur(Thread):
         # On prend une décision pour chaque case occupée par nos armées
         for x_y in starting_positions:
             x_old, y_old = x_y
-
             # Scission du groupe ou non
             if self.is_vamp:
                 pop_of_monsters = self.map.content[x_y][1]  # Nombre de vampires sur la case
@@ -299,7 +307,6 @@ class Joueur(Thread):
             if n_2:  # Idem pour le groupe 2
                 new_move = new_position(x_old, y_old, self.map.size[0], self.map.size[1], starting_positions)
                 moves.append((x_old, y_old, n_2, new_move[0], new_move[1]))
-
         return moves
 
 

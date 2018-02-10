@@ -16,5 +16,5 @@ class AlgoAleatoireInterne(JoueurInterne):
 if __name__=="__main__":
     Joueur1=AlgoAleatoireInterne
     Joueur2 =AlgoAleatoireInterne
-    Serveur=ServeurInterne(Map(),Joueur1,Joueur2)
+    Serveur=ServeurInterne(Map,Joueur1,Joueur2)
     Serveur.start()
