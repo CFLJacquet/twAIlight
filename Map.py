@@ -1,7 +1,9 @@
 from collections import defaultdict
 import random
-from itertools import combinations
+from itertools import combinations, product
 from copy import deepcopy
+from math import log, pow, floor
+
 
 class Map:
     """
@@ -20,6 +22,68 @@ class Map:
     |    |    |    |    |    |    |    |    |    | 2H |
     __________________________________________________
     """
+
+    __HASH_TABLE = None
+    __N_HUMAN_MAX = None  # Nombre maximum d'humain dans une chaumiere
+    __SUM_HUMAN_POP = None  # Somme de la population des humains au départ
+    __N_MONSTER_MAX = None  # Nombre de monstres au départ (maximum des cases de départ)
+
+    @classmethod
+    def init_map_class(cls, map_size, map_content):
+        """Crée la table de hashage des mouvements possibles, et renseigne les attributs de populations maximales de la
+        classe.
+
+        Méthode de hashage d'un élément de la carte en s'inspirant du hashage de Zobrist.
+        https://en.wikipedia.org/wiki/Zobrist_hashing
+
+        :param map_size: taille de la carte (x_max, y_max)
+        :param map_content: contenu de la carte
+        :return: None
+        """
+
+        # On cherche à connaitre nos constantes sur les effectifs des espèces en présence
+        x_max, y_max = map_size
+        n_hum_max = 0
+        sum_human_pop = 0
+        n_monster_max = 0
+        for i, j in product(range(x_max, y_max)):
+            n_hum, n_vamp, n_lg = map_content[(i, j)]
+            n_hum_max = max(n_hum, n_hum_max)
+            sum_human_pop += n_hum
+            n_monster_max = max(n_vamp, n_lg, n_monster_max)
+
+        cls.__N_HUMAN_MAX = n_hum_max
+        cls.__SUM_HUMAN_POP = sum_human_pop
+        cls.__N_MONSTER_MAX = n_monster_max
+
+        # On calcule le nombre de cartes différentes possibles
+        # Sur une case on peut avoir une case vide avec une population de 1 ...
+        N_cartes_possibles = 1 * 1
+        # ... ou 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
+        N_cartes_possibles += 2 * (n_monster_max + sum_human_pop)
+        # ... ou des humains avec une population possibles de n_hum_max
+        N_cartes_possibles += 1 * (n_hum_max)
+        # ... et cela sur toutes les cases de la carte
+        N_cartes_possibles **= (x_max * y_max)
+
+        # Nombre de bit sur lequel coder au minimum les positions
+        n_bit = floor(log(N_cartes_possibles) / log(2))
+        # Marge sur la taille du bit de codage pour éviter les collisions
+        m_bit = 10
+        # Hash maximal
+        nombre_max_hashage = pow(2, n_bit + m_bit)
+
+        # Création de la table de hashage
+        table = defaultdict(lambda: random.randint(0, nombre_max_hashage))
+
+        cls.__HASH_TABLE = table
+
+    @classmethod
+    def test_collisions(cls):
+        """ Affiche des collisions détectées
+        Le temps de calcul peut être très long car on teste toutes les cartes possibles"""
+        carte=cls() # instance de carte
+        print(carte.print_map())
 
     def __init__(self, map_size=None, map_content=None, debug_mode=False):
         """
@@ -47,6 +111,10 @@ class Map:
                            (8, 4): (0, 0, 0), (9, 0): (2, 0, 0), (9, 1): (0, 0, 0), (9, 2): (1, 0, 0),
                            (9, 3): (0, 0, 0), (9, 4): (2, 0, 0)}
         self.content = map_content
+
+        # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
+        Map.init_map_class(self.size, self.content)
+
         self.UPD = []  # Liste des changements lors d'un update de la carte
         self.debug_mode = debug_mode
 
@@ -98,7 +166,7 @@ class Map:
         t = deepcopy(objet)
         return t
 
-    def next_possible_moves(self,is_vamp):
+    def next_possible_moves(self, is_vamp):
         """
         Une fonction qui génère tous les combinaisons états possibles à partir d'une carte (8 mouvements pour chaque groupe)
 
@@ -116,37 +184,37 @@ class Map:
         # Definir available position
         x_max = self.size[0]
         y_max = self.size[1]
-        new_pos= {}
-        available_positions={}
+        new_pos = {}
+        available_positions = {}
         for g in starting_positions:
             x_old, y_old = g
             if is_vamp:
                 pop_of_monsters = self.content[g][1]  # Nombre de vampires sur la case
             else:
                 pop_of_monsters = self.content[g][2]  # Nombre de loup-garous sur la case
-            available_positions[(x_old,y_old)] = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
-                                   for j in (-1, 0, 1) \
-                                   if (x_old + i, y_old + j) != (x_old, y_old) \
-                                   and 0 <= (x_old + i) < x_max \
-                                   and 0 <= (y_old + j) < y_max
-                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
-                                   ]
+            available_positions[(x_old, y_old)] = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
+                                                   for j in (-1, 0, 1) \
+                                                   if (x_old + i, y_old + j) != (x_old, y_old) \
+                                                   and 0 <= (x_old + i) < x_max \
+                                                   and 0 <= (y_old + j) < y_max
+                                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
+                                                   ]
             for new_move in available_positions[g]:
                 if g not in new_pos:
-                    new_pos[g]=[]
+                    new_pos[g] = []
                 new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
         return new_pos
 
-    def state_evaluation(self,is_vamp):
-        total=0
+    def state_evaluation(self, is_vamp):
+        total = 0
         for x_y in self.content:
             if is_vamp:
                 nbr_of_monsters = self.content[x_y][1]  # Nombre de vampires sur la case
                 nbr_of_ennemies = self.content[x_y][2]
             else:
-                nbr_of_monsters= self.content[x_y][2]  # Nombre de loup-garous sur la case
+                nbr_of_monsters = self.content[x_y][2]  # Nombre de loup-garous sur la case
                 nbr_of_ennemies = self.content[x_y][1]
-            total=total+nbr_of_monsters-nbr_of_ennemies
+            total = total + nbr_of_monsters - nbr_of_ennemies
 
         return total
 
@@ -447,3 +515,5 @@ if __name__ == "__main__":
     carte.print_map()
     carte.update_and_compute([(4, 1, 3, 3, 2), (4, 1, 1, 3, 2)])
     carte.print_map()
+
+    Map.test_collisions()
