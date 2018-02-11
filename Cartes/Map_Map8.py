@@ -51,7 +51,7 @@ class Map8(Map):
                        (7, 3): (8, 0, 0),
                        (7, 4): (8, 0, 0), (7, 5): (13, 0, 0), (7, 6): (1, 0, 0), (7, 7): (5, 0, 0)}
 
-        super().__init__(map_size=map_size, map_content=map_content, debug_mode=debug_mode)
+        super().__init__(map_size=map_size, initial_positions=map_content, debug_mode=debug_mode)
 
 
 if __name__ == "__main__":

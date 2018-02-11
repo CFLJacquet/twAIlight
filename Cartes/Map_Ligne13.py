@@ -64,7 +64,7 @@ class MapLigne13(Map):
                 map_content[(i, j)] = (1, 0, 0)  # Quadrillage d'humains
         map_content[(0, 19)] = (0, 10, 0)  # 10 vampire
         map_content[(19, 19)] = (0, 0, 10)  # 10 loup-garou
-        super().__init__(map_size=map_size, map_content=map_content, debug_mode=debug_mode)
+        super().__init__(map_size=map_size, initial_positions=map_content, debug_mode=debug_mode)
 
 
 if __name__ == "__main__":

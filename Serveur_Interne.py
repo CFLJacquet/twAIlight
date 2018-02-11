@@ -103,7 +103,7 @@ class ServeurInterne(Thread):
 
             # Mise à jour et calcul de la nouvelle carte
             # les mouvements du joueur 1 sont valides ici
-            self.map.update_and_compute(moves)
+            self.map.compute_moves(moves)
 
             # Tour suivant
             self.round_nb += 1
@@ -167,7 +167,7 @@ class ServeurInterne(Thread):
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
             # Mise à jour de la carte à partir des mouvements proposés par le joueur 2
-            self.map.update_and_compute(moves)
+            self.map.compute_moves(moves)
 
             # Affichage de la carte
             if self.print_map: self.map.print_map()

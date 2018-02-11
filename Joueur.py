@@ -95,7 +95,7 @@ class Joueur(Thread):
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 if self.debug_mode: print(positions)
 
-                self.map.update(positions)  # On met à jour notre carte à partir des informations du serveur
+                self.map.update_positions(positions)  # On met à jour notre carte à partir des informations du serveur
                 # On peut maintenant connaitre notre race, grâce aux infos sur la carte et notre case de départ
                 self.define_race()
                 print(self.name + " is a " + ("vampire" if self.is_vamp else "werewolf"))
@@ -110,7 +110,7 @@ class Joueur(Thread):
                         x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                     if self.debug_mode: print(positions)
-                    self.map.update(positions)  # Mise à jour de la carte du joueur
+                    self.map.update_positions(positions)  # Mise à jour de la carte du joueur
 
                 if self.debug_mode: print(self.name + ": UPD received")
 
@@ -212,7 +212,7 @@ class Joueur(Thread):
         map_content = {}
         for i, j in product(range(map_size[0]), range(map_size[1])):
             map_content[(i, j)] = (0, 0, 0)
-        self.map = Map(map_size=map_size, map_content=map_content)
+        self.map = Map(map_size=map_size, initial_positions=map_content)
 
     def init_game(self):
         """ Initialise les attributs du joueur pour commencer une partie

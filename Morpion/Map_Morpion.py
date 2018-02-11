@@ -21,18 +21,20 @@ class Morpion:
         """ Méthode de hashage d'un élément de la carte en s'inspirant du hashage de Zobrist.
         https://en.wikipedia.org/wiki/Zobrist_hashing
 
-        :return:
+        :return: None
         """
         table = {}
         x_max = 3 # Nombre de colonnes
         y_max = 3 # Nombre de lignes
         n_race =2 # Nombre de type de pions
+        
         N_max=1 # Effectif maximal d'une case
 
         # On calcule le nombre de cartes différentes possibles
-        N_cartes_possible=1*1 # case vide avec une population possibles
-        N_cartes_possible+=n_race*N
-        n_bit = math.floor(math.log(((n_race+1)*N_max)**(x_max*y_max))/math.log(2))# Nombre de bit sur lequel coder au minimum les positions
+        N_cartes_possibles=1*1 # Sur une case on peut avoir une case vide avec une population de 1 ...
+        N_cartes_possibles+=n_race*N_max # ... ou n_race types de joueurs différents avec N_max effectifs sur cette case
+        N_cartes_possibles**=(x_max*y_max) # ... et cela sur toutes les cases
+        n_bit = math.floor(math.log(N_cartes_possibles)/math.log(2))# Nombre de bit sur lequel coder au minimum les positions
         m_bit =5 # Marge sur la taille de l'entier pour éviter les collisions
 
         nombre_max_hashage = math.pow(2,n_bit+m_bit)
@@ -44,10 +46,10 @@ class Morpion:
                                }
         Morpion.__HASH_TABLE = table
 
-    @staticmethod
-    def hash_move(move):
+    @classmethod
+    def hash_move(cls,move):
         i,j,race=move
-        return Morpion.__HASH_TABLE[i][j][race]
+        return cls.__HASH_TABLE[i][j][race]
 
     def whos_turn(self):
         """ Renvoie le joueur qui a la main.

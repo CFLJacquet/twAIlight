@@ -54,12 +54,12 @@ class SommetDuJeu:
                 for move in dic_moves[old_positions]:
                     is_vamp = not self.is_vamp
                     # Création du sommet fils
-                    M = Map(map_content=self.etat)
+                    M = Map(initial_positions=self.etat)
                     new_child_vertice = SommetDuJeu(is_vamp=is_vamp,game_map=self.etat.__copy__(self.etat),horizon=self.expected_horizon)
                     new_child_vertice.played_moves = self.played_moves
                     # On met la partie du sommet fils à jour
                     new_child_vertice.played_moves = self.played_moves + [move]
-                    new_child_vertice.etat.update_and_compute([move])
+                    new_child_vertice.etat.compute_moves([move])
                     new_child_vertice.horizon = self.horizon + 1
 
                     new_child_vertice.expected_horizon = self.expected_horizon
