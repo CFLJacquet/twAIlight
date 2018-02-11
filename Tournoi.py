@@ -12,8 +12,8 @@ from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Map8 import Map8
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
-MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-#MAPS = {"Dust_2": MapDust2}
+#MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
+MAPS = {"MapTheTrap": MapTheTrap}
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"AlgoAleatoire":AlgoAleatoireInterne,"AlgoMinMax":AlgoMinMaxH2}

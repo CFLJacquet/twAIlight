@@ -19,7 +19,7 @@ class AlgoMinMaxH2(JoueurInterne):
 
     """
     def next_moves(self,show_map=False):
-        horizon=2
+        horizon=3
         if show_map: self.map.print_map()
         sommet = SommetDuJeu(horizon=horizon,game_map=self.map,is_vamp=self.is_vamp)
         new_moves = [sommet.next_move()]
