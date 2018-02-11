@@ -3,7 +3,7 @@ import time
 from collections import defaultdict
 
 # Nos algorithmes
-from Morpion.Sommet_du_jeu_Aleatoire import SommetDuJeuAleatoire
+from Morpion.Sommet_du_Jeu_Aleatoire import SommetDuJeuAleatoire
 from Morpion.Sommet_du_Jeu_MinMax import SommetDuJeuMinMax
 from Morpion.Sommet_du_Jeu_AlphaBeta import SommetDuJeuAlphaBeta
 from Morpion.Sommet_du_Jeu_AlphaBeta_A_star import SommetDuJeuAlphaBetaAstar

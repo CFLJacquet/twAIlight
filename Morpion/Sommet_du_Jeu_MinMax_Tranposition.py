@@ -103,10 +103,10 @@ class SommetDuJeuMinMaxTransposition:
 
         # On sélectionne le noeud fils selon sa race
         if self.is_ami:
-            print([child.MinValue() for child in self.children])
+
             next_child = max(self.children, key=lambda x: x.MinValue())
         else:
-            print([child.MaxValue() for child in self.children])
+
             next_child = min(self.children, key=lambda x: x.MaxValue())
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
@@ -118,8 +118,7 @@ if __name__ == "__main__":
     sommet = SommetDuJeuMinMaxTransposition()
 
     moves = []
-    i=0
-    while not sommet.map.game_over() and i<1:
+    while not sommet.map.game_over():
         print(sommet.map)
         print("{} joue".format(sommet.is_ami))
 
@@ -128,11 +127,10 @@ if __name__ == "__main__":
         sommet = SommetDuJeuMinMaxTransposition(is_ami=not sommet.is_ami)
         sommet.map.add_moves(moves)
 
-        i+=1
     print(sommet.map)
     print("Vainqueur : {}".format(sommet.map.winner()))
 
     print("{} sommets ont été créés pour les besoins de cette simulation.".format(
         SommetDuJeuMinMaxTransposition.nb_vertices_created()))
 
-    print(SommetDuJeuMinMaxTransposition.transposition_table())
+    print(f"taille de la table de transposition {len(SommetDuJeuMinMaxTransposition.transposition_table())}")

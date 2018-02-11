@@ -18,13 +18,21 @@ class Morpion:
 
     @classmethod
     def init_hash_table(cls):
+        """ Méthode de hashage d'un élément de la carte en s'inspirant du hashage de Zobrist.
+        https://en.wikipedia.org/wiki/Zobrist_hashing
+
+        :return:
+        """
         table = {}
         x_max = 3 # Nombre de colonnes
         y_max = 3 # Nombre de lignes
         n_race =2 # Nombre de type de pions
         N_max=1 # Effectif maximal d'une case
 
-        n_bit = math.floor(math.log(x_max*y_max*n_race*N_max))# Nombre de bit sur lequel coder au minimum les positions
+        # On calcule le nombre de cartes différentes possibles
+        N_cartes_possible=1*1 # case vide avec une population possibles
+        N_cartes_possible+=n_race*N
+        n_bit = math.floor(math.log(((n_race+1)*N_max)**(x_max*y_max))/math.log(2))# Nombre de bit sur lequel coder au minimum les positions
         m_bit =5 # Marge sur la taille de l'entier pour éviter les collisions
 
         nombre_max_hashage = math.pow(2,n_bit+m_bit)
@@ -268,7 +276,7 @@ class Morpion:
 
         :return:
         """
-        res = "-------\n"
+        res = "\n-------\n"
         for j in range(3):
             for i in range(3):
                 res += '|'
@@ -289,4 +297,30 @@ if __name__ == "__main__":
     print(a.hash)
     print(a.hash_move((1,1,True))^a.hash_move((1,2,False)))
 
+    # Test collision
+    table={}
+    morpion=Morpion()
+    table[morpion.hash]=morpion
+    to_visit=[(morpion, morpion.next_possible_moves())]
+    count=1
+    different_set=set()
+    different_set.add(morpion.__repr__())
+    while to_visit:
+        carte, next_moves=to_visit.pop()
+        for next_move in next_moves:
+            next_carte = Morpion()
+            moves=carte.previous_moves+[next_move]
+            next_carte.add_moves(moves)
+            if next_carte.hash in table:
+                if table[next_carte.hash].__repr__() != next_carte.__repr__():
+                    print("collisions !")
+                    print(table[next_carte.hash])
+                    print(next_carte)
+            table[next_carte.hash]=next_carte
+            count+=1
+            different_set.add(next_carte.__repr__())
+            if next_carte.next_possible_moves():
+                to_visit.append((next_carte, next_carte.next_possible_moves()))
+    print(count)
+    print(len(different_set))
 
