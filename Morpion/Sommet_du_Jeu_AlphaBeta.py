@@ -1,49 +1,18 @@
-from Morpion.Map_Morpion import Morpion
+from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 
 
-class SommetDuJeuAlphaBeta:
+class SommetDuJeuAlphaBeta(SommetDuJeu):
     __vertices_created = 0
 
     def __init__(self, is_ami=True):
+        SommetDuJeu.__init__(self, is_ami)
         SommetDuJeuAlphaBeta.__vertices_created += 1
-        self._children = list()
         self._alpha = None
         self._beta = None
-        self._score = None
-        self.etat = Morpion()
-        self.is_ami = is_ami
 
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
-
-    @property
-    def score(self):
-        if self._score is None:
-            self._score = self.etat.state_evaluation()
-        return self._score
-
-    @property
-    def children(self):
-        # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        if self._children:
-            return self._children
-        # Si la liste est vide alors on la recalcule
-        else:
-            for move in self.etat.next_possible_moves():
-                next_ami = not self.is_ami
-
-                # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBeta(next_ami)  # Je dois avoir des fils de la même classe
-
-                # On met la partie du sommet fils à jour
-                moves = self.etat.previous_moves + [move]
-                new_child_vertice.etat.add_moves(moves)
-
-                # On ajoute ce fils complété dans la liste des fils du noeud actuel
-                self._children.append(new_child_vertice)
-
-            return self._children
 
     @property
     def alpha(self):
@@ -141,21 +110,4 @@ class SommetDuJeuAlphaBeta:
 
 if __name__ == "__main__":
 
-    sommet = SommetDuJeuAlphaBeta()
-
-    moves = []
-
-    while not sommet.etat.game_over():
-        print(sommet.etat)
-        print("{} joue".format(sommet.is_ami))
-
-        moves += [sommet.next_move()]
-
-        sommet = SommetDuJeuAlphaBeta(is_ami=not sommet.is_ami)
-        sommet.etat.add_moves(moves)
-
-    print(sommet.etat)
-    print("Vainqueur : {}".format(sommet.etat.winner()))
-
-    print("{} sommets ont été créés pour les besoins de cette simulation.".format(
-        SommetDuJeuAlphaBeta.nb_vertices_created()))
+    SommetDuJeuAlphaBeta.game_on()
