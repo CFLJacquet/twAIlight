@@ -54,7 +54,7 @@ class Map:
         # On calcule le nombre de cartes différentes possibles
 
         # avec 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
-        N_possible_maps = 2 * Map.count_cartes_possible(n_monster_max+sum_human_pop, x_max*y_max)
+        N_possible_maps = 2 * Map.count_cartes_possible(n_monster_max + sum_human_pop, x_max * y_max)
 
         # ... + les cartes possibles grâce aux humains
         N_possible_maps += N_possible_map_hum
@@ -98,11 +98,14 @@ class Map:
         :param n_cases: nombre de cases sur la carte
         :return: compte de cartes
         """
-        count_cartes=0
-        for n_mons in range(1,n_monstres+1):
-            count_cartes+=Map.count_repartition(n_mons, n_cases)
+        count_cartes = 0
+
+        # On somme les nombres de répartitions à n_mons monstres en faisant varier n_mons
+        for n_mons in range(1, n_monstres + 1):
+            count_cartes += Map.count_repartition(n_mons, n_cases)
 
         return count_cartes
+
     @classmethod
     def test_collisions(cls):
         """ Affiche des collisions détectées
@@ -126,7 +129,7 @@ class Map:
             carte, next_moves = to_visit.pop()
             for move in next_moves:
                 child = deepcopy(carte)
-                child.update_positions([move])
+                child.compute_moves([move])
                 if child.hash in seen_hashes:
                     if child.content != seen_hashes[child.hash].content:
                         print("Collisions")
@@ -223,7 +226,7 @@ class Map:
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
 
             # On hash la nouvelle position
-            self._hash ^= self.hash_position((i, j, n_hum, n_vamp, n_lg))
+            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
 
     def __copy__(self, objet):
         t = deepcopy(objet)
@@ -269,7 +272,6 @@ class Map:
                 new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
         return new_pos
 
-
     def state_evaluation(self, is_vamp):
         total = 0
         for x_y in self.content:
@@ -297,6 +299,10 @@ class Map:
         battles_to_run = defaultdict(int)
         for i, j, n, x, y in moves:
             # Libération des cases sources
+
+            # On déhash l'ancienne position
+            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+
             if is_vamp:  # le joueur est un vampire
                 self.content[(i, j)] = (0, self.content[(i, j)][1] - n, 0)
 
@@ -328,10 +334,16 @@ class Map:
                 # On enregistre la bataille
                 battles_to_run[(x, y)] += n
 
+            # On hash la nouvelle position à jour
+            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+
         # On traite les batailles enregistrées
         for x, y in battles_to_run:
             n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
             n_hum, n_vamp, n_lg = self.content[(x, y)]  # Populations initiales de la case cible
+
+            # On déhash l'ancienne position
+            self._hash ^= self.hash_position((x, y, *self.content[(x, y)]))
 
             ######################## Bataille Humain vs Monstre ##################
 
@@ -426,6 +438,9 @@ class Map:
 
                         if self.debug_mode:
                             print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
+
+            # On hash la nouvelle position à jour
+            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
 
         # Remplissage de la liste UPD à partir des modifications de la carte
         for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
@@ -580,4 +595,3 @@ if __name__ == "__main__":
     print(carte.hash)
 
     Map.test_collisions()
-
