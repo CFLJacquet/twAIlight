@@ -14,13 +14,13 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
     def nb_vertices_created(cls):
         return cls.__vertices_created
 
-    @property
-    def alpha(self):
+
+    def alpha(self, depth):
         """ Récupère la valeur maximale des bornes inférieures (alpha) des noeuds fils.
 
         :return: float
         """
-        if self.map.game_over():
+        if self.map.game_over() or depth==0:
             return self.score
         else:
             for move in self.map.next_possible_moves():
@@ -34,7 +34,7 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
                 new_child_vertice.alpha = self._alpha
 
                 # On éxécute la méthode lecture de l'attribut alpha sur ce fils
-                new_alpha = new_child_vertice.beta
+                new_alpha = new_child_vertice.beta(depth-1)
 
                 if self._alpha is None:
                     self._alpha = new_alpha
@@ -49,17 +49,13 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
 
             return self._alpha
 
-    @alpha.setter
-    def alpha(self, value):
-        self._alpha = value
 
-    @property
-    def beta(self):
+    def beta(self, depth):
         """ Récupère la valeur minimale des bornes supérieures des noeuds fils.
 
         :return: float
         """
-        if self.map.game_over():
+        if self.map.game_over()or depth==0:
             return self.score
         else:
             for move in self.map.next_possible_moves():
@@ -72,7 +68,7 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
                 new_child_vertice.map.add_moves(moves)
                 new_child_vertice.beta = self._beta
                 # On éxécute la méthode lecture de l'attribut alpha sur ce fils
-                new_beta = new_child_vertice.alpha
+                new_beta = new_child_vertice.alpha(depth-1)
 
                 if self._beta is None:
                     self._beta = new_beta
@@ -87,9 +83,6 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
 
             return self._beta
 
-    @beta.setter
-    def beta(self, value):
-        self._beta = value
 
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.
@@ -100,9 +93,9 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
 
         # On sélectionne le noeud fils selon sa race
         if self.is_ami:
-            next_child = max(self.children, key=lambda child: child.beta)
+            next_child = max(self.children, key=lambda child: child.beta(10))
         else:
-            next_child = min(self.children, key=lambda child: child.alpha)
+            next_child = min(self.children, key=lambda child: child.alpha(10))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.map.previous_moves[-1]

@@ -8,16 +8,21 @@ from Morpion.Sommet_du_Jeu_MinMax import SommetDuJeuMinMax
 from Morpion.Sommet_du_Jeu_AlphaBeta import SommetDuJeuAlphaBeta
 from Morpion.Sommet_du_Jeu_AlphaBeta_A_star import SommetDuJeuAlphaBetaAstar
 from Morpion.Sommet_du_Jeu_MinMax_Tranposition import SommetDuJeuMinMaxTransposition
+from Morpion.Sommet_du_Jeu_NegaMax_Transposition_A_star_Iterative import NegaMaxAstar
+from Morpion.Sommet_du_Jeu_NegaMax_Transposition_Iterative import NegaMax
+
 
 ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
-         'MinMax': SommetDuJeuMinMax,
-         'AlphaBeta': SommetDuJeuAlphaBeta,
-         'AlphaBetaAstar':SommetDuJeuAlphaBetaAstar,
-         'MinMax_Transposition':SommetDuJeuMinMaxTransposition
+         #'MinMax': SommetDuJeuMinMax,
+         #'AlphaBeta': SommetDuJeuAlphaBeta,
+         #'AlphaBetaAstar':SommetDuJeuAlphaBetaAstar,
+         'MinMax_Transposition':SommetDuJeuMinMaxTransposition,
+         'Negamax_A_Start':NegaMaxAstar,
+         'Negamax':NegaMax
          }
 
 # Nombre de parties à jouer par duel
-N_GAME = 1
+N_GAME = 10
 
 
 def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
@@ -122,13 +127,11 @@ def main():
                 else:
                     result[algo_1_name][algo_2_name]['V'] += 1
 
-    # Affichage des résultats du tournoi
-    for algo_1 in result:
-        for algo_2 in result[algo_1]:
-            vic = result[algo_1][algo_2]["V"]
-            draw = result[algo_1][algo_2]["N"]
-            los = result[algo_1][algo_2]["D"]
-            print(f"Match {algo_1} vs {algo_2}: score {vic}V {draw}N {los}D")
+            # Affichage des résultats du tournoi
+            vic = result[algo_1_name][algo_2_name]["V"]
+            draw = result[algo_1_name][algo_2_name]["N"]
+            los = result[algo_1_name][algo_2_name]["D"]
+            print(f"Match {algo_1_name} vs {algo_2_name}: score {vic}V {draw}N {los}D")
 
     # Affichage du nombre de sommets créés pour chaque algorithme
     print()

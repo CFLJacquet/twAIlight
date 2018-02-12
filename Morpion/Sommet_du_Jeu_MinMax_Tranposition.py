@@ -27,34 +27,34 @@ class SommetDuJeuMinMaxTransposition(SommetDuJeu):
         SommetDuJeuMinMaxTransposition.__transposion_table[self.map.hash] = score
 
     # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
-    def MinValue(self):
+    def MinValue(self, depth):
         score_from_tt = self.get_score_tt()
 
         if score_from_tt is not None:
             return score_from_tt
 
-        if self.map.game_over():
+        if self.map.game_over() or depth==0:
             self.set_score_tt(self.score)
             return self.score
 
         else:
-            children_scores = [child.MaxValue() for child in self.children]
+            children_scores = [child.MaxValue(depth-1) for child in self.children]
             min_value = min(children_scores)
             self.set_score_tt(min_value)
             return min_value
 
-    def MaxValue(self):
+    def MaxValue(self, depth):
 
         score_from_tt = self.get_score_tt()
         if score_from_tt is not None:
             return score_from_tt
 
-        if self.map.game_over():
+        if self.map.game_over() or depth ==0:
             self.set_score_tt(self.score)
             return self.score
 
         else:
-            children_scores = [child.MinValue() for child in self.children]
+            children_scores = [child.MinValue(depth-1) for child in self.children]
             max_value = max(children_scores)
             self.set_score_tt(max_value)
             return max_value
@@ -71,9 +71,9 @@ class SommetDuJeuMinMaxTransposition(SommetDuJeu):
 
         # On sélectionne le noeud fils selon sa race
         if self.is_ami:
-            next_child = max(self.children, key=lambda x: x.MinValue())
+            next_child = max(self.children, key=lambda x: x.MinValue(10))
         else:
-            next_child = min(self.children, key=lambda x: x.MaxValue())
+            next_child = min(self.children, key=lambda x: x.MaxValue(10))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.map.previous_moves[-1]
