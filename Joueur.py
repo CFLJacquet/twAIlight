@@ -95,7 +95,7 @@ class Joueur(Thread):
                     positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                 if self.debug_mode: print(positions)
 
-                self.map.update_positions(positions)  # On met à jour notre carte à partir des informations du serveur
+                self.map.create_positions(positions)  # On met à jour notre carte à partir des informations du serveur
                 # On peut maintenant connaitre notre race, grâce aux infos sur la carte et notre case de départ
                 self.define_race()
                 print(self.name + " is a " + ("vampire" if self.is_vamp else "werewolf"))
@@ -209,10 +209,7 @@ class Joueur(Thread):
         :param map_size: (n,m) dimension de la carte
         :return: None
         """
-        map_content = {}
-        for i, j in product(range(map_size[0]), range(map_size[1])):
-            map_content[(i, j)] = (0, 0, 0)
-        self.map = Map(map_size=map_size, initial_positions=map_content)
+        self.map = Map(map_size=map_size)
 
     def init_game(self):
         """ Initialise les attributs du joueur pour commencer une partie
@@ -242,14 +239,6 @@ class Joueur(Thread):
         On a assez d'informations, pour s'en passer."""
         pass
 
-    def state_evaluation(self):
-        """
-        Une fonction pour évaluer la qualité d'un état pour notre joueurs.
-        Il faut aussi faire les combats dans cette fonction
-        """
-        evaluation=0
-        return 1
-
 
     def next_moves(self, show_map=True):
         """ Fonction pour faire bouger nos armées. Il y une probabilité aléatoire uniforme de se déplacer sur les cases
@@ -258,7 +247,6 @@ class Joueur(Thread):
         :param show_map: permet d'afficher la carte comprise pour un joueur. Très utile pour les parties avec le serveur du
         projet
         """
-        print("Alea is looking for a move")
         moves = []
         if self.is_vamp:  # Le joueur est un loup-garou
             starting_positions = [x_y for x_y in self.map.content if self.map.content[x_y][1] != 0]

@@ -107,9 +107,9 @@ class Morpion:
             op_o = self.open_positions(False)
         return op_o - op_c
 
-    def open_positions(self, player):
+    def open_positions(self, is_vamp):
         count = 0
-        other_player = not player
+        other_player = not is_vamp
 
         for i in range(3):
             # Quoiqu'il arrive on ajoute toutes les lignes blanches ou colonnes blanche

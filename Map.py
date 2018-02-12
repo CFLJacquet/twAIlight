@@ -39,8 +39,8 @@ class Map:
         # On cherche à connaitre nos constantes sur les effectifs des espèces en présence
         x_max, y_max = map_size
 
-        sum_human_pop = 0 # Somme des populations d'humains sur la carte
-        n_monster_max = 0 # Population maximale d'une espèce de monstre
+        sum_human_pop = 0  # Somme des populations d'humains sur la carte
+        n_monster_max = 0  # Population maximale d'une espèce de monstre
 
         N_possible_map_hum = 1  # Le nombre de cartes possibles uniquement avec des humains (1 comme neutre multiplicatif)
 
@@ -117,12 +117,12 @@ class Map:
 
         to_visit = [(carte, carte.next_possible_moves(is_vamp=True))]
         to_visit.append((carte, carte.next_possible_moves(is_vamp=False)))
-        i=0
-        count_collision=0
-        while to_visit and i<n_test:
-            i+=1
+        i = 0
+        count_collision = 0
+        while to_visit and i < n_test:
+            i += 1
             carte, next_moves = to_visit.pop()
-            for pos,moves in next_moves.items():
+            for pos, moves in next_moves.items():
                 for move in moves:
                     child = deepcopy(carte)
                     child.compute_moves([move])
@@ -134,7 +134,7 @@ class Map:
                             seen_hashes[child.hash].print_map()
                             print(seen_hashes[child.hash].hash)
 
-                            count_collision+=1
+                            count_collision += 1
                             break
                     if child.next_possible_moves(is_vamp=True):
                         to_visit.append((child, child.next_possible_moves(is_vamp=True)))
@@ -145,7 +145,8 @@ class Map:
     @classmethod
     def N_MONSTER_MAX(cls):
         return cls.__N_MONSTER_MAX
-    def __init__(self, map_size=None, initial_positions=None, debug_mode=False):
+
+    def __init__(self, map_size=None, initial_positions=list(), debug_mode=False):
         """
         Initialise la carte
         :param map_size: dimensions de la carte
@@ -154,15 +155,16 @@ class Map:
         """
         # Par Défaut Carte The Trap
         if map_size is None:
-            map_size = (3, 3)
-        self.size = map_size
+            self.size = (3, 3)
+        else:
+            self.size = map_size
         void_content = {}
-        for i, j in product(range(map_size[0]), range(map_size[1])):
+        for i, j in product(range(self.size[0]), range(self.size[1])):
             void_content[(i, j)] = (0, 0, 0)
         self._content = void_content
         self._hash = 0
 
-        if initial_positions is None:
+        if initial_positions == [] and map_size is None:
             initial_positions = [(0, 1, 0, 1, 0), (2, 1, 0, 0, 1)]  # 1 vampire et 1 loup-garou
 
         # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
@@ -219,6 +221,16 @@ class Map:
                 elements.append((*x_y, *self.content[x_y]))  # On crée le quintuplet
                 n += 1
         return n, elements
+
+    def create_positions(self, positions):
+        """ Crée la carte à partir de la commande MAP reçu par le joueur
+
+        :param liste de quintuplets de la forme (i,j,n_hum, h_vampire, n_loup_garou) avec i,j les coordonnées de la case
+        :return: None
+        """
+
+        Map.init_map_class(self.size, positions)
+        self.update_positions(positions)
 
     def update_positions(self, positions):
         """
@@ -283,17 +295,17 @@ class Map:
 
     def state_evaluation(self):
 
-        if self.game_over(): # Si la partie est terminée
-            if self.winner() is None: # Match nul
+        if self.game_over():  # Si la partie est terminée
+            if self.winner() is None:  # Match nul
                 return 0
-            elif self.winner(): # Vampire gagne
+            elif self.winner():  # Vampire gagne
                 return Map.__N_MONSTER_MAX
-            else: # Loup-garou gagne
+            else:  # Loup-garou gagne
                 return - Map.__N_MONSTER_MAX
 
         n_hum, n_vamp, n_lg = self.populations()
 
-        return n_vamp - n_lg # Score pour une partie en cours
+        return n_vamp - n_lg  # Score pour une partie en cours
 
     def compute_moves(self, moves):
         """
@@ -454,7 +466,7 @@ class Map:
                             print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
 
             # On hash la nouvelle position à jour
-            self._hash ^= self.hash_position((x, y *self.content[(x, y)]))
+            self._hash ^= self.hash_position((x, y * self.content[(x, y)]))
 
         # Remplissage de la liste UPD à partir des modifications de la carte
         for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
@@ -605,7 +617,7 @@ if __name__ == "__main__":
     carte.print_map()
     print(carte.hash)
 
-    carte.compute_moves([(0,1,1,0,0)])
+    carte.compute_moves([(0, 1, 1, 0, 0)])
     carte.print_map()
 
     print(carte.hash)

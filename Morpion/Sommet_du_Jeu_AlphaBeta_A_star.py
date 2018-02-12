@@ -12,8 +12,8 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
     """
     __vertices_created = 0
 
-    def __init__(self, is_ami=True):
-        super().__init__(is_ami)
+    def __init__(self, is_vamp=True):
+        super().__init__(is_vamp)
         SommetDuJeuAlphaBetaAstar.__vertices_created += 1
         self._alpha = None
         self._beta = None
@@ -26,7 +26,7 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
     def children(self):
 
         children = super().children
-        if self.is_ami:
+        if self.is_vamp:
             # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
             self._children = sorted(children, key=lambda child: child.score)
         else:
@@ -98,7 +98,7 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
         """
 
         # On sélectionne le noeud fils selon sa race
-        if self.is_ami:
+        if self.is_vamp:
             next_child = max(self.children, key=lambda child: child.beta(10))
         else:
             next_child = min(self.children, key=lambda child: child.alpha(10))

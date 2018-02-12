@@ -17,12 +17,12 @@ ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
          #'AlphaBeta': SommetDuJeuAlphaBeta,
          #'AlphaBetaAstar':SommetDuJeuAlphaBetaAstar,
          'MinMax_Transposition':SommetDuJeuMinMaxTransposition,
-         'Negamax_A_Start':NegaMaxAstar,
-         'Negamax':NegaMax
+         #'Negamax_A_Start':NegaMaxAstar,
+         #'Negamax':NegaMax
          }
 
 # Nombre de parties à jouer par duel
-N_GAME = 10
+N_GAME = 100
 
 
 def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):

@@ -5,8 +5,8 @@ class SommetDuJeuMinMaxTransposition(SommetDuJeu):
     __vertices_created = 0
     __transposion_table = {}
 
-    def __init__(self, is_ami=True):
-        super().__init__(is_ami)
+    def __init__(self, is_vamp=True):
+        super().__init__(is_vamp)
         SommetDuJeuMinMaxTransposition.__vertices_created += 1
 
     @classmethod
@@ -70,10 +70,10 @@ class SommetDuJeuMinMaxTransposition(SommetDuJeu):
         """
 
         # On sélectionne le noeud fils selon sa race
-        if self.is_ami:
-            next_child = max(self.children, key=lambda x: x.MinValue(10))
+        if self.is_vamp:
+            next_child = max(self.children, key=lambda x: x.MinValue(5))
         else:
-            next_child = min(self.children, key=lambda x: x.MaxValue(10))
+            next_child = min(self.children, key=lambda x: x.MaxValue(5))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.map.previous_moves[-1]

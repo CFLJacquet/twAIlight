@@ -2,10 +2,10 @@ from Morpion.Map_Morpion import Morpion
 
 
 class SommetDuJeu:
-    def __init__(self, is_ami=True):
+    def __init__(self, is_vamp=True):
         self._children = list()
         self.map = Morpion()
-        self.is_ami = is_ami
+        self.is_vamp = is_vamp
         self._score = None
 
     @property
@@ -22,7 +22,7 @@ class SommetDuJeu:
         # Si la liste est vide alors on la recalcule
         else:
             for move in self.map.next_possible_moves():
-                next_ami = not self.is_ami
+                next_ami = not self.is_vamp
 
                 # Création du sommet fils
                 new_child_vertice = self.__class__(next_ami)
@@ -45,11 +45,11 @@ class SommetDuJeu:
 
         while not sommet.map.game_over():
             print(sommet.map)
-            print("{} joue".format(sommet.is_ami))
+            print("{} joue".format(sommet.is_vamp))
 
             moves += [sommet.next_move()]
 
-            sommet = cls(is_ami=not sommet.is_ami)
+            sommet = cls(is_ami=not sommet.is_vamp)
             sommet.map.add_moves(moves)
 
         print(sommet.map)

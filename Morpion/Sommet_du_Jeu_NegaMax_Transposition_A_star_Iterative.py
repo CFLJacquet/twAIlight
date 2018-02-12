@@ -5,8 +5,8 @@ class NegaMaxAstar(SommetDuJeu):
     __vertices_created = 0
     __transposion_table = {}
 
-    def __init__(self, is_ami=True):
-        super().__init__(is_ami)
+    def __init__(self, is_vamp=True):
+        super().__init__(is_vamp)
         NegaMaxAstar.__vertices_created += 1
 
     @classmethod
@@ -30,7 +30,7 @@ class NegaMaxAstar(SommetDuJeu):
     def children(self):
 
         children = super().children
-        if self.is_ami:
+        if self.is_vamp:
             # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
             self._children = sorted(children, key=lambda child: child.score)
         else:
@@ -40,7 +40,7 @@ class NegaMaxAstar(SommetDuJeu):
 
     def principal_variation_search(self, depth, alpha, beta):
         alphaOrig = alpha
-        color = 1 if self.is_ami else -1
+        color = 1 if self.is_vamp else -1
 
         flag, value, depth_tt = self.get_transposition_table()
 

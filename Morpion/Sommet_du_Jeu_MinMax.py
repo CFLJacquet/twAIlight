@@ -4,8 +4,8 @@ from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 class SommetDuJeuMinMax(SommetDuJeu):
     __vertices_created = 0
 
-    def __init__(self, is_ami=True):
-        SommetDuJeu.__init__(self, is_ami)
+    def __init__(self, is_vamp=True):
+        SommetDuJeu.__init__(self, is_vamp)
         SommetDuJeuMinMax.__vertices_created += 1
 
     @classmethod
@@ -36,7 +36,7 @@ class SommetDuJeuMinMax(SommetDuJeu):
         """
 
         # On sélectionne le noeud fils selon sa race
-        if self.is_ami:
+        if self.is_vamp:
             next_child = max(self.children, key=lambda x: x.MinValue(10))
         else:
 

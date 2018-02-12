@@ -4,8 +4,8 @@ from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 class SommetDuJeuAlphaBeta(SommetDuJeu):
     __vertices_created = 0
 
-    def __init__(self, is_ami=True):
-        SommetDuJeu.__init__(self, is_ami)
+    def __init__(self, is_vamp=True):
+        SommetDuJeu.__init__(self, is_vamp)
         SommetDuJeuAlphaBeta.__vertices_created += 1
         self._alpha = None
         self._beta = None
@@ -26,7 +26,7 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
             for move in self.map.next_possible_moves():
 
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_ami)  # Je dois avoir des fils de la même classe
+                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_vamp)  # Je dois avoir des fils de la même classe
 
                 # On met la partie du sommet fils à jour
                 moves = self.map.previous_moves + [move]
@@ -61,7 +61,7 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
             for move in self.map.next_possible_moves():
 
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_ami)  # Je dois avoir des fils de la même classe
+                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_vamp)  # Je dois avoir des fils de la même classe
 
                 # On met la partie du sommet fils à jour
                 moves = self.map.previous_moves + [move]
@@ -92,7 +92,7 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
         """
 
         # On sélectionne le noeud fils selon sa race
-        if self.is_ami:
+        if self.is_vamp:
             next_child = max(self.children, key=lambda child: child.beta(10))
         else:
             next_child = min(self.children, key=lambda child: child.alpha(10))

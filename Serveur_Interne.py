@@ -37,9 +37,6 @@ class ServeurInterne(Thread):
         :param print_map: (boolean) si vrai affiche la carte du jeu à chaque tour
         """
         super().__init__()
-        print(name1)
-        print(name2)
-        print("husici")
         self.queue_server_p1 = Queue()  # Queue de communication serveur vers joueur 1
         self.queue_server_p2 = Queue()  # Queue de communication serveur vers joueur 2
         self.queue_p1_server = Queue()  # Queue de communication joueur 1 vers serveur
@@ -108,12 +105,12 @@ class ServeurInterne(Thread):
             # Tour suivant
             self.round_nb += 1
 
+            # Affichage de la carte
+            if self.print_map: self.map.print_map()
+
             # On affiche l'espèce qui doit jouer
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
-
-            # Affichage de la carte
-            if self.print_map: self.map.print_map()
 
             if self.debug_mode: print('Server : Map updated')
 
@@ -124,8 +121,9 @@ class ServeurInterne(Thread):
 
                 # match nul
                 if self.map.winner() is None:
-                    # On commence une nouvelle partie
+                    print('Server : Close Game')
                     self.start_new_game()
+                    print('Server : Starting a new game')
                     continue
 
                 # joueur 1 gagne
@@ -161,16 +159,19 @@ class ServeurInterne(Thread):
                 print("Server : {} gagne !".format(self.player_1.name))
                 break
 
+            # Mise à jour de la carte à partir des mouvements proposés par le joueur 2
+            self.map.compute_moves(moves)
+
+
+            # Affichage de la carte
+            if self.print_map: self.map.print_map()
+
             self.round_nb += 1  # Tour suivant
             # Affichage du tour et de l'expèce qui doit jouer
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
-            # Mise à jour de la carte à partir des mouvements proposés par le joueur 2
-            self.map.compute_moves(moves)
 
-            # Affichage de la carte
-            if self.print_map: self.map.print_map()
 
             # Cas : la partie est terminée
             if self.map.game_over() or self.is_game_too_long():
@@ -361,8 +362,8 @@ class ServeurInterne(Thread):
 
 
 if __name__ == "__main__":
-    serveur = ServeurInterne(Map, JoueurInterne, JoueurInterne, name2="Player2")
-    serveur.debug_mode = False
+    serveur = ServeurInterne(Map, JoueurInterne, JoueurInterne, name2="Player2", debug_mode=True)
+    serveur.debug_mode = True
     serveur.print_map = True
     serveur.start()
     serveur.join()

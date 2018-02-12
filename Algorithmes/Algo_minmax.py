@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from copy import deepcopy
 from Joueur import Joueur
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
@@ -19,9 +19,9 @@ class AlgoMinMaxH2(JoueurInterne):
 
     """
     def next_moves(self,show_map=False):
-        horizon=3
+        horizon=5
         if show_map: self.map.print_map()
-        sommet = SommetDuJeu(horizon=horizon,game_map=self.map,is_vamp=self.is_vamp)
+        sommet = SommetDuJeu(depth=horizon, game_map=deepcopy(self.map), is_vamp=self.is_vamp)
         new_moves = [sommet.next_move()]
         return new_moves
 

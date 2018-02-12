@@ -5,8 +5,8 @@ class NegaMax(SommetDuJeu):
     __vertices_created = 0
     __transposion_table = {}
 
-    def __init__(self, is_ami=True):
-        super().__init__(is_ami)
+    def __init__(self, is_vamp=True):
+        super().__init__(is_vamp)
         NegaMax.__vertices_created += 1
 
     @classmethod
@@ -34,7 +34,7 @@ class NegaMax(SommetDuJeu):
 
     def principal_variation_search(self, depth, alpha, beta):
         alphaOrig = alpha
-        color = 1 if self.is_ami else -1
+        color = 1 if self.is_vamp else -1
 
         flag, value, depth_tt = self.get_transposition_table()
 
