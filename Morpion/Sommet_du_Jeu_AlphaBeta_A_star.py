@@ -1,7 +1,7 @@
-from Morpion.Map_Morpion import Morpion
+from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 
 
-class SommetDuJeuAlphaBetaAstar:
+class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
     """ Graphe de jeu proche du AlphaBeta
     On ordonne les noeuds qui sont visités pour commencer par les plus prometteurs
     (avec la fonction d'évaluation de la carte)
@@ -13,52 +13,26 @@ class SommetDuJeuAlphaBetaAstar:
     __vertices_created = 0
 
     def __init__(self, is_ami=True):
+        super().__init__(is_ami)
         SommetDuJeuAlphaBetaAstar.__vertices_created += 1
-        self._children = list()
         self._alpha = None
         self._beta = None
-        self._score = None
-        self.map = Morpion()
-        self.is_ami = is_ami
 
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
 
     @property
-    def score(self):
-        if self._score is None:
-            self._score = self.map.state_evaluation()
-        return self._score
-
-    @property
     def children(self):
-        # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        if self._children:
-            return self._children
-        # Si la liste est vide alors on la recalcule
+
+        children = super().children
+        if self.is_ami:
+            # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
+            self._children = sorted(children, key=lambda child: child.score)
         else:
-            for move in self.map.next_possible_moves():
-                next_ami = not self.is_ami
-
-                # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBetaAstar(next_ami)  # Je dois avoir des fils de la même classe
-
-                # On met la partie du sommet fils à jour
-                moves = self.map.previous_moves + [move]
-                new_child_vertice.map.add_moves(moves)
-
-                # On ajoute ce fils complété dans la liste des fils du noeud actuel
-                self._children.append(new_child_vertice)
-
-
-            if self.is_ami:
-                # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
-                self._children=sorted(self._children, key=lambda child: child.score)
-            else:
-                # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
-                self._children=sorted(self._children, key=lambda child: -child.score)
-            return self._children
+            # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
+            self._children = sorted(children, key=lambda child: -child.score)
+        return self._children
 
     @property
     def alpha(self):
@@ -143,22 +117,4 @@ class SommetDuJeuAlphaBetaAstar:
 
 
 if __name__ == "__main__":
-
-    sommet = SommetDuJeuAlphaBetaAstar()
-
-    moves = []
-
-    while not sommet.map.game_over():
-        print(sommet.map)
-        print("{} joue".format(sommet.is_ami))
-
-        moves += [sommet.next_move()]
-
-        sommet = SommetDuJeuAlphaBetaAstar(is_ami=not sommet.is_ami)
-        sommet.map.add_moves(moves)
-
-    print(sommet.map)
-    print("Vainqueur : {}".format(sommet.map.winner()))
-
-    print("{} sommets ont été créés pour les besoins de cette simulation.".format(
-        SommetDuJeuAlphaBetaAstar.nb_vertices_created()))
+    SommetDuJeuAlphaBetaAstar.game_on()

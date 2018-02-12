@@ -38,8 +38,9 @@ class Map:
 
         # On cherche à connaitre nos constantes sur les effectifs des espèces en présence
         x_max, y_max = map_size
-        sum_human_pop = 0
-        n_monster_max = 0
+
+        sum_human_pop = 0 # Somme des populations d'humains sur la carte
+        n_monster_max = 0 # Population maximale d'une espèce de monstre
 
         N_possible_map_hum = 1  # Le nombre de cartes possibles uniquement avec des humains (1 comme neutre multiplicatif)
 

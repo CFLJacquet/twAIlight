@@ -17,7 +17,7 @@ ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
          }
 
 # Nombre de parties à jouer par duel
-N_GAME = 4
+N_GAME = 1
 
 
 def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
@@ -93,7 +93,7 @@ def main():
             result[algo_1_name][algo_2_name] = {'V': 0, 'N': 0, 'D': 0}
 
             # On joue les N_GAME/2 parties
-            for _ in range(N_GAME//2):
+            for _ in range(N_GAME- (N_GAME//2)):
                 game_winner, duration_1, duration_2 = run_a_game(algo_1, algo_2)
 
                 # on enregistre les temps d'éxécution des joueurs

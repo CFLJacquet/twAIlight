@@ -1,6 +1,7 @@
 import random
 import math
 
+
 class Morpion:
     """
     Equivalent de la classe Map sur le jeu des Vampires vs Loups-garous.
@@ -14,7 +15,7 @@ class Morpion:
         self.previous_moves = list()  # contenu du plateau, dans l'ordre dans lequel les pions sont joués
         if Morpion.__HASH_TABLE is None:
             Morpion.init_hash_table()
-        self._hash=0
+        self._hash = 0
 
     @classmethod
     def init_hash_table(cls):
@@ -24,20 +25,21 @@ class Morpion:
         :return: None
         """
         table = {}
-        x_max = 3 # Nombre de colonnes
-        y_max = 3 # Nombre de lignes
-        n_race =2 # Nombre de type de pions
-        
-        N_max=1 # Effectif maximal d'une case
+        x_max = 3  # Nombre de colonnes
+        y_max = 3  # Nombre de lignes
+        n_race = 2  # Nombre de type de pions
+
+        N_max = 1  # Effectif maximal d'une case
 
         # On calcule le nombre de cartes différentes possibles
-        N_cartes_possibles=1*1 # Sur une case on peut avoir une case vide avec une population de 1 ...
-        N_cartes_possibles+=n_race*N_max # ... ou n_race types de joueurs différents avec N_max effectifs sur cette case
-        N_cartes_possibles**=(x_max*y_max) # ... et cela sur toutes les cases
-        n_bit = math.floor(math.log(N_cartes_possibles)/math.log(2))# Nombre de bit sur lequel coder au minimum les positions
-        m_bit =5 # Marge sur la taille de l'entier pour éviter les collisions
+        N_cartes_possibles = 1 * 1  # Sur une case on peut avoir une case vide avec une population de 1 ...
+        N_cartes_possibles += n_race * N_max  # ... ou n_race types de joueurs différents avec N_max effectifs sur cette case
+        N_cartes_possibles **= (x_max * y_max)  # ... et cela sur toutes les cases
+        n_bit = math.floor(
+            math.log(N_cartes_possibles) / math.log(2))  # Nombre de bit sur lequel coder au minimum les positions
+        m_bit = 5  # Marge sur la taille de l'entier pour éviter les collisions
 
-        nombre_max_hashage = math.pow(2,n_bit+m_bit)
+        nombre_max_hashage = math.pow(2, n_bit + m_bit)
         for i in range(x_max):
             table[i] = {}
             for j in range(y_max):
@@ -47,8 +49,8 @@ class Morpion:
         Morpion.__HASH_TABLE = table
 
     @classmethod
-    def hash_move(cls,move):
-        i,j,race=move
+    def hash_move(cls, move):
+        i, j, race = move
         return cls.__HASH_TABLE[i][j][race]
 
     def whos_turn(self):
@@ -83,7 +85,7 @@ class Morpion:
             player = self.whos_turn()
 
         self.previous_moves.append((i, j, player))
-        self._hash^=Morpion.__HASH_TABLE[i][j][player]
+        self._hash ^= Morpion.__HASH_TABLE[i][j][player]
 
     def state_evaluation(self):
         """ Renvoie l'évaluation d'une carte Morpion pour le joueur actuel
@@ -294,35 +296,34 @@ class Morpion:
 
 if __name__ == "__main__":
     a = Morpion()
-    a.add_move((1,1,True))
-    a.add_move((1,2,False))
+    a.add_move((1, 1, True))
+    a.add_move((1, 2, False))
     print(a.hash)
-    print(a.hash_move((1,1,True))^a.hash_move((1,2,False)))
+    print(a.hash_move((1, 1, True)) ^ a.hash_move((1, 2, False)))
 
     # Test collision
-    table={}
-    morpion=Morpion()
-    table[morpion.hash]=morpion
-    to_visit=[(morpion, morpion.next_possible_moves())]
-    count=1
-    different_set=set()
+    table = {}
+    morpion = Morpion()
+    table[morpion.hash] = morpion
+    to_visit = [(morpion, morpion.next_possible_moves())]
+    count = 1
+    different_set = set()
     different_set.add(morpion.__repr__())
     while to_visit:
-        carte, next_moves=to_visit.pop()
+        carte, next_moves = to_visit.pop()
         for next_move in next_moves:
             next_carte = Morpion()
-            moves=carte.previous_moves+[next_move]
+            moves = carte.previous_moves + [next_move]
             next_carte.add_moves(moves)
             if next_carte.hash in table:
                 if table[next_carte.hash].__repr__() != next_carte.__repr__():
                     print("collisions !")
                     print(table[next_carte.hash])
                     print(next_carte)
-            table[next_carte.hash]=next_carte
-            count+=1
+            table[next_carte.hash] = next_carte
+            count += 1
             different_set.add(next_carte.__repr__())
             if next_carte.next_possible_moves():
                 to_visit.append((next_carte, next_carte.next_possible_moves()))
     print(count)
     print(len(different_set))
-
