@@ -4,26 +4,26 @@ from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 class SommetDuJeuMinMax(SommetDuJeu):
     __vertices_created = 0
 
-    def __init__(self, is_ami=True):
-        SommetDuJeu.__init__(self, is_ami)
+    def __init__(self, is_vamp=True):
+        SommetDuJeu.__init__(self, is_vamp)
         SommetDuJeuMinMax.__vertices_created += 1
 
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
 
-    def MinValue(self):
-        if self.etat.game_over():
+    def MinValue(self, depth):
+        if self.map.game_over()or depth==0:
             return self.score
         else:
-            children_scores = [child.MaxValue() for child in self.children]
+            children_scores = [child.MaxValue(depth-1) for child in self.children]
             return min(children_scores)
 
-    def MaxValue(self):
-        if self.etat.game_over():
+    def MaxValue(self,depth):
+        if self.map.game_over()or depth==0:
             return self.score
         else:
-            children_scores = [child.MinValue() for child in self.children]
+            children_scores = [child.MinValue(depth-1) for child in self.children]
             return max(children_scores)
 
     def next_move(self):
@@ -36,16 +36,15 @@ class SommetDuJeuMinMax(SommetDuJeu):
         """
 
         # On sélectionne le noeud fils selon sa race
-        if self.is_ami:
-            next_child = max(self.children, key=lambda x: x.MinValue())
+        if self.is_vamp:
+            next_child = max(self.children, key=lambda x: x.MinValue(10))
         else:
 
-            next_child = min(self.children, key=lambda x: x.MaxValue())
+            next_child = min(self.children, key=lambda x: x.MaxValue(10))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
-        return next_child.etat.previous_moves[-1]
+        return next_child.map.previous_moves[-1]
 
 
 if __name__ == "__main__":
-
     SommetDuJeuMinMax.game_on()

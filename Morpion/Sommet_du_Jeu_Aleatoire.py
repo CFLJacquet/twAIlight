@@ -5,8 +5,8 @@ from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 class SommetDuJeuAleatoire(SommetDuJeu):
     __vertices_created = 0
 
-    def __init__(self, is_ami=True):
-        SommetDuJeu.__init__(self, is_ami)
+    def __init__(self, is_vamp=True):
+        SommetDuJeu.__init__(self, is_vamp)
         SommetDuJeuAleatoire.__vertices_created += 1
 
     @classmethod
@@ -19,7 +19,7 @@ class SommetDuJeuAleatoire(SommetDuJeu):
         :return: le prochain mouvement
         """
 
-        return random.choice(list(self.etat.next_possible_moves()))
+        return random.choice(list(self.map.next_possible_moves()))
 
 
 if __name__ == "__main__":

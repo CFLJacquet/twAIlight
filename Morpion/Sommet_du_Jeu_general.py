@@ -2,18 +2,16 @@ from Morpion.Map_Morpion import Morpion
 
 
 class SommetDuJeu:
-
-    def __init__(self, is_ami=True):
+    def __init__(self, is_vamp=True):
         self._children = list()
-        self.etat = Morpion()
-        self.is_ami = is_ami
+        self.map = Morpion()
+        self.is_vamp = is_vamp
         self._score = None
-
 
     @property
     def score(self):
         if self._score is None:
-            self._score = self.etat.state_evaluation()
+            self._score = self.map.state_evaluation()
         return self._score
 
     @property
@@ -23,15 +21,15 @@ class SommetDuJeu:
             return self._children
         # Si la liste est vide alors on la recalcule
         else:
-            for move in self.etat.next_possible_moves():
-                next_ami = not self.is_ami
+            for move in self.map.next_possible_moves():
+                next_ami = not self.is_vamp
 
                 # Création du sommet fils
                 new_child_vertice = self.__class__(next_ami)
 
                 # On met la partie du sommet fils à jour
-                moves = self.etat.previous_moves + [move]
-                new_child_vertice.etat.add_moves(moves)
+                moves = self.map.previous_moves + [move]
+                new_child_vertice.map.add_moves(moves)
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
                 self._children.append(new_child_vertice)
@@ -45,17 +43,17 @@ class SommetDuJeu:
 
         moves = []
 
-        while not sommet.etat.game_over():
-            print(sommet.etat)
-            print("{} joue".format(sommet.is_ami))
+        while not sommet.map.game_over():
+            print(sommet.map)
+            print("{} joue".format(sommet.is_vamp))
 
             moves += [sommet.next_move()]
 
-            sommet = cls(is_ami=not sommet.is_ami)
-            sommet.etat.add_moves(moves)
+            sommet = cls(is_ami=not sommet.is_vamp)
+            sommet.map.add_moves(moves)
 
-        print(sommet.etat)
-        print("Vainqueur : {}".format(sommet.etat.winner()))
+        print(sommet.map)
+        print("Vainqueur : {}".format(sommet.map.winner()))
 
         print("{} sommets ont été créés pour les besoins de cette simulation.".format(
             cls.nb_vertices_created()))

@@ -1,18 +1,38 @@
 from Morpion.Sommet_du_Jeu_general import SommetDuJeu
 
 
-class SommetDuJeuAlphaBeta(SommetDuJeu):
+class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
+    """ Graphe de jeu proche du AlphaBeta
+    On ordonne les noeuds qui sont visités pour commencer par les plus prometteurs
+    (avec la fonction d'évaluation de la carte)
+    On réduit le nombre de sommets créés de -34%,
+    mais cela coute +44% en temps de calcul (heuristique d'évaluation est chère)
+    On peut s'attendre à de meilleurs résultats sur le jeu des vampires vs loup-garous,
+    car il existe des heuristiques assez simples.
+    """
     __vertices_created = 0
 
     def __init__(self, is_vamp=True):
-        SommetDuJeu.__init__(self, is_vamp)
-        SommetDuJeuAlphaBeta.__vertices_created += 1
+        super().__init__(is_vamp)
+        SommetDuJeuAlphaBetaAstar.__vertices_created += 1
         self._alpha = None
         self._beta = None
 
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
+
+    @property
+    def children(self):
+
+        children = super().children
+        if self.is_vamp:
+            # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
+            self._children = sorted(children, key=lambda child: child.score)
+        else:
+            # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
+            self._children = sorted(children, key=lambda child: -child.score)
+        return self._children
 
 
     def alpha(self, depth):
@@ -23,18 +43,12 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
         if self.map.game_over() or depth==0:
             return self.score
         else:
-            for move in self.map.next_possible_moves():
+            for child in self.children:
 
-                # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_vamp)  # Je dois avoir des fils de la même classe
-
-                # On met la partie du sommet fils à jour
-                moves = self.map.previous_moves + [move]
-                new_child_vertice.map.add_moves(moves)
-                new_child_vertice.alpha = self._alpha
+                child.alpha = self._alpha
 
                 # On éxécute la méthode lecture de l'attribut alpha sur ce fils
-                new_alpha = new_child_vertice.beta(depth-1)
+                new_alpha = child.beta(depth-1)
 
                 if self._alpha is None:
                     self._alpha = new_alpha
@@ -49,26 +63,19 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
 
             return self._alpha
 
-
     def beta(self, depth):
         """ Récupère la valeur minimale des bornes supérieures des noeuds fils.
 
         :return: float
         """
-        if self.map.game_over()or depth==0:
+        if self.map.game_over() or depth==0:
             return self.score
         else:
-            for move in self.map.next_possible_moves():
+            for child in self.children:
 
-                # Création du sommet fils
-                new_child_vertice = SommetDuJeuAlphaBeta(not self.is_vamp)  # Je dois avoir des fils de la même classe
-
-                # On met la partie du sommet fils à jour
-                moves = self.map.previous_moves + [move]
-                new_child_vertice.map.add_moves(moves)
-                new_child_vertice.beta = self._beta
+                child.beta = self._beta
                 # On éxécute la méthode lecture de l'attribut alpha sur ce fils
-                new_beta = new_child_vertice.alpha(depth-1)
+                new_beta = child.alpha(depth-1)
 
                 if self._beta is None:
                     self._beta = new_beta
@@ -82,7 +89,6 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
                     self._beta = new_beta
 
             return self._beta
-
 
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.
@@ -102,4 +108,4 @@ class SommetDuJeuAlphaBeta(SommetDuJeu):
 
 
 if __name__ == "__main__":
-    SommetDuJeuAlphaBeta.game_on()
+    SommetDuJeuAlphaBetaAstar.game_on()

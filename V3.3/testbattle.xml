@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Map Rows="3" Columns="3">
-    <Vampires X="0" Y="0" Count="1"/>
-    <Vampires X="1" Y="0" Count="1"/>
-    <Vampires X="2" Y="0" Count="1"/>
-    <Vampires X="2" Y="1" Count="1"/>
-    <Vampires X="2" Y="2" Count="1"/>
-    <Vampires X="1" Y="2" Count="1"/>
-    <Vampires X="0" Y="2" Count="1"/>
-    <Vampires X="0" Y="1" Count="1"/>
-    <Werewolves X="1" Y="1" Count="3"/>
+<Map Rows="4" Columns="4">
+  <Vampires X="0" Y="1" Count="8"/>
+  <Werewolves X="1" Y="1" Count="8"/>
 </Map>

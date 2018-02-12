@@ -1,3 +1,7 @@
+import random
+import math
+
+
 class Morpion:
     """
     Equivalent de la classe Map sur le jeu des Vampires vs Loups-garous.
@@ -5,9 +9,49 @@ class Morpion:
     Les joueurs sont soit True soit False.
 
     Par défaut, True commence"""
+    __HASH_TABLE = None
 
     def __init__(self):
         self.previous_moves = list()  # contenu du plateau, dans l'ordre dans lequel les pions sont joués
+        if Morpion.__HASH_TABLE is None:
+            Morpion.init_hash_table()
+        self._hash = 0
+
+    @classmethod
+    def init_hash_table(cls):
+        """ Méthode de hashage d'un élément de la carte en s'inspirant du hashage de Zobrist.
+        https://en.wikipedia.org/wiki/Zobrist_hashing
+
+        :return: None
+        """
+        table = {}
+        x_max = 3  # Nombre de colonnes
+        y_max = 3  # Nombre de lignes
+        n_race = 2  # Nombre de type de pions
+
+        N_max = 1  # Effectif maximal d'une case
+
+        # On calcule le nombre de cartes différentes possibles
+        N_cartes_possibles = 1 * 1  # Sur une case on peut avoir une case vide avec une population de 1 ...
+        N_cartes_possibles += n_race * N_max  # ... ou n_race types de joueurs différents avec N_max effectifs sur cette case
+        N_cartes_possibles **= (x_max * y_max)  # ... et cela sur toutes les cases
+        n_bit = math.floor(
+            math.log(N_cartes_possibles) / math.log(2))  # Nombre de bit sur lequel coder au minimum les positions
+        m_bit = 5  # Marge sur la taille de l'entier pour éviter les collisions
+
+        nombre_max_hashage = math.pow(2, n_bit + m_bit)
+        for i in range(x_max):
+            table[i] = {}
+            for j in range(y_max):
+                table[i][j] = {1: random.randint(0, nombre_max_hashage),
+                               0: random.randint(0, nombre_max_hashage)
+                               }
+        Morpion.__HASH_TABLE = table
+
+    @classmethod
+    def hash_move(cls, move):
+        i, j, race = move
+        return cls.__HASH_TABLE[i][j][race]
 
     def whos_turn(self):
         """ Renvoie le joueur qui a la main.
@@ -41,11 +85,11 @@ class Morpion:
             player = self.whos_turn()
 
         self.previous_moves.append((i, j, player))
+        self._hash ^= Morpion.__HASH_TABLE[i][j][player]
 
     def state_evaluation(self):
         """ Renvoie l'évaluation d'une carte Morpion pour le joueur actuel
 
-        :param curr_player: race du joueur actuel (boolean)
         :return: score de l'évaluation
         """
 
@@ -63,9 +107,9 @@ class Morpion:
             op_o = self.open_positions(False)
         return op_o - op_c
 
-    def open_positions(self, player):
+    def open_positions(self, is_vamp):
         count = 0
-        other_player = not player
+        other_player = not is_vamp
 
         for i in range(3):
             # Quoiqu'il arrive on ajoute toutes les lignes blanches ou colonnes blanche
@@ -76,10 +120,10 @@ class Morpion:
                 # On parcourt ensuite les état qui pourraient donner lieu à une victoire
 
         # print("Je ne garde que mes états")
-        # print([state for state in self.etat if state[2]!=other_player])
+        # print([state for state in self.map if state[2]!=other_player])
         for i in [state for state in self.previous_moves if state[2] != other_player]:
             # si une ligne n'est occupée que par nos pions, c'est une victoire potentielle
-            # print([k[0] for k in self.etat if k!=i and k[2]==other_player])
+            # print([k[0] for k in self.map if k!=i and k[2]==other_player])
             if i[0] not in [k[0] for k in self.previous_moves if k != i and k[2] == other_player]:
                 count = count + 1
             # Si une colonne n'est occupée que par nos pions c'est aussi une victoire potentielle
@@ -227,12 +271,16 @@ class Morpion:
 
         return False
 
+    @property
+    def hash(self):
+        return self._hash
+
     def __repr__(self):
         """ Représente le plateau du Morpion
 
         :return:
         """
-        res = "-------\n"
+        res = "\n-------\n"
         for j in range(3):
             for i in range(3):
                 res += '|'
@@ -244,3 +292,38 @@ class Morpion:
                     res += " "
             res += '|\n-------\n'
         return res
+
+
+if __name__ == "__main__":
+    a = Morpion()
+    a.add_move((1, 1, True))
+    a.add_move((1, 2, False))
+    print(a.hash)
+    print(a.hash_move((1, 1, True)) ^ a.hash_move((1, 2, False)))
+
+    # Test collision
+    table = {}
+    morpion = Morpion()
+    table[morpion.hash] = morpion
+    to_visit = [(morpion, morpion.next_possible_moves())]
+    count = 1
+    different_set = set()
+    different_set.add(morpion.__repr__())
+    while to_visit:
+        carte, next_moves = to_visit.pop()
+        for next_move in next_moves:
+            next_carte = Morpion()
+            moves = carte.previous_moves + [next_move]
+            next_carte.add_moves(moves)
+            if next_carte.hash in table:
+                if table[next_carte.hash].__repr__() != next_carte.__repr__():
+                    print("collisions !")
+                    print(table[next_carte.hash])
+                    print(next_carte)
+            table[next_carte.hash] = next_carte
+            count += 1
+            different_set.add(next_carte.__repr__())
+            if next_carte.next_possible_moves():
+                to_visit.append((next_carte, next_carte.next_possible_moves()))
+    print(count)
+    print(len(different_set))
