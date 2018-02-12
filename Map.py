@@ -55,7 +55,7 @@ class Map:
         # On calcule le nombre de cartes différentes possibles
 
         # avec 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
-        N_possible_maps = 2 * Map.count_cartes_possible(n_monster_max + sum_human_pop, x_max * y_max)
+        N_possible_maps = 2 * Map.count_cartes_possibles(n_monster_max + sum_human_pop, x_max * y_max)
 
         # ... + les cartes possibles grâce aux humains
         N_possible_maps += N_possible_map_hum
@@ -77,38 +77,30 @@ class Map:
         cls.__HASH_TABLE = table
 
     @staticmethod
-    def count_repartition(n_monstres, n_cases):
+    def count_cartes_possibles(n_monstres, n_cases):
         """ Renvoie le nombre de répartitions possibles sur une carte de n_cases avec n_monstres
 
         :param n_monstres: nombre de monstres à répartir
         :param n_cases: nombre de cases sur la carte
         :return: compte de cartes
         """
-        if n_monstres == 1:
-            return n_cases
-        elif n_cases == 1:
-            return 1
-        else:
-            return Map.count_repartition(n_monstres - 1, n_cases) + Map.count_repartition(n_monstres, n_cases - 1)
+        dict_res = {}
+        for i in range(1, n_monstres + 1):
+            dict_res[(i, 1)] = 1
+        for j in range(2, n_cases + 1):
+            dict_res[(1, j)] = j
 
-    @staticmethod
-    def count_cartes_possible(n_monstres, n_cases):
-        """ Renvoie le nombre de répartitions possibles sur une carte de n_cases avec au moins n_monstres
-
-        :param n_monstres: nombre de monstres à répartir
-        :param n_cases: nombre de cases sur la carte
-        :return: compte de cartes
-        """
-        count_cartes = 0
-
-        # On somme les nombres de répartitions à n_mons monstres en faisant varier n_mons
+        for n_case in range(2, n_cases + 1):
+            for n_mons in range(2, n_monstres + 1):
+                dict_res[(n_mons, n_case)] = dict_res[(n_mons - 1, n_case)] + dict_res[(n_mons, n_case - 1)]
+        sum_cartes = 0
         for n_mons in range(1, n_monstres + 1):
-            count_cartes += Map.count_repartition(n_mons, n_cases)
+            sum_cartes += dict_res[(n_mons, n_cases)]
 
-        return count_cartes
+        return sum_cartes
 
     @classmethod
-    def test_collisions(cls):
+    def test_collisions(cls, n_test):
         """ Affiche des collisions détectées
         Le temps de calcul peut être très long car on teste toutes les cartes possibles"""
         # Dictionnaire des hashs déjà vu, de la forme seen_hashes[hash]=carte
@@ -125,22 +117,34 @@ class Map:
 
         to_visit = [(carte, carte.next_possible_moves(is_vamp=True))]
         to_visit.append((carte, carte.next_possible_moves(is_vamp=False)))
-
-        while to_visit:
+        i=0
+        count_collision=0
+        while to_visit and i<n_test:
+            i+=1
             carte, next_moves = to_visit.pop()
-            for move in next_moves:
-                child = deepcopy(carte)
-                child.compute_moves([move])
-                if child.hash in seen_hashes:
-                    if child.content != seen_hashes[child.hash].content:
-                        print("Collisions")
-                        child.print_map()
-                        seen_hashes[carte.hash].print_map()
-                if child.next_possible_moves(is_vamp=True):
-                    to_visit.append((child, child.next_possible_moves(is_vamp=True)))
-                if child.next_possible_moves(is_vamp=False):
-                    to_visit.append((child, child.next_possible_moves(is_vamp=False)))
+            for pos,moves in next_moves.items():
+                for move in moves:
+                    child = deepcopy(carte)
+                    child.compute_moves([move])
+                    if child.hash in seen_hashes:
+                        if child.content != seen_hashes[child.hash].content:
+                            print("Collision !")
+                            child.print_map()
+                            print(child.hash)
+                            seen_hashes[child.hash].print_map()
+                            print(seen_hashes[child.hash].hash)
 
+                            count_collision+=1
+                            break
+                    if child.next_possible_moves(is_vamp=True):
+                        to_visit.append((child, child.next_possible_moves(is_vamp=True)))
+                    if child.next_possible_moves(is_vamp=False):
+                        to_visit.append((child, child.next_possible_moves(is_vamp=False)))
+        print(count_collision)
+
+    @classmethod
+    def N_MONSTER_MAX(cls):
+        return cls.__N_MONSTER_MAX
     def __init__(self, map_size=None, initial_positions=None, debug_mode=False):
         """
         Initialise la carte
@@ -155,7 +159,7 @@ class Map:
         void_content = {}
         for i, j in product(range(map_size[0]), range(map_size[1])):
             void_content[(i, j)] = (0, 0, 0)
-        self.content = void_content
+        self._content = void_content
         self._hash = 0
 
         if initial_positions is None:
@@ -173,6 +177,10 @@ class Map:
     @property
     def hash(self):
         return self._hash
+
+    @property
+    def content(self):
+        return self._content
 
     @classmethod
     def hash_position(cls, position):
@@ -273,14 +281,19 @@ class Map:
                 new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
         return new_pos
 
-    def state_evaluation(self, is_vamp):
-        total = 0
-        for x_y in self.content:
-            nbr_of_monsters = self.content[x_y][1]  # Nombre de vampires sur la case
-            nbr_of_ennemies = self.content[x_y][2]
+    def state_evaluation(self):
 
-            total = total + nbr_of_monsters - nbr_of_ennemies
-        return total
+        if self.game_over(): # Si la partie est terminée
+            if self.winner() is None: # Match nul
+                return 0
+            elif self.winner(): # Vampire gagne
+                return Map.__N_MONSTER_MAX
+            else: # Loup-garou gagne
+                return - Map.__N_MONSTER_MAX
+
+        n_hum, n_vamp, n_lg = self.populations()
+
+        return n_vamp - n_lg # Score pour une partie en cours
 
     def compute_moves(self, moves):
         """
@@ -336,7 +349,7 @@ class Map:
                 battles_to_run[(x, y)] += n
 
             # On hash la nouvelle position à jour
-            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+            self._hash ^= self.hash_position((x, y, *self.content[(x, y)]))
 
         # On traite les batailles enregistrées
         for x, y in battles_to_run:
@@ -441,7 +454,7 @@ class Map:
                             print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
 
             # On hash la nouvelle position à jour
-            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+            self._hash ^= self.hash_position((x, y *self.content[(x, y)]))
 
         # Remplissage de la liste UPD à partir des modifications de la carte
         for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
@@ -591,8 +604,15 @@ if __name__ == "__main__":
     carte = Map()
     carte.print_map()
     print(carte.hash)
-    print(carte.next_possible_moves(is_vamp=True))
+
+    carte.compute_moves([(0,1,1,0,0)])
+    carte.print_map()
+
+    print(carte.hash)
+
+    carte.compute_moves([(0, 0, 1, 0, 1)])
     carte.print_map()
     print(carte.hash)
 
-    Map.test_collisions()
+    print(carte.next_possible_moves(is_vamp=True))
+    Map.test_collisions(10000)

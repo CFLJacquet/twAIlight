@@ -55,16 +55,14 @@ class MapLigne13(Map):
 
     def __init__(self, debug_mode=False):
         map_size = (20, 20)
-        map_content = {}
-        for i, j in product(range(map_size[0]), range(map_size[1])):
-            map_content[(i, j)] = (0, 0, 0)
-
+        initial_positions=[]
         for i, j in product(range(map_size[0]), range(map_size[1] - 1)):
             if i % 2 == j % 2:
-                map_content[(i, j)] = (1, 0, 0)  # Quadrillage d'humains
-        map_content[(0, 19)] = (0, 10, 0)  # 10 vampire
-        map_content[(19, 19)] = (0, 0, 10)  # 10 loup-garou
-        super().__init__(map_size=map_size, initial_positions=map_content, debug_mode=debug_mode)
+                initial_positions.append((i, j,1, 0, 0))  # Quadrillage d'humains
+
+        initial_positions.append((0, 19, 0, 10, 0))
+        initial_positions.append((19, 19, 0, 0, 10))
+        super().__init__(map_size=map_size, initial_positions=initial_positions, debug_mode=debug_mode)
 
 
 if __name__ == "__main__":
