@@ -8,8 +8,8 @@ from Morpion.Sommet_du_Jeu_MinMax import SommetDuJeuMinMax
 from Morpion.Sommet_du_Jeu_AlphaBeta import SommetDuJeuAlphaBeta
 from Morpion.Sommet_du_Jeu_AlphaBeta_A_star import SommetDuJeuAlphaBetaAstar
 from Morpion.Sommet_du_Jeu_MinMax_Tranposition import SommetDuJeuMinMaxTransposition
-from Morpion.Sommet_du_Jeu_NegaMax_Transposition_A_star_Iterative import NegaMaxAstar
-from Morpion.Sommet_du_Jeu_NegaMax_Transposition_Iterative import NegaMax
+from Morpion.Sommet_du_Jeu_NegaMax_Transposition_A_star import NegaMaxAstar
+from Morpion.Sommet_du_Jeu_NegaMax_Transposition import NegaMax
 
 
 ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
