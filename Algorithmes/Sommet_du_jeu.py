@@ -3,32 +3,71 @@ from copy import deepcopy
 
 
 class SommetDuJeu:
+    __vertices_created = 0
+    __transposion_table = {}
+    
     def __init__(self, is_vamp=None, depth=None, game_map=None):
         self._children = list()
         self._score = None
         self.map = game_map
         self.is_vamp = is_vamp
         self.depth = depth
-        self.played_moves = list()
+        self.last_moves = list()
+        self.probabilite = 1
+        SommetDuJeu.__vertices_created+=1
+
 
     def __copy__(self, objet):
         t = deepcopy(objet)
         return t
 
+    @classmethod
+    def nb_vertices_created(cls):
+        return cls.__vertices_created
+
+    @classmethod
+    def transposition_table(cls):
+        return cls.__transposion_table
+
+    def get_score_tt(self):
+        if self.map.hash in SommetDuJeu.__transposion_table:
+            return SommetDuJeu.__transposion_table[self.map.hash]
+        else:
+            return None
+
+    def set_score_tt(self, score):
+        SommetDuJeu.__transposion_table[self.map.hash] = score
+
+
     # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
     def MinValue(self):
+        score_from_tt = self.get_score_tt()
+
+        if score_from_tt is not None:
+            return score_from_tt
+
         if self.map.game_over() or self.depth == 0:
             return self.score
         else:
             children_scores = [child.MaxValue() for child in self.children]
-            return min(children_scores)
+            min_value = min(children_scores)
+            self.set_score_tt(min_value)
+            return min_value
 
     def MaxValue(self):
+        score_from_tt = self.get_score_tt()
+
+        if score_from_tt is not None:
+            return score_from_tt
+
         if self.map.game_over() or self.depth == 0:
+            self.set_score_tt(self.score)
             return self.score
         else:
             children_scores = [child.MinValue() for child in self.children]
-            return max(children_scores)
+            max_value = max(children_scores)
+            self.set_score_tt(max_value)
+            return max_value
 
     @property
     def score(self):
@@ -43,22 +82,21 @@ class SommetDuJeu:
             return self._children
         # Si la liste est vide alors on la recalcule
         else:
-            dic_moves = self.map.next_possible_moves(self.is_vamp)
-            for old_positions in dic_moves:
-                # On parcourt la liste des anciennes Positions
-                for move in dic_moves[old_positions]:
-                    is_vamp = not self.is_vamp
+            moves = self.map.next_possible_moves(self.is_vamp)
+            for move in moves:
+                is_vamp = not self.is_vamp
 
-                    # Création du sommet fils
-                    new_child_vertice = SommetDuJeu(is_vamp=is_vamp, game_map=self.map.__copy__(self.map), depth=self.depth-1)
+                # Création du sommet fils
+                new_child_vertice = SommetDuJeu(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
+                                                depth=self.depth - 1)
 
-                    # On met la partie du sommet fils à jour
-                    new_child_vertice.played_moves = self.played_moves + [move]
-                    new_child_vertice.map.compute_moves([move])
-                    new_child_vertice.depth = self.depth - 1
+                # On met la partie du sommet fils à jour
+                new_child_vertice.last_moves = move
+                new_child_vertice.map.compute_moves(move)
+                new_child_vertice.depth = self.depth - 1
 
-                    # On ajoute ce fils complété dans la liste des fils du noeud actuel
-                    self._children.append(new_child_vertice)
+                # On ajoute ce fils complété dans la liste des fils du noeud actuel
+                self._children.append(new_child_vertice)
 
             return self._children
 
@@ -77,5 +115,4 @@ class SommetDuJeu:
             next_child = min(self.children, key=lambda x: x.MaxValue())
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
-        best_choice = next_child.played_moves[-1]
-        return best_choice
+        return next_child.last_moves

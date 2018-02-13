@@ -1,5 +1,5 @@
 import random
-from Morpion.Sommet_du_Jeu_general import SommetDuJeu
+from Morpion.Sommet_du_Jeu import SommetDuJeu
 
 
 class SommetDuJeuAleatoire(SommetDuJeu):

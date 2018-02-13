@@ -14,7 +14,7 @@ class Map:
     _______________
     |    |    |    |
     _______________
-    | 1V |    | 1W |
+    | 2V | 1H | 2W |
     _______________
     |    |    |    |
     _______________
@@ -100,49 +100,6 @@ class Map:
         return sum_cartes
 
     @classmethod
-    def test_collisions(cls, n_test):
-        """ Affiche des collisions détectées
-        Le temps de calcul peut être très long car on teste toutes les cartes possibles"""
-        # Dictionnaire des hashs déjà vu, de la forme seen_hashes[hash]=carte
-        seen_hashes = dict()
-
-        # liste des cartes à visiter avec leur prochains mouvements
-        # de la forme [(carte, carte.next_possible_moves)..]
-        to_visit = list()
-
-        # instance de carte (par défaut)
-        carte = cls()
-
-        seen_hashes[carte.hash] = carte
-
-        to_visit = [(carte, carte.next_possible_moves(is_vamp=True))]
-        to_visit.append((carte, carte.next_possible_moves(is_vamp=False)))
-        i = 0
-        count_collision = 0
-        while to_visit and i < n_test:
-            i += 1
-            carte, next_moves = to_visit.pop()
-            for pos, moves in next_moves.items():
-                for move in moves:
-                    child = deepcopy(carte)
-                    child.compute_moves([move])
-                    if child.hash in seen_hashes:
-                        if child.content != seen_hashes[child.hash].content:
-                            print("Collision !")
-                            child.print_map()
-                            print(child.hash)
-                            seen_hashes[child.hash].print_map()
-                            print(seen_hashes[child.hash].hash)
-
-                            count_collision += 1
-                            break
-                    if child.next_possible_moves(is_vamp=True):
-                        to_visit.append((child, child.next_possible_moves(is_vamp=True)))
-                    if child.next_possible_moves(is_vamp=False):
-                        to_visit.append((child, child.next_possible_moves(is_vamp=False)))
-        print(count_collision)
-
-    @classmethod
     def N_MONSTER_MAX(cls):
         return cls.__N_MONSTER_MAX
 
@@ -165,7 +122,7 @@ class Map:
         self._hash = 0
 
         if initial_positions == [] and map_size is None:
-            initial_positions = [(0, 1, 0, 1, 0), (2, 1, 0, 0, 1)]  # 1 vampire et 1 loup-garou
+            initial_positions = [(0, 1, 0, 2, 0), (1, 1, 1, 0, 0),(2, 1, 0, 0, 2)]  # 2 vampire, 1 humain, 2 loup-garou
 
         # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
         Map.init_map_class(self.size, initial_positions)
@@ -253,12 +210,14 @@ class Map:
         t = deepcopy(objet)
         return t
 
-    def next_possible_moves(self, is_vamp):
+    def next_possible_positions(self, is_vamp):
         """
-        Une fonction qui génère tous les combinaisons états possibles à partir d'une carte (8 mouvements pour chaque groupe)
+        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe)
 
-        :return: un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
+        :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
         """
+
+        new_positions = defaultdict(list)
 
         # On récupère toutes les positions initiales possibles
         if is_vamp:  # Le joueur est un loup-garou
@@ -266,32 +225,77 @@ class Map:
         else:  # Le joueur est un loup-garou
             starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
 
-        # On gère ici la possibilité pour un groupe de se séparer
-        # -> NON GERE POUR L'INSTANT
-        # TODO
-        # Definir available position
-        x_max = self.size[0]
-        y_max = self.size[1]
-        new_pos = {}
-        available_positions = {}
-        for g in starting_positions:
-            x_old, y_old = g
+        x_max, y_max = self.size
+
+        for starting_pos in starting_positions:
+            x_old, y_old = starting_pos
+
+            available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
+                                   if (i, j) != (0, 0) \
+                                   and 0 <= (x_old + i) < x_max \
+                                   and 0 <= (y_old + j) < y_max \
+                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
+                                   ]
+            for new_pos in available_positions:
+                new_positions[starting_pos].append(new_pos)
+        return new_positions
+
+    def next_possible_moves(self, is_vamp):
+        """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
+
+        :param is_vamp: race du joueur
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_position, next_positions in next_possible_positions.items():
+
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
             if is_vamp:
-                pop_of_monsters = self.content[g][1]  # Nombre de vampires sur la case
+                pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
             else:
-                pop_of_monsters = self.content[g][2]  # Nombre de loup-garous sur la case
-            available_positions[(x_old, y_old)] = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
-                                                   for j in (-1, 0, 1) \
-                                                   if (x_old + i, y_old + j) != (x_old, y_old) \
-                                                   and 0 <= (x_old + i) < x_max \
-                                                   and 0 <= (y_old + j) < y_max
-                                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
-                                                   ]
-            for new_move in available_positions[g]:
-                if g not in new_pos:
-                    new_pos[g] = []
-                new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
-        return new_pos
+                pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
+
+            repartitions = set()  # Ensemble de toutes les répartitions de monstres possibles parmi les cases disponibles
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            for repartition in product(range(pop_of_monsters + 1), repeat=n_case):
+                if sum(
+                        repartition) <= pop_of_monsters:  # Si on a réparti au plus le nombre de mosntres de la case initiale
+                    repartitions.add(repartition)
+
+            group_repartitions[starting_position] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
+
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_position][i]
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            next_possible_moves.append(moves)
+
+        # Respect de la règle 1
+        while [] in next_possible_moves:
+            next_possible_moves.remove([])
+
+        return next_possible_moves
 
     def state_evaluation(self):
 
@@ -616,15 +620,8 @@ if __name__ == "__main__":
     carte = Map()
     carte.print_map()
     print(carte.hash)
-
-    carte.compute_moves([(0, 1, 1, 0, 0)])
-    carte.print_map()
-
-    print(carte.hash)
-
-    carte.compute_moves([(0, 0, 1, 0, 1)])
-    carte.print_map()
-    print(carte.hash)
-
     print(carte.next_possible_moves(is_vamp=True))
-    Map.test_collisions(10000)
+    print(carte.next_possible_moves(is_vamp=False))
+    carte.update_positions([(0, 1, 0, 3, 0)])
+    carte.print_map()
+    print(len(carte.next_possible_moves(is_vamp=True)))

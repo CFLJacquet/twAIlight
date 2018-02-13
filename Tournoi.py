@@ -19,7 +19,7 @@ MAPS = {"Dust2": MapDust2}
 ALGOS = {"AlgoAleatoire": AlgoAleatoireInterne, "AlgoMinMax": AlgoMinMaxH2}
 
 # Nombre de parties par carte
-N_GAME = 1
+N_GAME = 10
 
 
 def main():
@@ -66,15 +66,13 @@ def main():
                 else:  # Si le joueur défendant en premier gagne
                     result[algo_1_name][algo_2_name][game_map_name][0] += 1
 
-        # Affichage des résultats du tournoi
-        for algo_att_name in result:
-            for algo_def_name in result[algo_att_name]:
-                for carte in result[algo_att_name][algo_def_name]:
-                    print("Match {0} vs {1} sur {2}: score {3}".format(algo_att_name,
-                                                                       algo_def_name,
-                                                                       carte,
-                                                                       result[algo_att_name][algo_def_name][carte])
-                          )
+                # Affichage des résultats du tournoi
+                print("Match {0} vs {1} sur {2}: score {3}".format(algo_1_name,
+                                                                   algo_2_name,
+                                                                   game_map_name,
+                                                                   result[algo_1_name][algo_2_name][game_map_name])
+                      )
+
 
 
 if __name__ == "__main__":

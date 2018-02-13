@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
-from Joueur import Joueur
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
-from Map import Map
 from Algorithmes.Sommet_du_jeu import SommetDuJeu
-from itertools import product
 from Cartes.Map_Dust2 import MapDust2
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -18,12 +15,11 @@ class AlgoMinMaxH2(JoueurInterne):
     Une réécriture de la classe JoueurInterne
 
     """
-    def next_moves(self,show_map=False):
-        horizon=5
+    def next_moves(self,show_map=True):
+        depth_max=5
         if show_map: self.map.print_map()
-        sommet = SommetDuJeu(depth=horizon, game_map=deepcopy(self.map), is_vamp=self.is_vamp)
-        new_moves = [sommet.next_move()]
-        return new_moves
+        racine = SommetDuJeu(depth=depth_max, game_map=deepcopy(self.map), is_vamp=self.is_vamp)
+        return racine.next_move()
 
 if __name__=="__main__":
     Joueur1 = AlgoAleatoireInterne
