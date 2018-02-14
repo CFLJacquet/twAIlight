@@ -375,7 +375,7 @@ class Map:
                     print("Bataille contre humains en ({},{})".format(x, y))
 
                 # cas victoire assurée
-                if n_hum < n_att:
+                if n_hum <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
                     n_conv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))  # Nombre d'humains convertis
@@ -422,7 +422,7 @@ class Map:
                 n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
 
                 # Victoire sure
-                if n_def * 1.5 < n_att:
+                if n_def * 1.5 <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
 
@@ -474,11 +474,11 @@ class Map:
         """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
         et la probabilité de la dite issue
 
-        :param moves: liste de mouvements
-        :return: liste du type [(probabilité asscoiée, liste des mises à jour de positions)...]
+        :param moves: liste de mouvements de la forme [(i,j,n,x,y),...]
+        :return: liste du type [(probabilité associée, liste des mises à jour de positions)...]
         """
         battles_to_run = defaultdict(int)
-        possible_outcomes =[]
+
         # Race du joueur
         is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
 
@@ -487,17 +487,120 @@ class Map:
         for move in moves:
             i, j, n_mons, x, y = move
             n_hum, n_vamp, n_lg = self.content[(x, y)]
-            if is_vamp and n_hum==0 and n_lg==0: # Cas mouvement amical vampire
+            if is_vamp and n_hum == 0 and n_lg == 0:  # Cas mouvement amical vampire
                 peaceful_moves.append(move)
-            elif not is_vamp and n_hum==0 and n_vamp==0: # Cas mouvement amical loup-garou
+            elif not is_vamp and n_hum == 0 and n_vamp == 0:  # Cas mouvement amical loup-garou
                 peaceful_moves.append(move)
             else:
-                battles_to_run[(x,y)]+=n_mons
+                battles_to_run[(x, y)] += n_mons
 
         # On parcourt les batailles possibles
-        for x,y in battles_to_run:
-            possible_outcomes_battle=[]
-            # TODO
+        battles_possible_outcomes = {}  # Référence pour chaque bataille les issues possibles
+        for (x, y), n_att in battles_to_run.items():
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            possible_outcomes = []
+            n_def = n_lg + n_hum if is_vamp else n_vamp + n_hum
+            proba_p = self.proba_p(n_att, n_def)
+
+            # Cas bataille contre des humains
+            if n_hum:
+                # Cas victoire assurée
+                if n_att >= n_hum:
+                    for k_surv in range(n_hum + n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
+                        proba_outcome *= 1 / pow(2, n_att + n_hum)
+                        if is_vamp:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                # Cas victoire non sure
+                else:
+                    # Si victoire des monstres
+                    proba_victory = proba_p
+                    for k_surv in range(n_hum + n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
+                        proba_outcome *= 1 / pow(2, n_att + n_hum)
+                        if is_vamp:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+
+                    # Si victoire des humains
+                    for k_surv in range(n_hum + 1):
+                        proba_outcome = pow(proba_p, n_hum - k_surv) * pow((1 - proba_p), k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum)
+                        proba_outcome *= 1 / pow(2, n_hum)
+                        possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, k_surv, 0, 0)))
+
+            # Cas bataille monstre vs monstre
+            else:
+
+                # Cas victoire sure
+                if n_att >= 1.5 * n_def:
+                    for k_surv in range(n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
+                        proba_outcome *= 1 / pow(2, n_att)
+                        if is_vamp:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                # Cas victoire non assurée
+                else:
+                    proba_victory = proba_p
+
+                    # Si victoire de l'attaquant
+                    for k_surv in range(n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
+                        proba_outcome *= 1 / pow(2, n_att)
+                        if is_vamp:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+
+                    # Si défaite de l'attaquant
+                    for k_surv in range(n_def + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_def - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_def)
+                        proba_outcome *= 1 / pow(2, n_def)
+                        if is_vamp:
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, 0, k_surv)))
+                        else:
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, k_surv, 0)))
+
+            battles_possible_outcomes[(x,y)]=possible_outcomes
+
+        # Calcul des mises à jours de positions
+        peaceful_positions_update=[]
+        for peaceful_move in peaceful_moves:
+            pass # TODO
+        possible_outcomes = []
+        # On sélectionne des combinaisons possibles d'issues de chaque bataille
+        for combined_battles_outcomes in product(*battles_possible_outcomes.values()):
+            pass # TODO
+
+    @staticmethod
+    def binomial_coefficient(k, n):
+        """ Renvoie la valeur de k parmi n (coefficient binomial)
+
+        :param k: int
+        :param n: int
+        :return: k parmi n
+        """
+        if 0 <= k <= n:
+            n_prod = 1
+            k_prod = 1
+            for t in range(1, min(k, n - k) + 1):
+                n_prod *= n
+                k_prod *= t
+                n -= 1
+            return n_prod // k_prod
+        else:
+            return 0
+
     @staticmethod
     def proba_p(n_att, n_def):
         """ Calcule et renvoie la probabilité P définie dans le sujet du Projet

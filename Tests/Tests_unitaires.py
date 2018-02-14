@@ -85,6 +85,10 @@ class TestMap(TestCase):
         for moves in carte.next_possible_moves(is_vamp=False):
             self.assertTrue(carte.is_valid_moves(moves, is_vamp=False))
 
+    def test_binomial(self):
+        self.assertEqual(Map.binomial_coefficient(10,15),3003)
+        self.assertEqual(Map.binomial_coefficient(-1,2),0)
+        self.assertEqual(Map.binomial_coefficient(29,60),114449595062769120)
 
 class TestDust2(TestCase):
     def test_methods(self):
