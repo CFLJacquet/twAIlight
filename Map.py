@@ -122,7 +122,7 @@ class Map:
         self._hash = 0
 
         if initial_positions == [] and map_size is None:
-            initial_positions = [(0, 1, 0, 2, 0), (1, 1, 1, 0, 0),(2, 1, 0, 0, 2)]  # 2 vampire, 1 humain, 2 loup-garou
+            initial_positions = [(0, 1, 0, 2, 0), (1, 1, 1, 0, 0), (2, 1, 0, 0, 2)]  # 2 vampire, 1 humain, 2 loup-garou
 
         # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
         Map.init_map_class(self.size, initial_positions)
@@ -233,9 +233,8 @@ class Map:
             available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
                                    if (i, j) != (0, 0) \
                                    and 0 <= (x_old + i) < x_max \
-                                   and 0 <= (y_old + j) < y_max \
-                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
-                                   ]
+                                   and 0 <= (y_old + j) < y_max
+                                   ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
             for new_pos in available_positions:
                 new_positions[starting_pos].append(new_pos)
         return new_positions
@@ -263,8 +262,8 @@ class Map:
 
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
             for repartition in product(range(pop_of_monsters + 1), repeat=n_case):
-                if sum(
-                        repartition) <= pop_of_monsters:  # Si on a réparti au plus le nombre de mosntres de la case initiale
+                # Si on a réparti au plus le nombre de mosntres de la case initiale
+                if sum(repartition) <= pop_of_monsters:
                     repartitions.add(repartition)
 
             group_repartitions[starting_position] = repartitions
@@ -286,30 +285,24 @@ class Map:
                     if n_mons:
                         # Position d'arrivée de ce sous-groupe de monstre
                         new_position = next_possible_positions[starting_position][i]
+
+                        # Respect de la règle 5
+                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                            continue  # On ne rajoute pas cet élément
+                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                            continue  # On ne rajoute pas cet élément
+
                         # On enregistre ce mouvement pour un groupe de monstre
                         moves.append((*starting_position, n_mons, *new_position))
 
-            next_possible_moves.append(moves)
+            if moves not in next_possible_moves:
+                next_possible_moves.append(moves)
 
         # Respect de la règle 1
         while [] in next_possible_moves:
             next_possible_moves.remove([])
 
         return next_possible_moves
-
-    def state_evaluation(self):
-
-        if self.game_over():  # Si la partie est terminée
-            if self.winner() is None:  # Match nul
-                return 0
-            elif self.winner():  # Vampire gagne
-                return Map.__N_MONSTER_MAX
-            else:  # Loup-garou gagne
-                return - Map.__N_MONSTER_MAX
-
-        n_hum, n_vamp, n_lg = self.populations()
-
-        return n_vamp - n_lg  # Score pour une partie en cours
 
     def compute_moves(self, moves):
         """
@@ -477,6 +470,34 @@ class Map:
             if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
                 self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
 
+    def evaluation_moves(self, moves):
+        """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
+        et la probabilité de la dite issue
+
+        :param moves: liste de mouvements
+        :return: liste du type [(probabilité asscoiée, liste des mises à jour de positions)...]
+        """
+        battles_to_run = defaultdict(int)
+        possible_outcomes =[]
+        # Race du joueur
+        is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
+
+        peaceful_moves = []  # Liste des nouvelles positions sans bataille
+
+        for move in moves:
+            i, j, n_mons, x, y = move
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            if is_vamp and n_hum==0 and n_lg==0: # Cas mouvement amical vampire
+                peaceful_moves.append(move)
+            elif not is_vamp and n_hum==0 and n_vamp==0: # Cas mouvement amical loup-garou
+                peaceful_moves.append(move)
+            else:
+                battles_to_run[(x,y)]+=n_mons
+
+        # On parcourt les batailles possibles
+        for x,y in battles_to_run:
+            possible_outcomes_battle=[]
+            # TODO
     @staticmethod
     def proba_p(n_att, n_def):
         """ Calcule et renvoie la probabilité P définie dans le sujet du Projet
@@ -550,6 +571,20 @@ class Map:
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
 
+    def state_evaluation(self):
+
+        if self.game_over():  # Si la partie est terminée
+            if self.winner() is None:  # Match nul
+                return 0
+            elif self.winner():  # Vampire gagne
+                return Map.__N_MONSTER_MAX
+            else:  # Loup-garou gagne
+                return - Map.__N_MONSTER_MAX
+
+        n_hum, n_vamp, n_lg = self.populations()
+
+        return n_vamp - n_lg  # Score pour une partie en cours
+
     def populations(self):
         """Renvoie les populations des différentes espèces sur la carte
 
@@ -618,10 +653,7 @@ class Map:
 
 if __name__ == "__main__":
     carte = Map()
-    carte.print_map()
-    print(carte.hash)
-    print(carte.next_possible_moves(is_vamp=True))
-    print(carte.next_possible_moves(is_vamp=False))
     carte.update_positions([(0, 1, 0, 3, 0)])
+    carte.update_positions([(0, 0, 0, 4, 0)])
     carte.print_map()
-    print(len(carte.next_possible_moves(is_vamp=True)))
+    print(carte.next_possible_moves(is_vamp=True))
