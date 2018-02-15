@@ -43,7 +43,7 @@ def main():
             # On joue les N_GAME /2 parties
             for _ in range(N_GAME - (N_GAME // 2)):
                 server_game = ServeurInterne(game_map, algo_1, algo_2, name1=algo_1_name, name2=algo_2_name,
-                                             print_map=True)
+                                             print_map=False)
                 server_game.start()
                 server_game.join()
 
@@ -56,7 +56,7 @@ def main():
             # On joue les N_GAME /2 parties en inversant l'ordre des joueurs
             for _ in range(N_GAME // 2):
                 server_game = ServeurInterne(game_map, algo_2, algo_1, name1=algo_2_name, name2=algo_1_name,
-                                             print_map=True)
+                                             print_map=False)
                 server_game.start()
                 server_game.join()
 
@@ -66,13 +66,9 @@ def main():
                 else:  # Si le joueur défendant en premier gagne
                     result[algo_1_name][algo_2_name][game_map_name][0] += 1
 
-                # Affichage des résultats du tournoi
-                print("Match {0} vs {1} sur {2}: score {3}".format(algo_1_name,
-                                                                   algo_2_name,
-                                                                   game_map_name,
-                                                                   result[algo_1_name][algo_2_name][game_map_name])
-                      )
-
+            # Affichage des résultats du tournoi
+            score = result[algo_1_name][algo_2_name][game_map_name]
+            print(f"Match sur {game_map_name} {algo_1_name} {score[0]}:{score[1]} {algo_2_name}")
 
 
 if __name__ == "__main__":

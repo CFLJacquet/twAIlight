@@ -28,10 +28,10 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
         children = super().children
         if self.is_vamp:
             # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
-            self._children = sorted(children, key=lambda child: child.score)
+            self._children = sorted(children, key=lambda child: child.evaluation)
         else:
             # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
-            self._children = sorted(children, key=lambda child: -child.score)
+            self._children = sorted(children, key=lambda child: -child.evaluation)
         return self._children
 
 
