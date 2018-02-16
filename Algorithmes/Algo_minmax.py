@@ -25,5 +25,5 @@ if __name__=="__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoMinMaxH2
     MapDust2 = MapDust2
-    Serveur=ServeurInterne(MapDust2,Joueur2,Joueur1,name2="ALEA",name1="MINIMAX", print_map=True)
+    Serveur=ServeurInterne(MapDust2,Joueur1,Joueur2,name1="ALEA",name2="MINIMAX", print_map=True, debug_mode=True)
     Serveur.start()

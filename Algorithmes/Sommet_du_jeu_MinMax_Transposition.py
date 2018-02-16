@@ -3,11 +3,13 @@ from copy import deepcopy
 
 from Algorithmes.Sommet_du_jeu import SommetDuJeu, SommetChance
 
+
 class SommetChance_MinMax(SommetChance):
     __vertices_created = 0
+
     def __init__(self, is_vamp=None, depth=None, game_map=None):
-        super().__init__(is_vamp,depth,game_map)
-        SommetChance_MinMax.__vertices_created+=1
+        super().__init__(is_vamp, depth, game_map)
+        SommetChance_MinMax.__vertices_created += 1
 
     @classmethod
     def nb_vertices_created(cls):
@@ -16,13 +18,13 @@ class SommetChance_MinMax(SommetChance):
     def MaxValue(self):
         sum_expected = 0
         for child in self.children:
-            sum_expected += child.MaxValue() * child.probability
+            sum_expected += child.MinValue() * child.probability
         return sum_expected
 
     def MinValue(self):
         sum_expected = 0
         for child in self.children:
-            sum_expected += child.MinValue() * child.probability
+            sum_expected += child.MaxValue() * child.probability
         return sum_expected
 
     @property
@@ -33,7 +35,7 @@ class SommetChance_MinMax(SommetChance):
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
                 new_child_vertice = SommetDuJeu_MinMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                depth=self.depth - 1)
+                                                       depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
@@ -45,13 +47,13 @@ class SommetChance_MinMax(SommetChance):
 
         return self._children
 
+
 class SommetDuJeu_MinMax(SommetDuJeu):
     __vertices_created = 0
     __transposion_table = {}
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
-        super().__init__(is_vamp,depth,game_map, init_map)
-
+        super().__init__(is_vamp, depth, game_map, init_map)
 
     @classmethod
     def nb_vertices_created(cls):
@@ -65,10 +67,10 @@ class SommetDuJeu_MinMax(SommetDuJeu):
         if self.map.hash in SommetDuJeu_MinMax.__transposion_table:
             return SommetDuJeu_MinMax.__transposion_table[self.map.hash]
         else:
-            return None,None
+            return None, None
 
-    def set_score_tt(self, depth,score):
-        SommetDuJeu_MinMax.__transposion_table[self.map.hash] = (depth,score)
+    def set_score_tt(self, depth, score):
+        SommetDuJeu_MinMax.__transposion_table[self.map.hash] = (depth, score)
 
     @property
     def children(self):
@@ -76,16 +78,17 @@ class SommetDuJeu_MinMax(SommetDuJeu):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-                child = SommetChance_MinMax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map.__copy__(self.map))
+                child = SommetChance_MinMax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)
         return self._children
+
     # MaxValue et MinValue vont devoir utiliser un parcours de graph type DFS
     def MinValue(self):
         depth_tt, score = self.get_score()
 
         if score is not None:
-            if depth_tt>=self.depth:
+            if depth_tt >= self.depth:
                 return score
 
         if self.map.game_over() or self.depth == 0:
@@ -101,11 +104,11 @@ class SommetDuJeu_MinMax(SommetDuJeu):
         depth_tt, score = self.get_score()
 
         if score is not None:
-            if depth_tt>=self.depth:
+            if depth_tt >= self.depth:
                 return score
 
         if self.map.game_over() or self.depth == 0:
-            self.set_score_tt(self.depth,self.evaluation)
+            self.set_score_tt(self.depth, self.evaluation)
             return self.evaluation
         else:
             children_scores = [child.MaxValue() for child in self.children]
@@ -125,7 +128,7 @@ class SommetDuJeu_MinMax(SommetDuJeu):
         if self.is_vamp:
             next_child = max(self.children, key=lambda x: x.MinValue())
         else:
-            print([(child.MaxValue(), child.previous_moves) for child in self.children])
+            #print([(child.MaxValue(), child.previous_moves) for child in self.children])
             next_child = min(self.children, key=lambda x: x.MaxValue())
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
@@ -134,10 +137,3 @@ class SommetDuJeu_MinMax(SommetDuJeu):
 
 if __name__ == '__main__':
     carte = Map()
-    carte.update_positions([(1,1,0,0,3),(2,1,0,0,0)])
-    carte.print_map()
-    chance_racine=SommetChance_MinMax(is_vamp=False,depth=3, game_map=carte)
-    chance_racine.previous_moves=[(2,1,2,1,1)]
-    print(chance_racine.MaxValue())
-    #racine=SommetDuJeu_MinMax(is_vamp=False,depth=3,game_map=Map())
-    #print(racine.next_move())
