@@ -14,7 +14,7 @@ class Map:
     _______________
     |    |    |    |
     _______________
-    | 1V |    | 1W |
+    | 2V | 1H | 2W |
     _______________
     |    |    |    |
     _______________
@@ -42,26 +42,20 @@ class Map:
         sum_human_pop = 0  # Somme des populations d'humains sur la carte
         n_monster_max = 0  # Population maximale d'une espèce de monstre
 
-        N_possible_map_hum = 1  # Le nombre de cartes possibles uniquement avec des humains (1 comme neutre multiplicatif)
-
         for i, j, n_hum, n_vamp, n_lg in initial_positions:
             sum_human_pop += n_hum
             n_monster_max = max(n_vamp, n_lg, n_monster_max)
-            if n_hum:
-                N_possible_map_hum *= n_hum
 
         cls.__N_MONSTER_MAX = n_monster_max + sum_human_pop
 
         # On calcule le nombre de cartes différentes possibles
 
         # avec 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
-        N_possible_maps = 2 * Map.count_cartes_possibles(n_monster_max + sum_human_pop, x_max * y_max)
-
-        # ... + les cartes possibles grâce aux humains
-        N_possible_maps += N_possible_map_hum
+        # le max est pour le cas de l'initialisation d'un joueur (sa carte est au départ vide)
+        N_possible_boxes = max(1,(2 * n_monster_max + 2 * sum_human_pop -1) * x_max * y_max + sum_human_pop)
 
         # Nombre de bit sur lequel coder au minimum les positions
-        n_bit = floor(log(N_possible_maps) / log(2))
+        n_bit = floor(log(N_possible_boxes) / log(2))
         # Marge sur la taille du bit de codage pour éviter les collisions
         m_bit = 10
         # Hash maximal
@@ -75,72 +69,6 @@ class Map:
             table[(i, j, 0, 0, 0)] = 0
 
         cls.__HASH_TABLE = table
-
-    @staticmethod
-    def count_cartes_possibles(n_monstres, n_cases):
-        """ Renvoie le nombre de répartitions possibles sur une carte de n_cases avec n_monstres
-
-        :param n_monstres: nombre de monstres à répartir
-        :param n_cases: nombre de cases sur la carte
-        :return: compte de cartes
-        """
-        dict_res = {}
-        for i in range(1, n_monstres + 1):
-            dict_res[(i, 1)] = 1
-        for j in range(2, n_cases + 1):
-            dict_res[(1, j)] = j
-
-        for n_case in range(2, n_cases + 1):
-            for n_mons in range(2, n_monstres + 1):
-                dict_res[(n_mons, n_case)] = dict_res[(n_mons - 1, n_case)] + dict_res[(n_mons, n_case - 1)]
-        sum_cartes = 0
-        for n_mons in range(1, n_monstres + 1):
-            sum_cartes += dict_res[(n_mons, n_cases)]
-
-        return sum_cartes
-
-    @classmethod
-    def test_collisions(cls, n_test):
-        """ Affiche des collisions détectées
-        Le temps de calcul peut être très long car on teste toutes les cartes possibles"""
-        # Dictionnaire des hashs déjà vu, de la forme seen_hashes[hash]=carte
-        seen_hashes = dict()
-
-        # liste des cartes à visiter avec leur prochains mouvements
-        # de la forme [(carte, carte.next_possible_moves)..]
-        to_visit = list()
-
-        # instance de carte (par défaut)
-        carte = cls()
-
-        seen_hashes[carte.hash] = carte
-
-        to_visit = [(carte, carte.next_possible_moves(is_vamp=True))]
-        to_visit.append((carte, carte.next_possible_moves(is_vamp=False)))
-        i = 0
-        count_collision = 0
-        while to_visit and i < n_test:
-            i += 1
-            carte, next_moves = to_visit.pop()
-            for pos, moves in next_moves.items():
-                for move in moves:
-                    child = deepcopy(carte)
-                    child.compute_moves([move])
-                    if child.hash in seen_hashes:
-                        if child.content != seen_hashes[child.hash].content:
-                            print("Collision !")
-                            child.print_map()
-                            print(child.hash)
-                            seen_hashes[child.hash].print_map()
-                            print(seen_hashes[child.hash].hash)
-
-                            count_collision += 1
-                            break
-                    if child.next_possible_moves(is_vamp=True):
-                        to_visit.append((child, child.next_possible_moves(is_vamp=True)))
-                    if child.next_possible_moves(is_vamp=False):
-                        to_visit.append((child, child.next_possible_moves(is_vamp=False)))
-        print(count_collision)
 
     @classmethod
     def N_MONSTER_MAX(cls):
@@ -165,7 +93,7 @@ class Map:
         self._hash = 0
 
         if initial_positions == [] and map_size is None:
-            initial_positions = [(0, 1, 0, 1, 0), (2, 1, 0, 0, 1)]  # 1 vampire et 1 loup-garou
+            initial_positions = [(0, 1, 0, 2, 0), (1, 1, 1, 0, 0), (2, 1, 0, 0, 2)]  # 2 vampire, 1 humain, 2 loup-garou
 
         # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
         Map.init_map_class(self.size, initial_positions)
@@ -225,7 +153,8 @@ class Map:
     def create_positions(self, positions):
         """ Crée la carte à partir de la commande MAP reçu par le joueur
 
-        :param liste de quintuplets de la forme (i,j,n_hum, h_vampire, n_loup_garou) avec i,j les coordonnées de la case
+        :param positions: liste de quintuplets de la forme (i,j,n_hum, h_vampire, n_loup_garou)
+        avec i,j les coordonnées de la case
         :return: None
         """
 
@@ -253,12 +182,14 @@ class Map:
         t = deepcopy(objet)
         return t
 
-    def next_possible_moves(self, is_vamp):
+    def next_possible_positions(self, is_vamp):
         """
-        Une fonction qui génère tous les combinaisons états possibles à partir d'une carte (8 mouvements pour chaque groupe)
+        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe)
 
-        :return: un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
+        :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
         """
+
+        new_positions = defaultdict(list)
 
         # On récupère toutes les positions initiales possibles
         if is_vamp:  # Le joueur est un loup-garou
@@ -266,46 +197,84 @@ class Map:
         else:  # Le joueur est un loup-garou
             starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
 
-        # On gère ici la possibilité pour un groupe de se séparer
-        # -> NON GERE POUR L'INSTANT
-        # TODO
-        # Definir available position
-        x_max = self.size[0]
-        y_max = self.size[1]
-        new_pos = {}
-        available_positions = {}
-        for g in starting_positions:
-            x_old, y_old = g
+        x_max, y_max = self.size
+
+        for starting_pos in starting_positions:
+            x_old, y_old = starting_pos
+
+            available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
+                                   if (i, j) != (0, 0) \
+                                   and 0 <= (x_old + i) < x_max \
+                                   and 0 <= (y_old + j) < y_max
+                                   ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
+            for new_pos in available_positions:
+                new_positions[starting_pos].append(new_pos)
+        return new_positions
+
+    def next_possible_moves(self, is_vamp):
+        """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
+
+        :param is_vamp: race du joueur
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_position, next_positions in next_possible_positions.items():
+
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
             if is_vamp:
-                pop_of_monsters = self.content[g][1]  # Nombre de vampires sur la case
+                pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
             else:
-                pop_of_monsters = self.content[g][2]  # Nombre de loup-garous sur la case
-            available_positions[(x_old, y_old)] = [(x_old + i, y_old + j) for i in (-1, 0, 1) \
-                                                   for j in (-1, 0, 1) \
-                                                   if (x_old + i, y_old + j) != (x_old, y_old) \
-                                                   and 0 <= (x_old + i) < x_max \
-                                                   and 0 <= (y_old + j) < y_max
-                                                   and (x_old + i, y_old + j) not in starting_positions  # Règle 5
-                                                   ]
-            for new_move in available_positions[g]:
-                if g not in new_pos:
-                    new_pos[g] = []
-                new_pos[g].append((x_old, y_old, pop_of_monsters, new_move[0], new_move[1]))
-        return new_pos
+                pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
 
-    def state_evaluation(self):
+            repartitions = set()  # Ensemble de toutes les répartitions de monstres possibles parmi les cases disponibles
 
-        if self.game_over():  # Si la partie est terminée
-            if self.winner() is None:  # Match nul
-                return 0
-            elif self.winner():  # Vampire gagne
-                return Map.__N_MONSTER_MAX
-            else:  # Loup-garou gagne
-                return - Map.__N_MONSTER_MAX
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            for repartition in product(range(pop_of_monsters + 1), repeat=n_case):
+                # Si on a réparti au plus le nombre de mosntres de la case initiale
+                if sum(repartition) <= pop_of_monsters:
+                    repartitions.add(repartition)
 
-        n_hum, n_vamp, n_lg = self.populations()
+            group_repartitions[starting_position] = repartitions
 
-        return n_vamp - n_lg  # Score pour une partie en cours
+        # liste des mouvements possibles par le joueur
+        next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
+
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_position][i]
+
+                        # Respect de la règle 5
+                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                            continue  # On ne rajoute pas cet élément
+                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                            continue  # On ne rajoute pas cet élément
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves not in next_possible_moves:
+                next_possible_moves.append(moves)
+
+        # Respect de la règle 1
+        while [] in next_possible_moves:
+            next_possible_moves.remove([])
+
+        return next_possible_moves
 
     def compute_moves(self, moves):
         """
@@ -378,7 +347,7 @@ class Map:
                     print("Bataille contre humains en ({},{})".format(x, y))
 
                 # cas victoire assurée
-                if n_hum < n_att:
+                if n_hum <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
                     n_conv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))  # Nombre d'humains convertis
@@ -425,7 +394,7 @@ class Map:
                 n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
 
                 # Victoire sure
-                if n_def * 1.5 < n_att:
+                if n_def * 1.5 <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
 
@@ -472,6 +441,166 @@ class Map:
         for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
             if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
                 self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
+
+    def possible_outcomes(self, moves):
+        """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
+        et la probabilité de la dite issue
+
+        :param moves: liste de mouvements de la forme [(i,j,n,x,y),...]
+        :return: liste du type [(probabilité associée, liste des mises à jour de positions)...]
+        """
+        battles_to_run = defaultdict(int)
+
+        # Race du joueur
+        is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
+
+        peaceful_moves = []  # Liste des nouvelles positions sans bataille
+
+        for move in moves:
+            i, j, n_mons, x, y = move
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            if is_vamp and n_hum == 0 and n_lg == 0:  # Cas mouvement amical vampire
+                peaceful_moves.append(move)
+            elif not is_vamp and n_hum == 0 and n_vamp == 0:  # Cas mouvement amical loup-garou
+                peaceful_moves.append(move)
+            else:
+                battles_to_run[(x, y)] += n_mons
+
+        # On parcourt les batailles possibles
+        battles_possible_outcomes = {}  # Référence pour chaque bataille les issues possibles
+        for (x, y), n_att in battles_to_run.items():
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            possible_outcomes = []
+            n_def = n_lg + n_hum if is_vamp else n_vamp + n_hum
+            proba_p = self.proba_p(n_att, n_def)
+
+            # Cas bataille contre des humains
+            if n_hum:
+                # Cas victoire assurée
+                if n_att >= n_hum:
+                    for k_surv in range(n_hum + n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
+                        if is_vamp and proba_outcome:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                        elif proba_outcome:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                # Cas victoire non sure
+                else:
+                    # Si victoire des monstres
+                    proba_victory = proba_p
+                    for k_surv in range(n_hum + n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
+                        if is_vamp:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+
+                    # Si victoire des humains
+                    for k_surv in range(n_hum + 1):
+                        proba_outcome = pow(proba_p, n_hum - k_surv) * pow((1 - proba_p), k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum)
+                        possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, k_surv, 0, 0)))
+
+            # Cas bataille monstre vs monstre
+            else:
+
+                # Cas victoire sure
+                if n_att >= 1.5 * n_def:
+                    for k_surv in range(n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
+                        if is_vamp:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                # Cas victoire non assurée
+                else:
+                    proba_victory = proba_p
+
+                    # Si victoire de l'attaquant
+                    for k_surv in range(n_att + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
+                        if is_vamp:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                        else:
+                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+
+                    # Si défaite de l'attaquant
+                    for k_surv in range(n_def + 1):
+                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_def - k_surv)
+                        proba_outcome *= self.binomial_coefficient(k_surv, n_def)
+                        if is_vamp:
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, 0, k_surv)))
+                        else:
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, k_surv, 0)))
+
+            battles_possible_outcomes[(x, y)] = possible_outcomes
+
+        # Calcul des mises à jours de positions
+
+        # On vide les cases de départ et on remplit les destinations sans conflits
+        # Par défaut, peacedul_positions_update revoie le nombre de monstre présent initialement sur la case
+
+        peaceful_positions_update = {}
+
+        # case source à vider
+        for move in moves:
+            i, j, n_mons, x, y = move
+            if (i, j) not in peaceful_positions_update:
+                peaceful_positions_update[(i, j)] = sum(self.content[(i, j)])
+            peaceful_positions_update[(i, j)] -= n_mons
+        # case destination pacifique à remplir
+        for move in peaceful_moves:
+            i, j, n_mons, x, y = move
+            if (x, y) not in peaceful_positions_update:
+                peaceful_positions_update[(x, y)] = sum(self.content[(x, y)])
+            peaceful_positions_update[(x, y)] += n_mons
+
+        # Liste des mises à jour de position triviales
+        trivial_positions_update = []
+
+        for (i, j), n_mons in peaceful_positions_update.items():
+            if is_vamp:
+                trivial_positions_update.append((i, j, 0, n_mons, 0))
+            else:
+                trivial_positions_update.append((i, j, 0, 0, n_mons))
+
+        # Notre liste en sortie
+        # De la forme [(proba_outcome, [liste des positions (i,j,n_hum,n_vamp,n_lg)...]),...]
+        possible_outcomes = []
+        # On sélectionne des combinaisons possibles d'issues de chaque bataille
+        for combined_battles_outcomes in product(*battles_possible_outcomes.values()):
+            proba_conbined_battle = 1
+            possible_outcome = list(trivial_positions_update)
+            for proba_outcome, new_battle_positions in combined_battles_outcomes:
+                proba_conbined_battle *= proba_outcome
+                possible_outcome.append(new_battle_positions)
+
+            possible_outcomes.append((proba_conbined_battle, possible_outcome))
+
+        return possible_outcomes
+
+    @staticmethod
+    def binomial_coefficient(k, n):
+        """ Renvoie la valeur de k parmi n (coefficient binomial)
+
+        :param k: int
+        :param n: int
+        :return: k parmi n
+        """
+        if 0 <= k <= n:
+            n_prod = 1
+            k_prod = 1
+            for t in range(1, min(k, n - k) + 1):
+                n_prod *= n
+                k_prod *= t
+                n -= 1
+            return n_prod // k_prod
+        else:
+            return 0
 
     @staticmethod
     def proba_p(n_att, n_def):
@@ -546,6 +675,19 @@ class Map:
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
 
+    def state_evaluation(self):
+        if self.game_over():  # Si la partie est terminée
+            if self.winner() is None:  # Match nul
+                return 0
+            elif self.winner():  # Vampire gagne
+                return Map.__N_MONSTER_MAX
+            else:  # Loup-garou gagne
+                return - Map.__N_MONSTER_MAX
+
+        n_hum, n_vamp, n_lg = self.populations()
+
+        return n_vamp - n_lg  # Score pour une partie en cours
+
     def populations(self):
         """Renvoie les populations des différentes espèces sur la carte
 
@@ -576,7 +718,7 @@ class Map:
         _, n_vamp, n_lg = self.populations()
         if n_vamp > n_lg:  # Il reste de vampires
             return True
-        elif n_lg < n_vamp:  # Il reste des loups-garous
+        elif n_lg > n_vamp:  # Il reste des loups-garous
             return False
         else:  # Autant de loups-garous ni de vampires ==> Match Nul
             return None
@@ -615,16 +757,5 @@ class Map:
 if __name__ == "__main__":
     carte = Map()
     carte.print_map()
-    print(carte.hash)
-
-    carte.compute_moves([(0, 1, 1, 0, 0)])
-    carte.print_map()
-
-    print(carte.hash)
-
-    carte.compute_moves([(0, 0, 1, 0, 1)])
-    carte.print_map()
-    print(carte.hash)
-
-    print(carte.next_possible_moves(is_vamp=True))
-    Map.test_collisions(10000)
+    moves = [(0, 1, 2, 0, 2)]
+    print(carte.possible_outcomes(moves))

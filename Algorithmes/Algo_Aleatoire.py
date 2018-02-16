@@ -13,6 +13,12 @@ class AlgoAleatoireInterne(JoueurInterne):
     """
     Joueur avec la fonction de décision aléatoire de Charles
     """
+    __vertices_created = 0
+
+    @classmethod
+    def nb_vertices_created(cls):
+        return cls.__vertices_created
+
 if __name__=="__main__":
     Joueur1=AlgoAleatoireInterne
     Joueur2 =AlgoAleatoireInterne

@@ -1,0 +1,23 @@
+Match sur Dust2 AlgoAleatoire 55:45 AlgoMinMax
+Match sur Dust2 AlgoAleatoire 50:50 AlgoNegaMax
+Match sur Dust2 AlgoAleatoire 33:67 AlgoNegaMaxOriente
+Match sur Dust2 AlgoMinMax 54:46 AlgoNegaMax
+Match sur Dust2 AlgoMinMax 35:65 AlgoNegaMaxOriente
+Match sur Dust2 AlgoNegaMax 30:70 AlgoNegaMaxOriente
+
+0. AlgoNegaMaxOriente : win rate 67.33%
+	Average play duration : 				0.04s
+	Maximum duration of a play : 			4.40s
+	Number of vertices created per play : 	1812 vertices
+1. AlgoAleatoire : win rate 46.00%
+	Average play duration : 				0.00s
+	Maximum duration of a play : 			0.06s
+	Number of vertices created per play : 	0 vertices
+2. AlgoMinMax : win rate 44.67%
+	Average play duration : 				0.08s
+	Maximum duration of a play : 			60.98s
+	Number of vertices created per play : 	49436 vertices
+3. AlgoNegaMax : win rate 42.00%
+	Average play duration : 				0.01s
+	Maximum duration of a play : 			1.05s
+	Number of vertices created per play : 	127 vertices

@@ -5,9 +5,6 @@ import time
 from Joueur_Interne import JoueurInterne
 from Map import Map
 
-PORT = 5555  # TODO à changer pour le tournoi
-HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
-
 
 class ServeurInterne(Thread):
     """
@@ -18,11 +15,11 @@ class ServeurInterne(Thread):
 
     MAX_PLAY_DURATION = None  # Temps maximal d'un tour (en seconde), si None, non pris en compte
     MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
-    MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+    # MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
     # MAX_PLAY_DURATION = 5  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
     # MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
-    # MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
+    MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
     def __init__(self, game_map_class, player_1_class, player_2_class, name1=None, name2=None, debug_mode=False,
                  print_map=True):
@@ -58,6 +55,15 @@ class ServeurInterne(Thread):
         self.play_start_time = 0  # Date de début d'un tour
         self.play_end_time = 0  # Date de fin d'un tour
 
+        # Statistiques de la partie
+        self.total_play_duration_1=0 # Temps total du joueur 1 pour réfléchir
+        self.total_play_duration_2=0 # Temps total du joueur 2 pour réfléchir
+        self.max_play_duration_1=0 # Durée maximale de réfléxion du joueur 1 pour un tour
+        self.max_play_duration_2=0 # Durée maximale de réfléxion du joueur 2 pour un tour
+        self.nb_play_1=0 # Le nombre de tours joués par le joueur 1
+        self.nb_play_2=0 # Le nombre de tours joués par le joueur 2
+
+
     def run(self):
         """
         Méthode appelée pour lancer le serveur (lorsqu'on tape *server*.start()
@@ -88,6 +94,13 @@ class ServeurInterne(Thread):
             moves = self.get_MOV(self.queue_p1_server)
 
             if self.debug_mode: print('Server : MOV received from ' + self.player_1.name)
+
+            # Enregistrement des statistiques de jeu pour le joueur 1
+            play_duration=self.play_end_time - self.play_start_time
+            self.total_play_duration_1+=play_duration
+            if play_duration> self.max_play_duration_1:
+                self.max_play_duration_1=play_duration
+            self.nb_play_1+=1
 
             # Vérification des mouvements du joueur 1 et de la durée de son tour
             if not self.map.is_valid_moves(moves, is_vamp=True) or self.is_play_too_long():
@@ -150,6 +163,13 @@ class ServeurInterne(Thread):
             # Le joueur envoie au serveur sa proposition de mouvements
             moves = self.get_MOV(self.queue_p2_server)
 
+            # Enregistrement des statistiques de jeu pour le joueur 2
+            play_duration=self.play_end_time - self.play_start_time
+            self.total_play_duration_2+=play_duration
+            if play_duration> self.max_play_duration_2:
+                self.max_play_duration_2=play_duration
+            self.nb_play_2+=1
+
             # Vérification des mouvements proposés de joueur 2
             if not self.map.is_valid_moves(moves, is_vamp=False) or self.is_play_too_long():
                 print("Server : {} a triché !".format(self.player_2.name))
@@ -162,7 +182,6 @@ class ServeurInterne(Thread):
             # Mise à jour de la carte à partir des mouvements proposés par le joueur 2
             self.map.compute_moves(moves)
 
-
             # Affichage de la carte
             if self.print_map: self.map.print_map()
 
@@ -170,8 +189,6 @@ class ServeurInterne(Thread):
             # Affichage du tour et de l'expèce qui doit jouer
             print("Server : Round " + str(self.round_nb) + " : "
                   + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
-
-
 
             # Cas : la partie est terminée
             if self.map.game_over() or self.is_game_too_long():

@@ -6,9 +6,9 @@ from collections import defaultdict
 from Morpion.Sommet_du_Jeu_Aleatoire import SommetDuJeuAleatoire
 from Morpion.Sommet_du_Jeu_MinMax import SommetDuJeuMinMax
 from Morpion.Sommet_du_Jeu_AlphaBeta import SommetDuJeuAlphaBeta
-from Morpion.Sommet_du_Jeu_AlphaBeta_A_star import SommetDuJeuAlphaBetaAstar
+from Morpion.Sommet_du_Jeu_AlphaBeta_Oriente import SommetDuJeuAlphaBetaAstar
 from Morpion.Sommet_du_Jeu_MinMax_Tranposition import SommetDuJeuMinMaxTransposition
-from Morpion.Sommet_du_Jeu_NegaMax_Transposition_A_star import NegaMaxAstar
+from Morpion.Sommet_du_Jeu_NegaMax_Transposition_Oriente import NegaMaxAstar
 from Morpion.Sommet_du_Jeu_NegaMax_Transposition import NegaMax
 
 
