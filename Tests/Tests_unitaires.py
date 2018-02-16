@@ -50,7 +50,6 @@ class TestMap(TestCase):
 
         self.assertTrue(not collision)
 
-
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -72,7 +71,6 @@ class TestMap(TestCase):
         carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
-
     def test_next_moves(self):
         """On s'intéresse à la méthode .next_possible_moves
 
@@ -87,7 +85,6 @@ class TestMap(TestCase):
         for moves in carte.next_possible_moves(is_vamp=False):
             self.assertTrue(carte.is_valid_moves(moves, is_vamp=False))
 
-
     def test_binomial(self):
         self.assertEqual(Map.binomial_coefficient(10, 15), 3003)
         self.assertEqual(Map.binomial_coefficient(-1, 2), 0)
@@ -97,13 +94,14 @@ class TestMap(TestCase):
         """ On teste si la somme des probabilités des conséquences d'un mouvement est bien égale à 1.
 
         """
-        carte=Map()
-        moves=[(0,1,1,1,1)]
-        sum_proba=sum( proba for proba,_ in carte.possible_outcomes(moves))
+        carte = Map()
+        moves = [(0, 1, 1, 1, 1)]
+        sum_proba = sum(proba for proba, _ in carte.possible_outcomes(moves))
         self.assertEqual(sum_proba, 1)
-        moves=[(0,1,2,1,1)]
-        sum_proba=sum( proba for proba,_ in carte.possible_outcomes(moves))
-        self.assertEqual(sum_proba,1)
+        moves = [(0, 1, 2, 1, 1)]
+        sum_proba = sum(proba for proba, _ in carte.possible_outcomes(moves))
+        self.assertEqual(sum_proba, 1)
+
 
 class TestDust2(TestCase):
     def test_methods(self):
@@ -125,6 +123,7 @@ class TestDust2(TestCase):
         _ = carte.content
         carte.state_evaluation()
         carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
 class TestLigne13(TestCase):
@@ -147,6 +146,7 @@ class TestLigne13(TestCase):
         _ = carte.content
         carte.state_evaluation()
         carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
 class TestMap8(TestCase):
@@ -169,6 +169,7 @@ class TestMap8(TestCase):
         _ = carte.content
         carte.state_evaluation()
         carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
 class TestMapRandom(TestCase):
@@ -176,21 +177,25 @@ class TestMapRandom(TestCase):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
         """
-        carte = MapRandom()
-        carte.next_possible_moves(is_vamp=True)
-        carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
-        carte.next_possible_positions(is_vamp=True)
-        carte.next_possible_positions(is_vamp=False)
-        carte.winner()
-        carte.game_over()
-        carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
-        carte.print_map()
-        _ = carte.hash
-        _ = carte.content
-        carte.state_evaluation()
-        carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+
+        N_Test = 5
+        for _ in range(N_Test):
+            carte = MapRandom()
+            carte.next_possible_moves(is_vamp=True)
+            carte.next_possible_moves(is_vamp=False)
+            carte.update_positions([(0, 0, 0, 0, 0)])
+            carte.next_possible_positions(is_vamp=True)
+            carte.next_possible_positions(is_vamp=False)
+            carte.winner()
+            carte.game_over()
+            carte.compute_moves([(0, 1, 1, 0, 0)])
+            carte.populations()
+            carte.print_map()
+            _ = carte.hash
+            _ = carte.content
+            carte.state_evaluation()
+            carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+            carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
 class TestMapTheTrap(TestCase):
@@ -213,6 +218,8 @@ class TestMapTheTrap(TestCase):
         _ = carte.content
         carte.state_evaluation()
         carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
+        carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
 if __name__ == '__main__':

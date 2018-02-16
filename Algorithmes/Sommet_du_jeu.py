@@ -36,7 +36,7 @@ class SommetChance:
         if self._evaluation is None:
             evaluation = 0
             for child in self.children:
-                evaluation += child.probabilite * child.evaluation
+                evaluation += child.probability * child.evaluation
             self._evaluation = evaluation
             return evaluation
         else:

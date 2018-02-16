@@ -38,7 +38,7 @@ class NegaMaxAstar(SommetDuJeu):
             self._children = sorted(children, key=lambda child: -child.evaluation)
         return self._children
 
-    def principal_variation_search(self, depth, alpha, beta):
+    def negamax(self, depth, alpha, beta):
         alphaOrig = alpha
         color = 1 if self.is_vamp else -1
 
@@ -71,13 +71,13 @@ class NegaMaxAstar(SommetDuJeu):
         bestvalue = None
         for child in self.children:
             if alpha is None and beta is None:
-                v = - child.principal_variation_search(depth - 1, None, None)
+                v = - child.negamax(depth - 1, None, None)
             elif beta is None:
-                v = - child.principal_variation_search(depth - 1, None, -alpha)
+                v = - child.negamax(depth - 1, None, -alpha)
             elif alpha is None:
-                v = - child.principal_variation_search(depth - 1, -beta, None)
+                v = - child.negamax(depth - 1, -beta, None)
             else:
-                v = - child.principal_variation_search(depth - 1, -beta, -alpha)
+                v = - child.negamax(depth - 1, -beta, -alpha)
 
             if bestvalue is None:
                 bestvalue = v
@@ -115,9 +115,9 @@ class NegaMaxAstar(SommetDuJeu):
         :return: le prochain mouvement
         """
 
-        # On sélectionne le noeud fils selon sa race
+        # On sélectionne le noeud fils
         next_child = min(self.children,
-                         key=lambda child: child.principal_variation_search(depth=10, alpha=None, beta=None))
+                         key=lambda child: child.negamax(depth=10, alpha=None, beta=None))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.map.previous_moves[-1]

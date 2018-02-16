@@ -54,6 +54,7 @@ class SommetDuJeu_MinMax(SommetDuJeu):
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
+        SommetDuJeu_MinMax.__vertices_created+=1
 
     @classmethod
     def nb_vertices_created(cls):
