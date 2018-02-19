@@ -5,9 +5,10 @@ from Serveur_Interne import ServeurInterne
 
 # Importation des algorithmes de décision
 from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
-from Algorithmes.Algo_minmax import AlgoMinMax
+from Algorithmes.Algo_MinMax import AlgoMinMax
 from Algorithmes.Algo_NegaMax import AlgoNegaMax
 from Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
+from Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
 
 # Importation des des cartes du tournoi
 from Cartes.Map_Ligne13 import MapLigne13
@@ -17,16 +18,21 @@ from Cartes.Map_Map8 import Map8
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-MAPS = {"Dust2": MapDust2}
+MAPS = {"Dust2": MapDust2,
+        #"Map8":Map8,
+        #"TheTrap":MapTheTrap
+
+        }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
-ALGOS = {"AlgoAleatoire": AlgoAleatoireInterne,
-         "AlgoMinMax": AlgoMinMax,
-         "AlgoNegaMax": AlgoNegaMax,
-         "AlgoNegaMaxOriente": AlgoNegMaxOriente}
+ALGOS = {"Aleatoire": AlgoAleatoireInterne,
+         "MinMax": AlgoMinMax,
+         "NegaMax": AlgoNegaMax,
+         "NegaMaxOriente": AlgoNegMaxOriente,
+         "Evaluation": AlgoCustomizedEvaluation}
 
 # Nombre de parties par carte
-N_GAME = 1
+N_GAME = 20
 
 
 def main():

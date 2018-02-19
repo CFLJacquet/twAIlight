@@ -66,7 +66,6 @@ class NegaMaxAstar(SommetDuJeu):
                         return value
 
         if self.map.game_over() or depth == 0:
-            # self.set_score_tt(self.score)
             return color * self.score
         bestvalue = None
         for child in self.children:

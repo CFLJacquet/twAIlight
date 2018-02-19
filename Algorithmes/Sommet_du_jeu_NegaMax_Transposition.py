@@ -49,6 +49,8 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
         SommetDuJeu_NegaMax.__vertices_created += 1
+        if init_map:
+            SommetDuJeu_NegaMax.__transposion_table={}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -85,7 +87,7 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
 
         if flag is not None:
 
-            if depth >= depth:
+            if depth >= self.depth:
                 if flag == "exact":
                     return score
                 elif flag == "lowerbound":
@@ -105,7 +107,6 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
                         return score
 
         if self.map.game_over() or self.depth == 0:
-            self.set_score_tt("exact", self.depth, self.evaluation)
             return color * self.evaluation
 
         bestvalue = None
@@ -157,13 +158,13 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
         :return: le prochain mouvement
         """
         # On sélectione le noeud fils selon sa race
-        #print([(child.negamax(None, None), child.previous_moves) for child in self.children])
         next_child = min(self.children,
                          key=lambda child: child.negamax(alpha=None, beta=None))
-        #print(next_child.negamax(None,None), next_child.previous_moves)
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.previous_moves
 
 
 if __name__ == '__main__':
     carte = Map()
+    racine= SommetDuJeu_NegaMax(depth=1, game_map=carte, is_vamp=True, init_map=True)
+    print(racine.next_move())

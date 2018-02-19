@@ -49,6 +49,8 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
         SommetDuJeu_NegaMax_Oriente.__vertices_created += 1
+        if init_map:
+            SommetDuJeu_NegaMax_Oriente.__transposion_table={}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -86,7 +88,7 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
 
         if flag is not None:
 
-            if depth >= depth:
+            if depth >= self.depth:
                 if flag == "exact":
                     return score
                 elif flag == "lowerbound":
@@ -106,7 +108,6 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
                         return score
 
         if self.map.game_over() or self.depth == 0:
-            self.set_score_tt("exact", self.depth, self.evaluation)
             return color * self.evaluation
 
         bestvalue = None

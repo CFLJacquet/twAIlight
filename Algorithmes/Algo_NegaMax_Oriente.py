@@ -20,7 +20,7 @@ class AlgoNegMaxOriente(JoueurInterne):
     """
 
     def next_moves(self, show_map=True):
-        depth_max = 2
+        depth_max = 3
         if show_map: self.map.print_map()
         racine = SommetDuJeu_NegaMax_Oriente(depth=depth_max, game_map=deepcopy(self.map), is_vamp=self.is_vamp, init_map=True)
         return racine.next_move()

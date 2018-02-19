@@ -53,8 +53,10 @@ class SommetDuJeu_MinMax(SommetDuJeu):
     __transposion_table = {}
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
-        super().__init__(is_vamp, depth, game_map, init_map)
+        super().__init__(is_vamp, depth, game_map)
         SommetDuJeu_MinMax.__vertices_created+=1
+        if init_map:
+            SommetDuJeu_MinMax.__transposion_table={}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -138,3 +140,5 @@ class SommetDuJeu_MinMax(SommetDuJeu):
 
 if __name__ == '__main__':
     carte = Map()
+    racine=SommetDuJeu_MinMax(is_vamp=True,depth=1,game_map=carte,init_map=True)
+    print(racine.next_move())

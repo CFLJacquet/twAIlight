@@ -21,3 +21,35 @@ Match sur Dust2 AlgoNegaMax 30:70 AlgoNegaMaxOriente
 	Average play duration : 				0.01s
 	Maximum duration of a play : 			1.05s
 	Number of vertices created per play : 	127 vertices
+
+Match sur Dust2 Aleatoire 11:9 MinMax
+Match sur Dust2 Aleatoire 12:8 NegaMax
+Match sur Dust2 Aleatoire 6:14 NegaMaxOriente
+Match sur Dust2 Aleatoire 2:18 Evaluation
+Match sur Dust2 MinMax 10:10 NegaMax
+Match sur Dust2 MinMax 13:7 NegaMaxOriente
+Match sur Dust2 MinMax 0:20 Evaluation
+Match sur Dust2 NegaMax 7:13 NegaMaxOriente
+Match sur Dust2 NegaMax 1:19 Evaluation
+Match sur Dust2 NegaMaxOriente 1:19 Evaluation
+
+1. Evaluation : win ratio 95.00%
+	Average play duration : 				0.01s
+	Maximum duration of a play : 			0.04s
+	Number of vertices created per play : 	0 vertices
+2. NegaMaxOriente : win ratio 43.75%
+	Average play duration : 				0.05s
+	Maximum duration of a play : 			4.44s
+	Number of vertices created per play : 	312 vertices
+3. MinMax : win ratio 40.00%
+	Average play duration : 				0.21s
+	Maximum duration of a play : 			47.29s
+	Number of vertices created per play : 	1156 vertices
+4. Aleatoire : win ratio 38.75%
+	Average play duration : 				0.00s
+	Maximum duration of a play : 			0.03s
+	Number of vertices created per play : 	0 vertices
+5. NegaMax : win ratio 32.50%
+	Average play duration : 				0.01s
+	Maximum duration of a play : 			0.57s
+	Number of vertices created per play : 	57 vertices

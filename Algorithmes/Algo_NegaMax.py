@@ -32,6 +32,8 @@ class AlgoNegaMax(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoNegaMax
-    MapDust2 = MapTheTrap
-    Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="ALEA", name2="NegaMax", print_map=True)
+    MapDust2 = MapDust2
+    Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="ALEA", name2="MINIMAX", print_map=True, debug_mode=False)
     Serveur.start()
+    Serveur.join()
+    print(AlgoNegaMax.nb_vertices_created())
