@@ -1,7 +1,7 @@
 from Morpion.Sommet_du_Jeu import SommetDuJeu
 
 
-class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
+class SommetDuJeuAlphaBetaOriente(SommetDuJeu):
     """ Graphe de jeu proche du AlphaBeta
     On ordonne les noeuds qui sont visités pour commencer par les plus prometteurs
     (avec la fonction d'évaluation de la carte)
@@ -14,7 +14,7 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
 
     def __init__(self, is_vamp=True):
         super().__init__(is_vamp)
-        SommetDuJeuAlphaBetaAstar.__vertices_created += 1
+        SommetDuJeuAlphaBetaOriente.__vertices_created += 1
         self._alpha = None
         self._beta = None
 
@@ -28,10 +28,10 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
         children = super().children
         if self.is_vamp:
             # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
-            self._children = sorted(children, key=lambda child: child.evaluation)
+            self._children = sorted(children, key=lambda child: child.score)
         else:
             # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
-            self._children = sorted(children, key=lambda child: -child.evaluation)
+            self._children = sorted(children, key=lambda child: -child.score)
         return self._children
 
 
@@ -108,4 +108,4 @@ class SommetDuJeuAlphaBetaAstar(SommetDuJeu):
 
 
 if __name__ == "__main__":
-    SommetDuJeuAlphaBetaAstar.game_on()
+    SommetDuJeuAlphaBetaOriente.game_on()

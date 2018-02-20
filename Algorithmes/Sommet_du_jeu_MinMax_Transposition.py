@@ -1,7 +1,7 @@
 from Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetDuJeu, SommetChance
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_MinMax(SommetChance):
@@ -34,8 +34,8 @@ class SommetChance_MinMax(SommetChance):
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu_MinMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                       depth=self.depth - 1)
+                new_child_vertice = SommetOutcome_MinMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
+                                                         depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
@@ -48,15 +48,15 @@ class SommetChance_MinMax(SommetChance):
         return self._children
 
 
-class SommetDuJeu_MinMax(SommetDuJeu):
+class SommetOutcome_MinMax(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map)
-        SommetDuJeu_MinMax.__vertices_created+=1
+        SommetOutcome_MinMax.__vertices_created+=1
         if init_map:
-            SommetDuJeu_MinMax.__transposion_table={}
+            SommetOutcome_MinMax.__transposion_table={}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -67,13 +67,13 @@ class SommetDuJeu_MinMax(SommetDuJeu):
         return cls.__transposion_table
 
     def get_score(self):
-        if self.map.hash in SommetDuJeu_MinMax.__transposion_table:
-            return SommetDuJeu_MinMax.__transposion_table[self.map.hash]
+        if self.map.hash in SommetOutcome_MinMax.__transposion_table:
+            return SommetOutcome_MinMax.__transposion_table[self.map.hash]
         else:
             return None, None
 
     def set_score_tt(self, depth, score):
-        SommetDuJeu_MinMax.__transposion_table[self.map.hash] = (depth, score)
+        SommetOutcome_MinMax.__transposion_table[self.map.hash] = (depth, score)
 
     @property
     def children(self):
@@ -140,5 +140,5 @@ class SommetDuJeu_MinMax(SommetDuJeu):
 
 if __name__ == '__main__':
     carte = Map()
-    racine=SommetDuJeu_MinMax(is_vamp=True,depth=1,game_map=carte,init_map=True)
+    racine=SommetOutcome_MinMax(is_vamp=True, depth=1, game_map=carte, init_map=True)
     print(racine.next_move())

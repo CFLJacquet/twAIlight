@@ -1,7 +1,7 @@
 from Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetDuJeu, SommetChance
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_Negamax(SommetChance):
@@ -19,11 +19,11 @@ class SommetChance_Negamax(SommetChance):
     def children(self):
         if self._children is None:
             self._children = list()
-            is_vamp = not self.is_vamp
+
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu_NegaMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                        depth=self.depth - 1)
+                new_child_vertice = SommetDuJeu_NegaMax(is_vamp=self.is_vamp, game_map=self.map.__copy__(self.map),
+                                                        depth=self.depth)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
@@ -42,7 +42,7 @@ class SommetChance_Negamax(SommetChance):
         return sum_expected
 
 
-class SommetDuJeu_NegaMax(SommetDuJeu):
+class SommetDuJeu_NegaMax(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
 
@@ -75,7 +75,7 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-                child = SommetChance_Negamax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
+                child = SommetChance_Negamax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)
         return self._children
@@ -135,19 +135,19 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
                 if alpha >= beta:
                     break
 
-            flag = None
-            if alphaOrig is not None:
-                if bestvalue <= alphaOrig:
-                    flag = "upperbound"
-            if beta is not None:
-                if bestvalue >= beta:
-                    flag = "lowerbound"
-            if flag is None:
-                flag = "exact"
+        flag = None
+        if alphaOrig is not None:
+            if bestvalue <= alphaOrig:
+                flag = "upperbound"
+        if beta is not None:
+            if bestvalue >= beta:
+                flag = "lowerbound"
+        if flag is None:
+            flag = "exact"
 
-            self.set_score_tt(flag, self.depth, bestvalue)
+        self.set_score_tt(flag, self.depth, bestvalue)
 
-            return bestvalue
+        return bestvalue
 
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.
@@ -166,5 +166,5 @@ class SommetDuJeu_NegaMax(SommetDuJeu):
 
 if __name__ == '__main__':
     carte = Map()
-    racine= SommetDuJeu_NegaMax(depth=1, game_map=carte, is_vamp=True, init_map=True)
+    racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
     print(racine.next_move())

@@ -2,7 +2,7 @@
 from copy import deepcopy
 from Joueur_Interne import JoueurInterne
 from Serveur_Interne import ServeurInterne
-from Algorithmes.Sommet_du_jeu_NegaMax_Transposition_Oriente import SommetDuJeu_NegaMax_Oriente
+from Algorithmes.Sommet_du_jeu_NegaMax_Transposition_Oriente import SommetDuJeu_NegaMax_Oriente, SommetChance_NegaMax_Oriente
 from Cartes.Map_Dust2 import MapDust2
 from Cartes.Map_TheTrap import MapTheTrap
 
@@ -27,7 +27,7 @@ class AlgoNegMaxOriente(JoueurInterne):
 
     @classmethod
     def nb_vertices_created(cls):
-        return SommetDuJeu_NegaMax_Oriente.nb_vertices_created()
+        return SommetDuJeu_NegaMax_Oriente.nb_vertices_created()+ SommetChance_NegaMax_Oriente.nb_vertices_created()
 
 
 if __name__ == "__main__":

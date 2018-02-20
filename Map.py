@@ -2,7 +2,7 @@ from collections import defaultdict
 import random
 from itertools import combinations, product
 from copy import deepcopy
-from math import log, pow, floor
+from math import log2, pow, floor
 
 
 class Map:
@@ -55,7 +55,7 @@ class Map:
         N_possible_boxes = max(1,(2 * n_monster_max + 2 * sum_human_pop -1) * x_max * y_max + sum_human_pop)
 
         # Nombre de bit sur lequel coder au minimum les positions
-        n_bit = floor(log(N_possible_boxes) / log(2))
+        n_bit = floor(log2(N_possible_boxes))
         # Marge sur la taille du bit de codage pour éviter les collisions
         m_bit = 10
         # Hash maximal

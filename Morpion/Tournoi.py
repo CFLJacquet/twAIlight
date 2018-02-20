@@ -6,16 +6,15 @@ from collections import defaultdict
 from Morpion.Sommet_du_Jeu_Aleatoire import SommetDuJeuAleatoire
 from Morpion.Sommet_du_Jeu_MinMax import SommetDuJeuMinMax
 from Morpion.Sommet_du_Jeu_AlphaBeta import SommetDuJeuAlphaBeta
-from Morpion.Sommet_du_Jeu_AlphaBeta_Oriente import SommetDuJeuAlphaBetaAstar
+from Morpion.Sommet_du_Jeu_AlphaBeta_Oriente import SommetDuJeuAlphaBetaOriente
 from Morpion.Sommet_du_Jeu_MinMax_Tranposition import SommetDuJeuMinMaxTransposition
 from Morpion.Sommet_du_Jeu_NegaMax_Transposition_Oriente import NegaMaxAstar
 from Morpion.Sommet_du_Jeu_NegaMax_Transposition import NegaMax
 
-
 ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
          #'MinMax': SommetDuJeuMinMax,
          #'AlphaBeta': SommetDuJeuAlphaBeta,
-         #'AlphaBetaAstar':SommetDuJeuAlphaBetaAstar,
+         #'AlphaBetaAstar':SommetDuJeuAlphaBetaOriente,
          'MinMax_Transposition':SommetDuJeuMinMaxTransposition,
          #'Negamax_A_Start':NegaMaxAstar,
          #'Negamax':NegaMax
@@ -34,8 +33,8 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
     :return: Vrai si le premier joueur gagne, faux s'il perd et None si match nul
     """
 
-    sommet_1 = classe_sommet_1(is_ami=True)
-    sommet_2 = classe_sommet_2(is_ami=False)
+    sommet_1 = classe_sommet_1(is_vamp=True)
+    sommet_2 = classe_sommet_2(is_vamp=False)
 
     duration_play_1 = 0  # Temps de jeu du joueur 1
     duration_play_2 = 0  # Temps de jeu du joueur 2
@@ -52,7 +51,7 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
 
         duration_play_1 += end_play - start_play  # Temps de jeu du joueur 1 incrémenté
 
-        sommet_2 = classe_sommet_2(is_ami=False)  # (re)Création du graphe du joueur 2
+        sommet_2 = classe_sommet_2(is_vamp=False)  # (re)Création du graphe du joueur 2
         sommet_2.map.add_moves(updated_moves)  # Mise à jour avec l'historique des coups joués pour le joueur 2
 
         if sommet_2.map.game_over():
@@ -67,7 +66,7 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
 
         duration_play_2 += end_play - start_play  # Temps de jeu du joueur 2 incrémenté
 
-        sommet_1 = classe_sommet_1(is_ami=True)  # (re)Création du graphe du  joueur 1
+        sommet_1 = classe_sommet_1(is_vamp=True)  # (re)Création du graphe du  joueur 1
         sommet_1.map.add_moves(updated_moves)  # Mise à jour avec l'historique des coups joués pour le joueur 1
 
     if sommet_1.map.game_over():
