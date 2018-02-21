@@ -211,6 +211,28 @@ class Map:
                 new_positions[starting_pos].append(new_pos)
         return new_positions
 
+    @staticmethod
+    def repartitions_recursive(pop_of_monster, n_case):
+        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case
+
+        :param pop_of_monster: int
+        :param n_case: int
+        :return: list : liste des répartitions possibles
+        """
+        repartitions = list()
+
+        if pop_of_monster == 0:
+            return [[0] * n_case]
+        if n_case == 1:
+            for i in range(pop_of_monster + 1):
+                repartitions.append([i])
+            return repartitions
+        for pop_first_case in range(pop_of_monster + 1):
+            for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
+                new_rep = [pop_first_case] + rep
+                repartitions.append(new_rep)
+        return repartitions
+
     def next_possible_moves(self, is_vamp):
         """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
 
@@ -230,13 +252,10 @@ class Map:
             else:
                 pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
 
-            repartitions = set()  # Ensemble de toutes les répartitions de monstres possibles parmi les cases disponibles
+
 
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            for repartition in product(range(pop_of_monsters + 1), repeat=n_case):
-                # Si on a réparti au plus le nombre de mosntres de la case initiale
-                if sum(repartition) <= pop_of_monsters:
-                    repartitions.add(repartition)
+            repartitions = Map.repartitions_recursive(pop_of_monsters,n_case)  # liste de toutes les répartitions de monstres possibles parmi les cases disponibles
 
             group_repartitions[starting_position] = repartitions
 
