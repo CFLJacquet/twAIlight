@@ -142,8 +142,13 @@ class AlgoCustomizedEvaluation(JoueurInterne):
 
 
 if __name__ == '__main__':
+    import queue
+    Joueur1=AlgoCustomizedEvaluation(q_s_p=queue.Queue(), q_p_s=queue.Queue())
+    Joueur1.map=MapTheTrap()
+    import cProfile
+    cProfile.run("Joueur1.next_moves()")
     Joueur1 = AlgoCustomizedEvaluation
-    Joueur2 = AlgoNegaMax
+    Joueur2 = AlgoAleatoireInterne
     MapDust2 = MapTheTrap
-    Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="Evaluation", name2="NegaMax", print_map=True)
+    Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="Evaluation", name2="Aléatoire", print_map=True)
     Serveur.start()

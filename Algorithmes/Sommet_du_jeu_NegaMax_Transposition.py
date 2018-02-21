@@ -167,4 +167,6 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 if __name__ == '__main__':
     carte = Map()
     racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
+    import cProfile
+    cProfile.run('racine.next_move()')
     print(racine.next_move())
