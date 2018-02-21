@@ -41,7 +41,7 @@ class AlgoMonteCarlo(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoMonteCarlo
-    MapDust2 = MapTheTrap
+    MapDust2 = MapDust2
     Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="Aléatoire", name2="MonteCarlo", print_map=True,
                              debug_mode=False)
     Serveur.start()

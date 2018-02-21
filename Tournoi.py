@@ -20,14 +20,14 @@ from Cartes.Map_Map8 import Map8
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-MAPS = {#"Dust2": MapDust2,
+MAPS = {"Dust2": MapDust2,
         #"Map8":Map8,
         #"TheTrap":MapTheTrap
 
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
-ALGOS = {#"Aleatoire": AlgoAleatoireInterne,
+ALGOS = {"Aleatoire": AlgoAleatoireInterne,
          #"MinMax": AlgoMinMax,
          "NegaMax": AlgoNegaMax,
          #"NegaMaxOriente": AlgoNegMaxOriente,
@@ -36,7 +36,7 @@ ALGOS = {#"Aleatoire": AlgoAleatoireInterne,
          }
 
 # Nombre de parties par carte
-N_GAME = 20
+N_GAME = 10
 
 
 def main():

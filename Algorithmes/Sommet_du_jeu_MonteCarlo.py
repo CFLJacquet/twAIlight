@@ -47,7 +47,7 @@ class SommetChance_MonteCarlo(SommetChance):
         :param N: Nombre de parties jouées en tout
         :return: UCB
         """
-        C = 2
+        C = 5
         if self.n_games == 0:
             return None
         else:
@@ -76,7 +76,7 @@ class SommetChance_MonteCarlo(SommetChance):
         i_round = 1
         while not carte.game_over() and i_round < 200:
             player = not player
-            next_move = random.choice(carte.next_possible_moves(is_vamp=player))
+            next_move = carte.random_moves(is_vamp=player)
             carte.compute_moves(next_move)
             i_round += 1
         winner = carte.winner()
@@ -157,12 +157,15 @@ class SommetOutcome_MonteCarlo(SommetOutcome):
 
 
 if __name__ == '__main__':
-    carte = MapTheTrap()
-    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
+    carte = Map()
+    racine = SommetOutcome_MonteCarlo(is_vamp=False, game_map=carte)
     import cProfile
-
     cProfile.run("racine.MCTS()")
-
+    from time import time
+    start_time = time()
+    while time() < start_time + 10:
+        racine.MCTS()
+    cProfile.run("[racine.MCTS() for _ in range(1000)]")
     for child in racine.children:
         if child.n_games:
             print(child.previous_moves, child.n_wins / child.n_games)

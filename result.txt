@@ -1,55 +1,23 @@
-Match sur Dust2 AlgoAleatoire 55:45 AlgoMinMax
-Match sur Dust2 AlgoAleatoire 50:50 AlgoNegaMax
-Match sur Dust2 AlgoAleatoire 33:67 AlgoNegaMaxOriente
-Match sur Dust2 AlgoMinMax 54:46 AlgoNegaMax
-Match sur Dust2 AlgoMinMax 35:65 AlgoNegaMaxOriente
-Match sur Dust2 AlgoNegaMax 30:70 AlgoNegaMaxOriente
+Match sur Dust2 Aleatoire 4:6 NegaMax
+Match sur Dust2 Aleatoire 2:8 Evaluation
+Match sur Dust2 Aleatoire 3:7 MonteCarlo
+Match sur Dust2 NegaMax 4:6 Evaluation
+Match sur Dust2 NegaMax 4:6 MonteCarlo
+Match sur Dust2 Evaluation 5:5 MonteCarlo
 
-0. AlgoNegaMaxOriente : win rate 67.33%
-	Average play duration : 				0.04s
-	Maximum duration of a play : 			4.40s
-	Number of vertices created per play : 	1812 vertices
-1. AlgoAleatoire : win rate 46.00%
-	Average play duration : 				0.00s
-	Maximum duration of a play : 			0.06s
-	Number of vertices created per play : 	0 vertices
-2. AlgoMinMax : win rate 44.67%
-	Average play duration : 				0.08s
-	Maximum duration of a play : 			60.98s
-	Number of vertices created per play : 	49436 vertices
-3. AlgoNegaMax : win rate 42.00%
-	Average play duration : 				0.01s
-	Maximum duration of a play : 			1.05s
-	Number of vertices created per play : 	127 vertices
-
-Match sur Dust2 Aleatoire 11:9 MinMax
-Match sur Dust2 Aleatoire 12:8 NegaMax
-Match sur Dust2 Aleatoire 6:14 NegaMaxOriente
-Match sur Dust2 Aleatoire 2:18 Evaluation
-Match sur Dust2 MinMax 10:10 NegaMax
-Match sur Dust2 MinMax 13:7 NegaMaxOriente
-Match sur Dust2 MinMax 0:20 Evaluation
-Match sur Dust2 NegaMax 7:13 NegaMaxOriente
-Match sur Dust2 NegaMax 1:19 Evaluation
-Match sur Dust2 NegaMaxOriente 1:19 Evaluation
-
-1. Evaluation : win ratio 95.00%
-	Average play duration : 				0.01s
-	Maximum duration of a play : 			0.04s
-	Number of vertices created per play : 	0 vertices
-2. NegaMaxOriente : win ratio 43.75%
-	Average play duration : 				0.05s
-	Maximum duration of a play : 			4.44s
-	Number of vertices created per play : 	312 vertices
-3. MinMax : win ratio 40.00%
-	Average play duration : 				0.21s
-	Maximum duration of a play : 			47.29s
-	Number of vertices created per play : 	1156 vertices
-4. Aleatoire : win ratio 38.75%
+1. Evaluation : win ratio 63.33%
 	Average play duration : 				0.00s
 	Maximum duration of a play : 			0.03s
 	Number of vertices created per play : 	0 vertices
-5. NegaMax : win ratio 32.50%
-	Average play duration : 				0.01s
-	Maximum duration of a play : 			0.57s
-	Number of vertices created per play : 	57 vertices
+2. MonteCarlo : win ratio 60.00%
+	Average play duration : 				2.01s
+	Maximum duration of a play : 			2.07s
+	Number of vertices created per play : 	15888 vertices
+3. NegaMax : win ratio 46.67%
+	Average play duration : 				0.23s
+	Maximum duration of a play : 			1.21s
+	Number of vertices created per play : 	2320 vertices
+4. Aleatoire : win ratio 30.00%
+	Average play duration : 				0.00s
+	Maximum duration of a play : 			0.02s
+	Number of vertices created per play : 	0 vertices
