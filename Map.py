@@ -630,8 +630,8 @@ class Map:
             for proba_outcome, new_battle_positions in combined_battles_outcomes:
                 proba_conbined_battle *= proba_outcome
                 possible_outcome.append(new_battle_positions)
-
-            possible_outcomes.append((proba_conbined_battle, possible_outcome))
+            if proba_conbined_battle:
+                possible_outcomes.append((proba_conbined_battle, possible_outcome))
 
         return possible_outcomes
 
