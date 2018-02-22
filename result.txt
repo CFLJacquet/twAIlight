@@ -21,3 +21,20 @@ Match sur Dust2 Evaluation 5:5 MonteCarlo
 	Average play duration : 				0.00s
 	Maximum duration of a play : 			0.02s
 	Number of vertices created per play : 	0 vertices
+
+Match sur TheTrap Aleatoire 1:9 Evaluation
+Match sur TheTrap Aleatoire 3:7 MonteCarlo
+Match sur TheTrap Evaluation 3:7 MonteCarlo
+
+1. MonteCarlo : win ratio 70.00%
+	Average play duration : 				2.17s
+	Maximum duration of a play : 			15.32s
+	Number of vertices created per play : 	6542 vertices
+2. Evaluation : win ratio 60.00%
+	Average play duration : 				1.91s
+	Maximum duration of a play : 			26.32s
+	Number of vertices created per play : 	0 vertices
+3. Aleatoire : win ratio 20.00%
+	Average play duration : 				0.03s
+	Maximum duration of a play : 			2.22s
+	Number of vertices created per play : 	0 vertices

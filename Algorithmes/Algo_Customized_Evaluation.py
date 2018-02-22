@@ -15,11 +15,11 @@ class AlgoCustomizedEvaluation(JoueurInterne):
     Une réécriture de la classe JoueurInterne, qui suit une fonction d'évaluation personnalisée
 
     """
-    __map_evaluated={}
+    __map_evaluated = {}
 
     @classmethod
-    def add_map_evaluation(cls,map_hash, evaluation):
-        cls.__map_evaluated[map_hash]=evaluation
+    def add_map_evaluation(cls, map_hash, evaluation):
+        cls.__map_evaluated[map_hash] = evaluation
 
     @classmethod
     def get_map_evaluation(cls, map_hash):
@@ -55,8 +55,8 @@ class AlgoCustomizedEvaluation(JoueurInterne):
             cus_eval += -0.5 * (n_ss_vamp - n_ss_lg)
 
             # Distance des plus proches humains
-            d_hum_vamp = None
-            d_hum_lg = None
+            d_hum_vamp = 0
+            d_hum_lg = 0
 
             if pop_hum:
                 for i, j in game_map.content:
@@ -68,7 +68,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
                             n_hum, _, _ = game_map.content[(x, y)]
                             if 0 < n_hum <= n_vamp:
                                 current_distance = max(abs(i - x), abs(j - y))
-                                if d_hum_vamp is None:
+                                if d_hum_vamp == 0:
                                     d_hum_vamp = current_distance
                                 elif d_hum_vamp > current_distance:
                                     d_hum_vamp = current_distance
@@ -80,13 +80,12 @@ class AlgoCustomizedEvaluation(JoueurInterne):
                             n_hum, _, _ = game_map.content[(x, y)]
                             if 0 < n_hum <= n_lg:
                                 current_distance = max(abs(i - x), abs(j - y))
-                                if d_hum_lg is None:
+                                if d_hum_lg == 0:
                                     d_hum_lg = current_distance
                                 elif d_hum_lg > current_distance:
                                     d_hum_lg = current_distance
                                 if d_hum_lg == 1:
                                     break
-
                 cus_eval += -0.1 * (d_hum_vamp - d_hum_lg)
 
             # On enregistre cus_eval
@@ -126,7 +125,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
             if self.is_vamp:
                 # Si le mouvement est intéressant pour les vampires
                 # (Pour des raisons de performances, on accepte la première situation légèrement meilleure)
-                #if self.evaluate_moves(moves) > current_evaluation:
+                # if self.evaluate_moves(moves) > current_evaluation:
                 #    return moves
 
                 if better_moves is None:
@@ -138,7 +137,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
             else:
                 # Si le mouvement est intéressant pour les loup-garous
                 # (Pour des raisons de performances, on accepte la première situation légèrement meilleure)
-                #if self.evaluate_moves(moves) < current_evaluation:
+                # if self.evaluate_moves(moves) < current_evaluation:
                 #    return moves
 
                 if better_moves is None:
