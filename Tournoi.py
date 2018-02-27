@@ -17,12 +17,14 @@ from Cartes.Map_Ligne13 import MapLigne13
 from Cartes.Map_Dust2 import MapDust2
 from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Map8 import Map8
+from Cartes.Map_Random import MapRandom
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
 MAPS = {#"Dust2": MapDust2,
         #"Map8":Map8,
-        "TheTrap":MapTheTrap
+        #"TheTrap":MapTheTrap,
+        "CarteAléatoire":MapRandom
 
         }
 
@@ -32,7 +34,7 @@ ALGOS = {"Aleatoire": AlgoAleatoireInterne,
          #"NegaMax": AlgoNegaMax,
          #"NegaMaxOriente": AlgoNegMaxOriente,
          "Evaluation": AlgoCustomizedEvaluation,
-         "MonteCarlo":AlgoMonteCarlo
+         "MonteCarlo": AlgoMonteCarlo
          }
 
 # Nombre de parties par carte

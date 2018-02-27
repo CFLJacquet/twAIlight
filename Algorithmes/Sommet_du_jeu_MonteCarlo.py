@@ -6,6 +6,7 @@ from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 from Map import Map
 from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Map8 import Map8
+from Cartes.Map_Random import MapRandom
 
 
 class SommetChance_MonteCarlo(SommetChance):
@@ -193,15 +194,14 @@ class SommetOutcome_MonteCarlo(SommetOutcome):
 
 
 if __name__ == '__main__':
-    carte = Map()
-    carte.update_positions([(0, 1, 0, 1, 0), (1, 1, 0, 1, 0), (1, 0, 0, 1, 0), (2, 1, 0, 0, 3)])
+    carte = MapRandom()
     carte.print_map()
-    racine = SommetOutcome_MonteCarlo(is_vamp=False, game_map=carte)
+    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
 
     from time import time
 
     start_time = time()
-    while time() < start_time + 2:
+    while time() < start_time + 30:
         racine.MCTS()
 
     for child in racine.children:
