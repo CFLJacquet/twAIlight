@@ -77,4 +77,5 @@ class Map8(Map):
 if __name__ == "__main__":
     carte = Map8()
     carte.print_map()
-    print(Map8.N_MONSTER_MAX())
+    import cProfile
+    cProfile.run("carte.next_possible_moves(is_vamp=True)")

@@ -18,8 +18,8 @@ class SommetChance:
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                depth=self.depth - 1)
+                new_child_vertice = SommetOutcome(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
+                                                  depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
@@ -43,7 +43,7 @@ class SommetChance:
             return self._evaluation
 
 
-class SommetDuJeu:
+class SommetOutcome:
     __vertices_created = 0
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
@@ -55,7 +55,7 @@ class SommetDuJeu:
         self.previous_moves = None
         self.probability = 1
         if init_map:
-            SommetDuJeu.__transposion_table={}
+            SommetOutcome.__transposion_table={}
 
     def __copy__(self, objet):
         t = deepcopy(objet)

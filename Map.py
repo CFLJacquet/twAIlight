@@ -2,7 +2,7 @@ from collections import defaultdict
 import random
 from itertools import combinations, product
 from copy import deepcopy
-from math import log, pow, floor
+from math import log2, pow, floor
 
 
 class Map:
@@ -52,10 +52,10 @@ class Map:
 
         # avec 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
         # le max est pour le cas de l'initialisation d'un joueur (sa carte est au départ vide)
-        N_possible_boxes = max(1,(2 * n_monster_max + 2 * sum_human_pop -1) * x_max * y_max + sum_human_pop)
+        N_possible_boxes = max(1, (2 * n_monster_max + 2 * sum_human_pop - 1) * x_max * y_max + sum_human_pop)
 
         # Nombre de bit sur lequel coder au minimum les positions
-        n_bit = floor(log(N_possible_boxes) / log(2))
+        n_bit = floor(log2(N_possible_boxes))
         # Marge sur la taille du bit de codage pour éviter les collisions
         m_bit = 10
         # Hash maximal
@@ -182,6 +182,7 @@ class Map:
         t = deepcopy(objet)
         return t
 
+
     def next_possible_positions(self, is_vamp):
         """
         Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe)
@@ -211,6 +212,28 @@ class Map:
                 new_positions[starting_pos].append(new_pos)
         return new_positions
 
+    @staticmethod
+    def repartitions_recursive(pop_of_monster, n_case):
+        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case
+
+        :param pop_of_monster: int
+        :param n_case: int
+        :return: list : liste des répartitions possibles
+        """
+        repartitions = list()
+
+        if pop_of_monster == 0:
+            return [[0] * n_case]
+        if n_case == 1:
+            for i in range(pop_of_monster + 1):
+                repartitions.append([i])
+            return repartitions
+        for pop_first_case in range(pop_of_monster + 1):
+            for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
+                new_rep = [pop_first_case] + rep
+                repartitions.append(new_rep)
+        return repartitions
+
     def next_possible_moves(self, is_vamp):
         """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
 
@@ -230,13 +253,8 @@ class Map:
             else:
                 pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
 
-            repartitions = set()  # Ensemble de toutes les répartitions de monstres possibles parmi les cases disponibles
-
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            for repartition in product(range(pop_of_monsters + 1), repeat=n_case):
-                # Si on a réparti au plus le nombre de mosntres de la case initiale
-                if sum(repartition) <= pop_of_monsters:
-                    repartitions.add(repartition)
+            repartitions = Map.repartitions_recursive(pop_of_monsters, n_case)
 
             group_repartitions[starting_position] = repartitions
 
@@ -275,6 +293,40 @@ class Map:
             next_possible_moves.remove([])
 
         return next_possible_moves
+
+    def random_moves(self, is_vamp):
+        """ Renvoie un mouvement aléatoirement choisi
+
+        :param is_vamp: race du joueur
+        :return: liste de mouvements de la forme [(i,j,n,x,y),...]
+        """
+        # Dictionnaires des mouvements rassemblés, en valeur le nombre de monstres
+        concat_moves = defaultdict(int)
+
+        next_possible_positions = self.next_possible_positions(is_vamp)
+        # On souhaite avoir au moins un mouvement
+        while not concat_moves:
+            for starting_position, next_positions in next_possible_positions.items():
+
+                if is_vamp:
+                    pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
+                else:
+                    pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
+
+                # On choisit le nombre de monstres à déplacer un à un.
+                n_moving_monsters= random.randint(0,pop_of_monsters)
+
+                for _ in range(n_moving_monsters):
+                    concat_moves[(*starting_position, *random.choice(next_positions))]+=1
+
+        # On ecrit au bon format notre liste de mouvements attendue
+        random_moves=list()
+        for (i,j,x,y),n in concat_moves.items():
+            random_moves.append((i,j,n,x,y))
+
+        return random_moves
+
+
 
     def compute_moves(self, moves):
         """
@@ -578,8 +630,8 @@ class Map:
             for proba_outcome, new_battle_positions in combined_battles_outcomes:
                 proba_conbined_battle *= proba_outcome
                 possible_outcome.append(new_battle_positions)
-
-            possible_outcomes.append((proba_conbined_battle, possible_outcome))
+            if proba_conbined_battle:
+                possible_outcomes.append((proba_conbined_battle, possible_outcome))
 
         return possible_outcomes
 

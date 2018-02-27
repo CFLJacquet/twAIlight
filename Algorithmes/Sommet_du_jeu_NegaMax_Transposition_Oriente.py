@@ -1,7 +1,7 @@
 from Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetDuJeu, SommetChance
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_NegaMax_Oriente(SommetChance):
@@ -19,11 +19,10 @@ class SommetChance_NegaMax_Oriente(SommetChance):
     def children(self):
         if self._children is None:
             self._children = list()
-            is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu_NegaMax_Oriente(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                                depth=self.depth - 1)
+                new_child_vertice = SommetDuJeu_NegaMax_Oriente(is_vamp=self.is_vamp, game_map=self.map.__copy__(self.map),
+                                                                depth=self.depth)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
@@ -42,13 +41,15 @@ class SommetChance_NegaMax_Oriente(SommetChance):
         return sum_expected
 
 
-class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
+class SommetDuJeu_NegaMax_Oriente(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
 
     def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
         SommetDuJeu_NegaMax_Oriente.__vertices_created += 1
+        if init_map:
+            SommetDuJeu_NegaMax_Oriente.__transposion_table = {}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -73,10 +74,10 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-                child = SommetChance_NegaMax_Oriente(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
+                child = SommetChance_NegaMax_Oriente(is_vamp=not self.is_vamp, depth=self.depth - 1, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)
-            self._children.sort(key=lambda x: x.evaluation, reverse= self.is_vamp)
+            self._children.sort(key=lambda x: x.evaluation, reverse=self.is_vamp)
         return self._children
 
     def negamax(self, alpha, beta):
@@ -86,7 +87,7 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
 
         if flag is not None:
 
-            if depth >= depth:
+            if depth >= self.depth:
                 if flag == "exact":
                     return score
                 elif flag == "lowerbound":
@@ -106,7 +107,6 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
                         return score
 
         if self.map.game_over() or self.depth == 0:
-            self.set_score_tt("exact", self.depth, self.evaluation)
             return color * self.evaluation
 
         bestvalue = None
@@ -135,19 +135,19 @@ class SommetDuJeu_NegaMax_Oriente(SommetDuJeu):
                 if alpha >= beta:
                     break
 
-            flag = None
-            if alphaOrig is not None:
-                if bestvalue <= alphaOrig:
-                    flag = "upperbound"
-            if beta is not None:
-                if bestvalue >= beta:
-                    flag = "lowerbound"
-            if flag is None:
-                flag = "exact"
+        flag = None
+        if alphaOrig is not None:
+            if bestvalue <= alphaOrig:
+                flag = "upperbound"
+        if beta is not None:
+            if bestvalue >= beta:
+                flag = "lowerbound"
+        if flag is None:
+            flag = "exact"
 
-            self.set_score_tt(flag, self.depth, bestvalue)
+        self.set_score_tt(flag, self.depth, bestvalue)
 
-            return bestvalue
+        return bestvalue
 
     def next_move(self):
         """ Renvoie le meilleur mouvement à faire.

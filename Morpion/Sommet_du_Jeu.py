@@ -49,7 +49,7 @@ class SommetDuJeu:
 
             moves += [sommet.next_move()]
 
-            sommet = cls(is_ami=not sommet.is_vamp)
+            sommet = cls(is_vamp=not sommet.is_vamp)
             sommet.map.add_moves(moves)
 
         print(sommet.map)
