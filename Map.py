@@ -150,6 +150,146 @@ class Map:
                 n += 1
         return n, elements
 
+    def most_probable_outcome(self,moves):
+
+        """
+        Met à jour et traite les déplacements d'un joueur sur la carte en considérant uniquement le cas le plus probable dans chaque configuration de bataille
+        :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
+        :return: None
+        """
+        # Mise à zéro de la liste des modifications de la carte
+        self.UPD = []
+        # On enregistre la carte actuelle pour la comparer avec sa version à jour
+        old_map_content = dict(self.content)
+
+        # Race du joueur
+        is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
+
+        # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
+        battles_to_run = defaultdict(int)
+        for i, j, n, x, y in moves:
+            # Libération des cases sources
+
+            # On déhash l'ancienne position
+            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+
+            if is_vamp:  # le joueur est un vampire
+                self.content[(i, j)] = (0, self.content[(i, j)][1] - n, 0)
+
+            else:  # le joueur est un loup-garou
+                self.content[(i, j)] = (0, 0, self.content[(i, j)][2] - n)
+
+            # Chargement des cases cibles
+            # On enregistre les modifications sur les cases sans bataille
+            # Population de la case cible
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            # Si case cible est vide
+            if self.content[(x, y)] == (0, 0, 0):
+                self.content[(x, y)] = (0, n * is_vamp, n * (not is_vamp))
+
+            # Case vide peuplée d'humains
+            if n_hum:
+                # On enregistre la bataille
+                battles_to_run[(x, y)] += n
+
+            # Case cible peuplée d'ami
+            # On peuple ces cases
+            if n_vamp and is_vamp:
+                self.content[(x, y)] = (0, (n + n_vamp), 0)
+            elif n_lg and not is_vamp:
+                self.content[(x, y)] = (0, 0, (n + n_lg))
+
+            # Case cible avec des ennemis
+            if n_vamp and not is_vamp or n_lg and is_vamp:
+                # On enregistre la bataille
+                battles_to_run[(x, y)] += n
+
+            # On hash la nouvelle position à jour
+            self._hash ^= self.hash_position((x, y, *self.content[(x, y)]))
+
+        # On traite les batailles enregistrées
+        for x, y in battles_to_run:
+            n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
+            n_hum, n_vamp, n_lg = self.content[(x, y)]  # Populations initiales de la case cible
+
+            # On déhash l'ancienne position
+            self._hash ^= self.hash_position((x, y, *self.content[(x, y)]))
+
+
+            ######################## Bataille Humain vs Monstre ##################
+
+            if n_hum:
+                if self.debug_mode:
+                    print("Bataille contre humains en ({},{})".format(x, y))
+
+                # cas victoire assurée
+                if n_hum < n_att:
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
+                    n_total = int((n_att+n_hum)*self.proba_p(n_att,n_hum))
+                    # Enregistrement des nouvelles populations sur la carte
+                    self.content[(x, y)] = (0, is_vamp * (n_total), (not is_vamp) * (n_total))
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(n_surv, n_conv))
+
+                # cas victoire non sure
+                else:
+                    # Victoire de l'attaquant ?
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} humains vs {} attaquants)".format(
+                            Map.proba_p(n_att, n_hum), n_hum, n_att))
+                    # Victoire des monstres
+
+                    n_surv = int(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
+                    # Enregistrement des humains survivants sur la carte
+                    self.content[(x, y)] = (n_surv, 0, 0)
+                    if self.debug_mode:
+                        print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
+
+            ###################### Bataille Vampires vs Loups-Garous ########################
+
+            else:
+                if self.debug_mode:
+                    print("Bataille entres monstres en ({},{})".format(x, y))
+
+                n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
+
+                # Victoire sure
+                if n_def < n_att:
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
+
+                    n_surv =int(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
+
+                    # Enregistrement des attaquants survivants
+                    self.content[(x, y)] = (0, is_vamp * n_surv, (not is_vamp) * n_surv)
+
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ! {} survivants".format(n_surv))
+
+                # Victoire non sure
+                else:
+                    # Victoire de l'attaquant
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} défenseurs vs {} attaquants)".format(
+                            Map.proba_p(n_att, n_def), n_def, n_att))
+
+                    # Victoire du défenseur
+                    n_surv = int(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
+                    # Enregistrement sur la carte
+                    self.content[(x, y)] = (0, (not is_vamp) * n_surv, is_vamp * n_surv)
+
+                    if self.debug_mode:
+                        print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
+
+            # On hash la nouvelle position à jour
+            self._hash ^= self.hash_position((x, y * self.content[(x, y)]))
+
+        # Remplissage de la liste UPD à partir des modifications de la carte
+        for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
+            if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
+                self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
+
     def create_positions(self, positions):
         """ Crée la carte à partir de la commande MAP reçu par le joueur
 
@@ -391,6 +531,7 @@ class Map:
 
             # On déhash l'ancienne position
             self._hash ^= self.hash_position((x, y, *self.content[(x, y)]))
+
 
             ######################## Bataille Humain vs Monstre ##################
 
