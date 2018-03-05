@@ -950,5 +950,7 @@ class Map:
 if __name__ == "__main__":
     carte = Map()
     carte.print_map()
-    moves = [(0, 1, 2, 0, 2)]
+    print(len(carte.next_possible_moves(True)))
+    moves = [(0, 1, 1, 1, 1)]
+
     print(carte.possible_outcomes(moves))
