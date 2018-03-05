@@ -35,13 +35,9 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-<<<<<<< HEAD
-                child = SommetDuJeu_Negamax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=deepcopy(self.map.most_probable_outcome(moves)))
-=======
                 carte=deepcopy(self.map)
                 carte.most_probable_outcome(moves)
                 child = SommetDuJeu_NegaMax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=carte)
->>>>>>> dd97da2fda40f104d2d9a5b53482337eead43aa5
                 child.previous_moves = moves
                 self._children.append(child)
         return self._children
