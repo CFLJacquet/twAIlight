@@ -1,10 +1,10 @@
 from copy import deepcopy
-from random import random
-from math import sqrt, log
 from collections import defaultdict
+import random
 
 from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 from Map import Map
+
 from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Map8 import Map8
 from Cartes.Map_Random import MapRandom
@@ -61,7 +61,7 @@ class SommetChance_TemporalDifference(SommetChance):
 
 
     def simulation(self):
-        ALPHA, GAMMA = 0.5, 0.1
+        ALPHA, GAMMA = 0.8, 0.9
         carte = deepcopy(self.map)
         current_hash = carte.hash
         current_value = self.get_value(current_hash)
@@ -72,7 +72,7 @@ class SommetChance_TemporalDifference(SommetChance):
         while not carte.game_over() and i_round < 200:
             next_hash = carte.hash
             next_value = self.get_value(next_hash)
-
+            # TODO reward sur chaque changement de différence de populations
             self.set_value(current_hash, current_value + ALPHA * (GAMMA * next_value - current_value))
 
             current_hash = next_hash
@@ -130,19 +130,14 @@ class SommetOutcome_TemporalDifference(SommetOutcome):
 
         :return:
         """
-        for child in self.children:
-            child.simulation()
-            SommetOutcome_TemporalDifference.__simulations+=1
+        child = random.choice(self.children)
+        child.simulation()
+        SommetOutcome_TemporalDifference.__simulations+=1
 
-    def next_move(self):
-        if self.is_vamp:
-            return max(self.children, key=lambda child: child.value).previous_moves
-        else:
-            return min(self.children, key=lambda child: child.value).previous_moves
 
 
 if __name__ == '__main__':
-    carte = Map()
+    carte = MapTheTrap()
     carte.print_map()
     racine = SommetOutcome_TemporalDifference(is_vamp=True, game_map=carte)
 
@@ -156,11 +151,26 @@ if __name__ == '__main__':
 
     for child in racine.children:
         print(child.previous_moves, child.value)
-
+    print()
     print("Mouvements sélectionnés")
-    print(racine.next_move())
+    if racine.is_vamp:
+        max_child=max(racine.children, key=lambda child: child.value)
+        next_moves=max_child.previous_moves
+        print(max_child.previous_moves,max_child.value )
+    else:
+        min_child=min(racine.children, key=lambda child: child.value)
+        next_moves=min_child.previous_moves
+        print(min_child.previous_moves,min_child.value)
     print()
     print("Sommets créés :")
     print(SommetChance_TemporalDifference.nb_vertices_created() + SommetOutcome_TemporalDifference.nb_vertices_created())
     print("Nombre de simulations :")
     print(SommetOutcome_TemporalDifference.nb_simulation())
+    #carte.compute_moves(next_moves)
+    #carte.print_map()
+
+
+    racine.temporal_difference_0()
+    from cProfile import run
+    run("[racine.temporal_difference_0() for _ in range(100)]")
+

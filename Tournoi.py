@@ -10,7 +10,7 @@ from Algorithmes.Algo_NegaMax import AlgoNegaMax
 from Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
 from Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
 from Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
-
+from Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
 
 # Importation des des cartes du tournoi
 from Cartes.Map_Ligne13 import MapLigne13
@@ -21,24 +21,26 @@ from Cartes.Map_Random import MapRandom
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-MAPS = {#"Dust2": MapDust2,
+MAPS = {"Dust2": MapDust2,
         #"Map8":Map8,
         #"TheTrap":MapTheTrap,
-        "CarteAléatoire":MapRandom
+        #"CarteAléatoire":MapRandom
 
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"Aleatoire": AlgoAleatoireInterne,
          #"MinMax": AlgoMinMax,
-         #"NegaMax": AlgoNegaMax,
+         "NegaMax": AlgoNegaMax,
          #"NegaMaxOriente": AlgoNegMaxOriente,
          "Evaluation": AlgoCustomizedEvaluation,
-         "MonteCarlo": AlgoMonteCarlo
+         "MonteCarlo": AlgoMonteCarlo,
+         #"Temporal Difference 0": AlgoTemporalDifference0
          }
 
 # Nombre de parties par carte
-N_GAME = 10
+N_GAME = 4
+
 
 
 def main():
