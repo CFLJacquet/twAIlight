@@ -42,6 +42,8 @@ class SommetDuJeu_NegaMax(SommetOutcome):
                 self._children.append(child)
         return self._children
 
+
+
     def negamax(self, alpha, beta):
         alphaOrig = alpha
         color = 1 if self.is_vamp else -1
@@ -120,11 +122,11 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         :return: le prochain mouvement
         """
         # On sélectione le noeud fils selon sa race
+
         next_child = min(self.children,
                          key=lambda child: child.negamax(alpha=None, beta=None))
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.previous_moves
-
 
 if __name__ == '__main__':
     carte = Map()

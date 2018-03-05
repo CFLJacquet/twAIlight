@@ -3,7 +3,8 @@ import random
 from itertools import combinations, product
 from copy import deepcopy
 from math import log2, pow, floor
-
+from scipy import signal
+import numpy as np
 
 class Map:
     """
@@ -374,6 +375,88 @@ class Map:
                 repartitions.append(new_rep)
         return repartitions
 
+    def next_possible_relevant_moves(self,is_vamp):
+        """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
+
+                :param is_vamp: race du joueur
+                :return: liste des mouvements possibles
+                """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+
+        for starting_position in next_possible_positions:
+            # Prendre l'ennemi "dangereux" le plus proche
+                #for group_enn in [x_y for x_y in self.content if self.content[x_y][2]]:
+                 #   dist = int(max(abs(x_y[0]-starting_position[0]),abs(x_y[1]-starting_position[1]))/2)
+                  #  if dist<=dist_min:
+                   #     dist_min = dist
+                    #    closest_enn = group_enn
+
+            kernel = np.ones((3,3))
+            grad = signal.convolve2d([x_y[0] for x_y in self.content], kernel, boundary='symm', mode='same')
+            print(grad)
+            print([x_y[0] for x_y in self.content])
+
+            calories = 0
+            for next_pos in next_possible_positions[starting_position]:
+                if grad[next_pos]>=calories:
+                    calories = grad[next_pos]
+                    best_next_moves = next_pos
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_position, next_positions in next_possible_positions.items():
+
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            if is_vamp:
+                pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
+            else:
+                pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            repartitions = Map.repartitions_recursive(pop_of_monsters, n_case)
+
+            group_repartitions[starting_position] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
+
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_position][i]
+
+                        # Respect de la règle 5
+                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                            continue  # On ne rajoute pas cet élément
+                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                            continue  # On ne rajoute pas cet élément
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves not in next_possible_moves:
+                next_possible_moves.append(moves)
+
+        # Respect de la règle 1
+        while [] in next_possible_moves:
+            next_possible_moves.remove([])
+
+        return next_possible_moves
+
+
+
+
     def next_possible_moves(self, is_vamp):
         """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
 
@@ -433,6 +516,7 @@ class Map:
             next_possible_moves.remove([])
 
         return next_possible_moves
+
 
     def random_moves(self, is_vamp):
         """ Renvoie un mouvement aléatoirement choisi
