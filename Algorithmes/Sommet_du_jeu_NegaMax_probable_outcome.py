@@ -1,6 +1,8 @@
+import sys
+sys.path.insert(0,'/Users/eymardhoudeville/Documents/Centrale/Info/IA/twAIlight')
+
 from Map import Map
 from copy import deepcopy
-
 from Algorithmes.Sommet_du_jeu import SommetOutcome
 
 class SommetDuJeu_NegaMax(SommetOutcome):
@@ -36,7 +38,6 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-
                 child = SommetDuJeu_Negamax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=deepcopy(self.map.most_probable_outcome(moves)))
                 child.previous_moves = moves
                 self._children.append(child)
@@ -128,7 +129,8 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map()
+
     racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
-    import cProfile
-    cProfile.run('racine.next_move()')
-    print(racine.next_move())
+    for child in racine.children:
+        print(child.previous_moves)
+        child.map.print_map()
