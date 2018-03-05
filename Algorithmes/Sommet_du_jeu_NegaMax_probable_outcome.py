@@ -1,6 +1,5 @@
 from Map import Map
 from copy import deepcopy
-
 from Algorithmes.Sommet_du_jeu import SommetOutcome
 
 class SommetDuJeu_NegaMax(SommetOutcome):
@@ -36,9 +35,13 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
+<<<<<<< HEAD
+                child = SommetDuJeu_Negamax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=deepcopy(self.map.most_probable_outcome(moves)))
+=======
                 carte=deepcopy(self.map)
                 carte.most_probable_outcome(moves)
                 child = SommetDuJeu_NegaMax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=carte)
+>>>>>>> dd97da2fda40f104d2d9a5b53482337eead43aa5
                 child.previous_moves = moves
                 self._children.append(child)
         return self._children
@@ -129,6 +132,7 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map()
+
     racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
     for child in racine.children:
         print(child.previous_moves)
