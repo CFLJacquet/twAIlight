@@ -39,7 +39,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
             if game_map.game_over():
                 return game_map.state_evaluation()
 
-            pop_hum, pop_vamp, pop_lg = game_map.populations()
+            pop_hum, pop_vamp, pop_lg = game_map.populations
 
             cus_eval = pop_vamp - pop_lg  # Evaluation classique
 

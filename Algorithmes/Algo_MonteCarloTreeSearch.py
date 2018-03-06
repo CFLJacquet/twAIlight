@@ -21,7 +21,7 @@ class AlgoMonteCarlo(JoueurInterne):
     Une réécriture de la classe JoueurInterne
 
     """
-
+    
     def next_moves(self, show_map=True):
         if show_map: self.map.print_map()
 

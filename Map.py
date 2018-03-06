@@ -90,6 +90,7 @@ class Map:
         for i, j in product(range(self.size[0]), range(self.size[1])):
             void_content[(i, j)] = (0, 0, 0)
         self._content = void_content
+        self._populations = (0, 0, 0) # 0 Humains, 0 Vampires, 0 Werewolves
         self._hash = 0
 
         if initial_positions == [] and map_size is None:
@@ -111,6 +112,10 @@ class Map:
     @property
     def content(self):
         return self._content
+
+    @property
+    def populations(self):
+        return self._populations
 
     @classmethod
     def hash_position(cls, position):
@@ -137,7 +142,7 @@ class Map:
     def MAP_command(self):
         """
         Renvoie les nombres de cases peuplés et leurs quintuplets (coordonées, population).
-        Le quintuplet a pour format (i,j,n_hum, h_vampire, n_loup_garou) avec i,j les coordonnées de la case
+        Le quintuplet a pour format (i,j,n_hum, n_vampire, n_loup_garou) avec i,j les coordonnées de la case
         n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
         Utilisé par l'envoi des informations de la carte aux joueurs par le serveur
         :return: n (int), elements (list quintuplets)
@@ -164,7 +169,7 @@ class Map:
     def update_positions(self, positions):
         """
         Mise à jour simple de la carte
-        :param positions: liste de quintuplets de la forme (i,j,n_hum, h_vampire, n_loup_garou) avec i,j les coordonnées de la case
+        :param positions: liste de quintuplets de la forme (i,j,n_hum, n_vampire, n_loup_garou) avec i,j les coordonnées de la case
         n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
         :return: None
         """
@@ -174,6 +179,9 @@ class Map:
 
             # On met à jour la carte
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
+
+            # On met à jour la population (les 3 sommes semblent être le plus performants d'après stackoverflow)
+            self.add_populations(n_hum, n_vamp, n_lg)
 
             # On hash la nouvelle position
             self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
@@ -407,6 +415,7 @@ class Map:
                         self.tirage(n_att, n_hum) for _ in range(n_att))  # Nombre de survivants de l'espèce attaquante
                     # Enregistrement des nouvelles populations sur la carte
                     self.content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
+                    self.add_populations(-n_hum, is_vamp * (n_conv - n_att + n_surv), (not is_vamp)*(n_conv - n_att + n_surv))
                     if self.debug_mode:
                         print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(n_surv, n_conv))
 
@@ -424,6 +433,7 @@ class Map:
                                      range(n_att))  # Nombre de survivants de l'espèce attaquante
                         # Enregistrement des nouvelles populations sur la carte
                         self.content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
+                        self.add_populations(-n_hum, is_vamp * (n_conv - n_att + n_surv), (not is_vamp)*(n_conv - n_att + n_surv))
 
                         if self.debug_mode:
                             print(
@@ -433,6 +443,7 @@ class Map:
                             self.tirage(n_att, n_hum) for _ in range(n_hum))  # Nombre d'humain survivant
                         # Enregistrement des humains survivants sur la carte
                         self.content[(x, y)] = (n_surv, 0, 0)
+                        self.add_populations(n_surv-n_hum, is_vamp * (- n_att), (not is_vamp)*(- n_att))
                         if self.debug_mode:
                             print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
 
@@ -454,6 +465,7 @@ class Map:
 
                     # Enregistrement des attaquants survivants
                     self.content[(x, y)] = (0, is_vamp * n_surv, (not is_vamp) * n_surv)
+                    self.add_populations(0, n_surv - n_att if is_vamp else -n_def, n_surv - n_att if not is_vamp else -n_def)
 
                     if self.debug_mode:
                         print("Victoire de l'attaquant ! {} survivants".format(n_surv))
@@ -472,6 +484,7 @@ class Map:
                         n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_att))  # Nombre d'attaquants survivants
                         # Enregistrement sur la carte
                         self.content[(x, y)] = (0, is_vamp * n_surv, (not is_vamp) * n_surv)
+                        self.add_populations(0, n_surv - n_att if is_vamp else -n_def, n_surv - n_att if not is_vamp else -n_def)
 
                         if self.debug_mode:
                             print("Victoire de l'attaquant ! {} survivants".format(n_surv))
@@ -482,6 +495,7 @@ class Map:
                             self.tirage(n_att, n_def) for _ in range(n_def))  # Nombre de défenseur survivant
                         # Enregistrement sur la carte
                         self.content[(x, y)] = (0, (not is_vamp) * n_surv, is_vamp * n_surv)
+                        self.add_populations(0,  -n_att if is_vamp else n_surv-n_def, -n_att if not is_vamp else n_surv-n_def)
 
                         if self.debug_mode:
                             print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
@@ -727,6 +741,12 @@ class Map:
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
 
+    def add_populations(self, n_hum, n_vamp, n_lg):
+        self._populations = (
+            self._populations[0] + n_hum,
+            self._populations[1] + n_vamp,
+            self._populations[2] + n_lg)
+
     def state_evaluation(self):
         if self.game_over():  # Si la partie est terminée
             if self.winner() is None:  # Match nul
@@ -736,28 +756,17 @@ class Map:
             else:  # Loup-garou gagne
                 return - Map.__N_MONSTER_MAX
 
-        n_hum, n_vamp, n_lg = self.populations()
+        _, n_vamp, n_lg = self.populations
 
         return n_vamp - n_lg  # Score pour une partie en cours
 
-    def populations(self):
-        """Renvoie les populations des différentes espèces sur la carte
-
-        :return: n_hum, n_vamp, n_lg les populations respectives des humains, vampires et loups-garous
-        """
-        n_hum, n_vamp, n_lg = 0, 0, 0
-        for i_hum, i_vamp, i_lg in self.content.values():
-            n_hum += i_hum
-            n_vamp += i_vamp
-            n_lg += i_lg
-        return n_hum, n_vamp, n_lg
 
     def game_over(self):
         """ Renvoie si la partie est terminée
 
         :return: Vrai si la partie est terminée, faux sinon (boolean)
         """
-        _, n_vamp, n_lg = self.populations()
+        _, n_vamp, n_lg = self.populations
         if n_vamp == 0 or n_lg == 0:  # Plus de monstres
             return True
         return False  # Il reste des monstres
@@ -767,7 +776,7 @@ class Map:
 
         :return: True pour vampires ont gagné, False pour loups-garous ont gagnés, None pour match nul
         """
-        _, n_vamp, n_lg = self.populations()
+        _, n_vamp, n_lg = self.populations
         if n_vamp > n_lg:  # Il reste de vampires
             return True
         elif n_lg > n_vamp:  # Il reste des loups-garous
@@ -782,9 +791,9 @@ class Map:
         RACE = ("H", "V", "W")
 
         # Carte
-        for j in range(self.size[1]):  # Parcours des lignes
+        for i in range(self.size[0]):  # Parcours des lignes
             print("_" * (self.size[0] * 5))
-            for i in range(self.size[0]):  # Parcours des colonnes
+            for j in range(self.size[1]):  # Parcours des colonnes
                 cell_text = "|" + " " * 4
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
@@ -798,9 +807,7 @@ class Map:
         print("_" * (self.size[0] * 5))
 
         # Score
-
-
-        n_hum, n_vamp, n_lg = self.populations()
+        n_hum, n_vamp, n_lg = self.populations
         print(
             "Scores:\t\tVampires {} | {} Werewolves\n\tRemaining Humans: {}".format(
                 n_vamp, n_lg, n_hum))

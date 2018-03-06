@@ -16,7 +16,6 @@ class AlgoAleatoireInterne(JoueurInterne):
 class AlgoMinMax(JoueurInterne):
     """
     Une réécriture de la classe JoueurInterne
-
     """
 
     def next_moves(self, show_map=True):

@@ -33,7 +33,7 @@ ALGOS = {"Aleatoire": AlgoAleatoireInterne,
          #"MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
          #"NegaMaxOriente": AlgoNegMaxOriente,
-         "Evaluation": AlgoCustomizedEvaluation,
+         #"Evaluation": AlgoCustomizedEvaluation,
          "MonteCarlo": AlgoMonteCarlo
          }
 
