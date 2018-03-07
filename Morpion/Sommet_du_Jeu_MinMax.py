@@ -1,6 +1,5 @@
 from Morpion.Sommet_du_Jeu import SommetDuJeu
-
-
+from Morpion.Map_Morpion import Morpion
 class SommetDuJeuMinMax(SommetDuJeu):
     __vertices_created = 0
 
@@ -47,4 +46,16 @@ class SommetDuJeuMinMax(SommetDuJeu):
 
 
 if __name__ == "__main__":
-    SommetDuJeuMinMax.game_on()
+    #SommetDuJeuMinMax.game_on()
+    carte=Morpion()
+    carte.previous_moves=[(0,0,True),(1,1,False),(2,2,True),(0,1,False)]
+    print(carte)
+    racine=SommetDuJeuMinMax()
+    racine.map=carte
+    for child in racine.children:
+        print(child.map.previous_moves[-1],child.MinValue(3))
+
+    print()
+    print(max(racine.children, key=lambda x: x.MinValue(3)).map.previous_moves[-1])
+
+

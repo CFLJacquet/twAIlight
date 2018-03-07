@@ -12,16 +12,17 @@ from Morpion.Sommet_du_Jeu_NegaMax_Transposition_Oriente import NegaMaxAstar
 from Morpion.Sommet_du_Jeu_NegaMax_Transposition import NegaMax
 
 ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
-         #'MinMax': SommetDuJeuMinMax,
-         #'AlphaBeta': SommetDuJeuAlphaBeta,
-         #'AlphaBetaAstar':SommetDuJeuAlphaBetaOriente,
+         'MinMax': SommetDuJeuMinMax,
+         'AlphaBeta': SommetDuJeuAlphaBeta,
+         'AlphaBetaAstar':SommetDuJeuAlphaBetaOriente,
          'MinMax_Transposition':SommetDuJeuMinMaxTransposition,
-         #'Negamax_A_Start':NegaMaxAstar,
-         #'Negamax':NegaMax
+         'Negamax_A_Start':NegaMaxAstar,
+         'Negamax':NegaMax
          }
 
 # Nombre de parties à jouer par duel
-N_GAME = 100
+N_GAME = 10
+
 
 
 def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
