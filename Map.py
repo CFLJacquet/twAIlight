@@ -974,9 +974,9 @@ class Map:
         RACE = ("H", "V", "W")
 
         # Carte
-        for i in range(self.size[0]):  # Parcours des lignes
-            print("_" * (self.size[1] * 5))
-            for j in range(self.size[1]):  # Parcours des colonnes
+        for j in range(self.size[1]):  # Parcours des lignes
+            print("_" * (self.size[0] * 5))
+            for i in range(self.size[0]):  # Parcours des colonnes
                 cell_text = "|" + " " * 4
                 if (i, j) in self.content:
                     for pos, n_esp in enumerate(self.content[(i, j)]):
@@ -987,7 +987,7 @@ class Map:
                                 cell_text = cell_text.replace(" " * 4, " {}{}".format(n_esp, RACE[pos]))
                 print(cell_text, end='')  # Affichage de la cellule
             print("|")
-        print("_" * (self.size[1] * 5))
+        print("_" * (self.size[0] * 5))
 
         # Score
         n_hum, n_vamp, n_lg = self.populations
