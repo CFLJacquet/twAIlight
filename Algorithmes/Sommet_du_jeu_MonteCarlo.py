@@ -7,6 +7,7 @@ from twAIlight.Map import Map
 from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Random import MapRandom
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 
 class SommetChance_MonteCarlo(SommetChance):
@@ -201,7 +202,7 @@ if __name__ == '__main__':
     from time import time
 
     start_time = time()
-    while time() < start_time + 30:
+    while time() < start_time + 2:
         racine.MCTS()
 
     for child in racine.children:
@@ -226,3 +227,8 @@ if __name__ == '__main__':
     print(SommetChance_MonteCarlo.nb_vertices_created() + SommetOutcome_MonteCarlo.nb_vertices_created())
     print("Nombre de simulations :")
     print(racine.n_games)
+"""
+    carte=MapLigne13()
+    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
+    import cProfile
+    cProfile.run("[racine.MCTS() for _ in range(20)]")"""
