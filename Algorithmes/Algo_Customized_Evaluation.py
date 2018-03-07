@@ -102,7 +102,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
         cur_evaluation = 0
         for proba, updated_positions in self.map.possible_outcomes(moves):
             carte = deepcopy(self.map)
-            carte.update_positions(updated_positions)
+            carte.update_content(updated_positions)
             move_evaluation = AlgoCustomizedEvaluation.customized_evaluation(carte)
             cur_evaluation += proba * move_evaluation
         return cur_evaluation

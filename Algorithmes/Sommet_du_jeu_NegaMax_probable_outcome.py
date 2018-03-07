@@ -78,11 +78,11 @@ class SommetDuJeu_NegaMax(SommetOutcome):
             if alpha is None and beta is None:
                 v = - child.negamax(None, None)
             elif beta is None:
-                v = - child.negamax(None, -alpha)
+                v = - child.negamax(None, -1*alpha)
             elif alpha is None:
-                v = - child.negamax(-beta, None)
+                v = - child.negamax(-1*beta, None)
             else:
-                v = - child.negamax(-beta, -alpha)
+                v = - child.negamax(-1*beta, -1*alpha)
 
             # On prend le max entre bestvalue et v
             if bestvalue is None:

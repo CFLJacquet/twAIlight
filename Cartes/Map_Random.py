@@ -15,8 +15,8 @@ class MapRandom(Map):
     __MONSTER_MAX = 10
 
     def __init__(self, debug_mode=False):
-        x_max = random.randint(1, MapRandom.__SIZE_MAX)
-        y_max = random.randint(1, MapRandom.__SIZE_MAX)
+        x_max = random.randint(2, MapRandom.__SIZE_MAX)
+        y_max = random.randint(2, MapRandom.__SIZE_MAX)
         map_size = (x_max, y_max)
 
         initial_positions = []

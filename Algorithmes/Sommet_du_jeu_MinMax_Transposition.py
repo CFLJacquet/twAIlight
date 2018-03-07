@@ -34,12 +34,15 @@ class SommetChance_MinMax(SommetChance):
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetOutcome_MinMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                         depth=self.depth - 1)
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetOutcome_MinMax(
+                    is_vamp=is_vamp,
+                    game_map=carte,
+                    depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel

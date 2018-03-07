@@ -21,12 +21,15 @@ class SommetChance_NegaMax_Oriente(SommetChance):
             self._children = list()
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu_NegaMax_Oriente(is_vamp=self.is_vamp, game_map=self.map.__copy__(self.map),
-                                                                depth=self.depth)
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetDuJeu_NegaMax_Oriente(
+                    is_vamp=self.is_vamp, 
+                    game_map=carte,
+                    depth=self.depth)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
@@ -114,11 +117,11 @@ class SommetDuJeu_NegaMax_Oriente(SommetOutcome):
             if alpha is None and beta is None:
                 v = - child.negamax(None, None)
             elif beta is None:
-                v = - child.negamax(None, -alpha)
+                v = - child.negamax(None, -1*alpha)
             elif alpha is None:
-                v = - child.negamax(-beta, None)
+                v = - child.negamax(-1*beta, None)
             else:
-                v = - child.negamax(-beta, -alpha)
+                v = - child.negamax(-1*beta, -1*alpha)
 
             # On prend le max entre bestvalue et v
             if bestvalue is None:
