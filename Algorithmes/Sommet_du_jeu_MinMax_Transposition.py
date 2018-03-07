@@ -140,5 +140,5 @@ class SommetOutcome_MinMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map()
-    racine=SommetOutcome_MinMax(is_vamp=True, depth=1, game_map=carte, init_map=True)
+    racine=SommetOutcome_MinMax(is_vamp=True, depth=3, game_map=carte, init_map=True)
     print(racine.next_move())

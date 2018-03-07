@@ -2,7 +2,6 @@
 from copy import deepcopy
 from time import time
 
-<<<<<<< HEAD
 from twAIlight.Joueur_Interne import JoueurInterne
 from twAIlight.Serveur_Interne import ServeurInterne
 from twAIlight.Algorithmes.Sommet_du_jeu_MonteCarlo import SommetOutcome_MonteCarlo, SommetChance_MonteCarlo
@@ -10,15 +9,6 @@ from twAIlight.Cartes.Map_Dust2 import MapDust2
 from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Random import MapRandom
-=======
-from Joueur_Interne import JoueurInterne
-from Serveur_Interne import ServeurInterne
-from Algorithmes.Sommet_du_jeu_MonteCarlo import SommetOutcome_MonteCarlo, SommetChance_MonteCarlo
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
-from Cartes.Map_Random import MapRandom
->>>>>>> be317d980a17754ef5c32cbe73e667eaf89c58b8
 
 
 class AlgoAleatoireInterne(JoueurInterne):

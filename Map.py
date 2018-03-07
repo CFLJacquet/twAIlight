@@ -315,6 +315,7 @@ class Map:
         :return: None
         """
         for i, j, n_hum, n_vamp, n_lg in positions:
+            old_h, old_v, old_lg = self.content[(i, j)]
             # On déhash l'ancienne position
             self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
 
@@ -322,14 +323,10 @@ class Map:
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
 
             # On met à jour la population (les 3 sommes semblent être le plus performants d'après stackoverflow)
-            self.add_populations(n_hum, n_vamp, n_lg)
+            self.add_populations(n_hum-old_h, n_vamp-old_v, n_lg-old_lg)
 
             # On hash la nouvelle position
             self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
-
-    def __copy__(self, objet):
-        t = deepcopy(objet)
-        return t
 
 
     def next_possible_positions(self, is_vamp):
@@ -1034,7 +1031,7 @@ class Map:
         # Score
         n_hum, n_vamp, n_lg = self.populations
         print(
-            "Scores:\t\tVampires {} | {} Werewolves\n\tRemaining Humans: {}".format(
+            "Vampires {} | Werewolves {} | Remaining Humans: {}".format(
                 n_vamp, n_lg, n_hum))
 
 

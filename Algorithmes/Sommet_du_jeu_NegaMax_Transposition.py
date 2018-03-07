@@ -1,7 +1,7 @@
-from Map import Map
+from twAIlight.Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_Negamax(SommetChance):
