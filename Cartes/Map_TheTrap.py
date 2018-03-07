@@ -1,4 +1,4 @@
-from Map import Map
+from twAIlight.Map import Map
 
 
 class MapTheTrap(Map):

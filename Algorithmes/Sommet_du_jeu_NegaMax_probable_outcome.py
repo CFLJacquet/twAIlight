@@ -1,6 +1,6 @@
-from Map import Map
 from copy import deepcopy
-from Algorithmes.Sommet_du_jeu import SommetOutcome
+from twAIlight.Map import Map
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
 class SommetDuJeu_NegaMax(SommetOutcome):
     __vertices_created = 0

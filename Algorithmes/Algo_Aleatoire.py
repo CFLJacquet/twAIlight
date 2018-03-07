@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from Joueur import Joueur
-from Joueur_Interne import JoueurInterne
-from Serveur_Interne import ServeurInterne
-from Map import Map
+from twAIlight.Joueur import Joueur
+from twAIlight.Joueur_Interne import JoueurInterne
+from twAIlight.Serveur_Interne import ServeurInterne
+from twAIlight.Map import Map
 
 class AlgoAleatoire(Joueur):
     """
