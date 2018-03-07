@@ -226,7 +226,7 @@ class Map:
                 if n_hum < n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
-                    n_total = int((n_att+n_hum)*self.proba_p(n_att,n_hum))
+                    n_total = round((n_att+n_hum)*self.proba_p(n_att,n_hum))
                     # Enregistrement des nouvelles populations sur la carte
                     self.content[(x, y)] = (0, is_vamp * (n_total), (not is_vamp) * (n_total))
                     if self.debug_mode:
@@ -240,7 +240,7 @@ class Map:
                             Map.proba_p(n_att, n_hum), n_hum, n_att))
                     # Victoire des monstres
 
-                    n_surv = int(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
+                    n_surv = round(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
                     # Enregistrement des humains survivants sur la carte
                     self.content[(x, y)] = (n_surv, 0, 0)
                     if self.debug_mode:
@@ -259,7 +259,7 @@ class Map:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
 
-                    n_surv =int(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
+                    n_surv =round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
 
                     # Enregistrement des attaquants survivants
                     self.content[(x, y)] = (0, is_vamp * n_surv, (not is_vamp) * n_surv)
@@ -275,7 +275,7 @@ class Map:
                             Map.proba_p(n_att, n_def), n_def, n_att))
 
                     # Victoire du défenseur
-                    n_surv = int(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
+                    n_surv = round(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
                     # Enregistrement sur la carte
                     self.content[(x, y)] = (0, (not is_vamp) * n_surv, is_vamp * n_surv)
 
