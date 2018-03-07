@@ -6,18 +6,16 @@ from Algorithmes.Sommet_du_jeu_MinMax_Transposition import SommetOutcome_MinMax,
 from Cartes.Map_Dust2 import MapDust2
 from Cartes.Map_Ligne13 import MapLigne13
 
-
 class AlgoAleatoireInterne(JoueurInterne):
     """
     Joueur avec la fonction de décision aléatoire de Charles
     """
 
-
 class AlgoMinMax(JoueurInterne):
     """
     Une réécriture de la classe JoueurInterne
     """
-
+    
     def next_moves(self, show_map=True):
         depth_max = 3
         if show_map: self.map.print_map()
