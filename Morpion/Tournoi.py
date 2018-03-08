@@ -16,7 +16,7 @@ ALGOS = {'Aleatoire': SommetDuJeuAleatoire,
          'AlphaBeta': SommetDuJeuAlphaBeta,
          'AlphaBetaAstar':SommetDuJeuAlphaBetaOriente,
          'MinMax_Transposition':SommetDuJeuMinMaxTransposition,
-         'Negamax_A_Start':NegaMaxAstar,
+         'Negamax_A_Star':NegaMaxAstar,
          'Negamax':NegaMax
          }
 
