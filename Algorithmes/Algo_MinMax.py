@@ -16,9 +16,8 @@ class AlgoMinMax(JoueurInterne):
     """
     Une réécriture de la classe JoueurInterne
     """
-    
     def next_moves(self, show_map=True):
-        depth_max = 3
+        depth_max = 11
         if show_map: self.map.print_map()
         racine = SommetOutcome_MinMax(depth=depth_max, game_map=deepcopy(self.map), is_vamp=self.is_vamp, init_map=True)
         return racine.next_move()

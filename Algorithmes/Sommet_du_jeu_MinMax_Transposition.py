@@ -83,7 +83,7 @@ class SommetOutcome_MinMax(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.next_ranked_moves(self.is_vamp)[:4]:
                 child = SommetChance_MinMax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)

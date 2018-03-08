@@ -26,7 +26,6 @@ MAPS = {"Dust2": MapDust2,
         #"Map8":Map8,
         #"TheTrap":MapTheTrap,
         #"CarteAléatoire":MapRandom
-
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
@@ -39,7 +38,7 @@ ALGOS = {"Aleatoire": AlgoAleatoireInterne,
          }
 
 # Nombre de parties par carte
-N_GAME = 2
+N_GAME = 10
 
 
 def main():
