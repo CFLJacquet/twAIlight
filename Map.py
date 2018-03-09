@@ -226,7 +226,7 @@ class Map:
                 if n_hum < n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
-                    n_total = round((n_att+n_hum)*self.proba_p(n_att,n_hum))
+                    n_total = n_att+n_hum
                     # Enregistrement des nouvelles populations sur la carte
                     self.content[(x, y)] = (0, is_vamp * (n_total), (not is_vamp) * (n_total))
                     if self.debug_mode:
@@ -543,9 +543,8 @@ class Map:
                 if n_hum <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
-                    n_conv = sum(self.tirage(n_att, n_hum) for _ in range(n_hum))  # Nombre d'humains convertis
-                    n_surv = sum(
-                        self.tirage(n_att, n_hum) for _ in range(n_att))  # Nombre de survivants de l'espèce attaquante
+                    n_conv = n_hum  # Nombre d'humains convertis
+                    n_surv = n_att  # Nombre de survivants de l'espèce attaquante
                     # Enregistrement des nouvelles populations sur la carte
                     self.content[(x, y)] = (0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))
                     if self.debug_mode:

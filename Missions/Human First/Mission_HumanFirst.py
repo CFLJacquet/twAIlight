@@ -58,8 +58,24 @@ class HumanFirst(Joueur):
         return [
             (*current_position, current_population, current_position[0] + move_x, current_position[1] + move_y)]
 
+    @staticmethod
     def distance_A_star(origin, destination,forbidden_places):
-        pass
+        visited=set()
+        next_possible_path = []
+        distance_from_origin={origin:0}
+        evaluations={origin:HumanFirst.distance(origin, destination)}
+        current_position=origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            i,j=current_position
+            next_possible_moves=[(i+i_0, j+j_0) for (i_0, j_0) in product((-1,0,1), repeat=2) if (i_0,j_0)!= (0,0) ]
+
+    @staticmethod
+    def distance(origin, destination):
+        return max(abs(origin[0]-destination[0]), abs(origin[1]-destination[1]))
+
+
 
 if __name__ == '__main__':
     starving_player=HumanFirst()
