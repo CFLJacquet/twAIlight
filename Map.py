@@ -356,28 +356,52 @@ class Map:
         """
         repartitions = list()
 
-        #if pop_of_monster == 0:
-        #    return [[0] * n_case]
+        if pop_of_monster == 0:
+            return [[0] * n_case]
         if n_case == 1:
             for pop_last_case in range(pop_of_monster + 1):
-                # Test : Pas de groupe de 1
-                if pop_of_monster > 1  :
-                    if pop_of_monster-pop_last_case == 1:
-                        continue
-                    if pop_last_case == 1:
-                        continue
                 repartitions.append([pop_last_case])
             return repartitions
         for pop_first_case in range(pop_of_monster + 1):
-            # Test : Pas de groupe de 1
-            if pop_of_monster > 1 :
-                if pop_of_monster-pop_first_case == 1:
-                    continue
-                if pop_first_case == 1:
-                    continue
             for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
                 new_rep = [pop_first_case] + rep
                 repartitions.append(new_rep)
+        return repartitions
+
+
+    @staticmethod
+    def relevant_repartitions(pop_of_monster, n_case):
+        """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
+            - max 2 sous-groupes à la fin
+            - pas de sous-groupe de moins de pop_of_monster // 3
+
+        :param pop_of_monster: int
+        :param n_case: int
+        :return: list : liste des répartitions possibles
+        """
+        pop_combinaisons = list()
+        min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
+        for pop_1 in range(pop_of_monster):
+            pop_2 = pop_of_monster - pop_1
+            if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
+                continue
+            pop_combinaisons.append((pop_1, pop_2))
+        
+        repartitions = list()
+        repartitions.append([0] * n_case) # cas trivial
+        for pop_1, pop_2 in pop_combinaisons: 
+            for j in range(n_case): # Le groupe 1 reste sur la case de départ
+                l = [0] * n_case
+                l[j] = pop_2
+                repartitions.append(l)
+
+            if pop_1 == 0: continue # On évite n_case - 1 doublons 
+            for i in range(n_case-1):
+                for j in range(i+1, n_case):
+                    l = [0] * n_case
+                    l[i] = pop_1
+                    l[j] = pop_2
+                    repartitions.append(l)
         return repartitions
 
 
@@ -395,8 +419,8 @@ class Map:
 
         temp = np.array(list(map(list,self.content.values())))
         matrix = temp.reshape((self.size[0], self.size[1], 3))
-        score_hum = signal.convolve2d(matrix[:,:,0], gauss_k, mode="same")
-        score_adv = (signal.convolve2d(matrix[:,:, a], avg_k, mode="same") - matrix[:,:,d]) * matrix[:,:,d]
+        score_hum = signal.convolve2d(matrix[...,0], gauss_k, mode="same")
+        score_adv = (signal.convolve2d(matrix[..., a], avg_k, mode="same") - matrix[...,d]) * matrix[...,d]
         score = np.maximum(8 * score_hum, score_adv)
         return score.tolist()
 
@@ -961,9 +985,15 @@ if __name__ == "__main__":
     #moves = [(0, 1, 1, 1, 1)]
 
     #print(carte.possible_outcomes(moves))
-    #move = np.array([[0,1,1,1,1],[0,1,1,1,2]])
+    move = [(0,1,1,1,1),(0,1,1,1,2)]
+    rel = carte.relevant_repartitions(1,3)
+    print(rel)
+    print(len(rel))
+    rec = carte.repartitions_recursive(1,3)
+    print(rec)
+    print(len(rec))
     #for i in carte.possible_outcomes(move):
     #    print(i)
-    print(carte.hash)
-    carte.update_content(np.array([[0,1,2,0,0]]))
-    print(carte.hash)
+    #print(carte.hash)
+    #arte.update_content(np.array([[0,1,2,0,0]]))
+    #print(carte.hash)
