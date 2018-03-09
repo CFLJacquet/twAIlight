@@ -12,7 +12,7 @@ from twAIlight.Map import Map
 
 class NumpyMap(Map):
     """
-    Carte du jeu amélioré avec numpy v2: 
+    Carte du jeu amélioré avec numpy : 
     Par défaut : Dust_2
     _______________
     |    |    |    |
@@ -34,14 +34,56 @@ class NumpyMap(Map):
      - self.content[:,:,2] est la carte/matrice des loup-garou
     """
     
-    GAUSS_K = np.array([[1,1,1],[1,2,1], [1,1,1]])
-    AVG_K   = np.array([[1,1,1],[1,1,1], [1,1,1]])
+    @classmethod
+    def init_map_class(cls, map_size, initial_positions):
+        """Crée la table de hashage des mouvements possibles, et renseigne les attributs de populations maximales de la
+        classe.
+
+        Méthode de hashage d'un élément de la carte en s'inspirant du hashage de Zobrist.
+        https://en.wikipedia.org/wiki/Zobrist_hashing
+
+        :param map_size: taille de la carte (x_max, y_max)
+        :param initial_positions: contenu de la carte (np.array)
+        :return: None
+        """
+        # On cherche à connaitre nos constantes sur les effectifs des espèces en présence
+        x_max, y_max = map_size
+
+        # Somme des populations d'humains sur la carte
+        sum_human_pop = initial_positions.take([2], axis=1).sum()
+        # Population maximale d'une espèce de monstre 
+        n_monster_max = initial_positions.take([3,4], axis=1).max()
+
+        cls.__N_MONSTER_MAX = n_monster_max + sum_human_pop
+
+        # On calcule le nombre de cartes différentes possibles
+
+        # avec 2 types de joueurs différents avec (n_monster_max+sum_human_pop) effectifs sur cette case
+        # le max est pour le cas de l'initialisation d'un joueur (sa carte est au départ vide)
+        N_possible_boxes = max(1, (2 * n_monster_max + 2 * sum_human_pop - 1) * x_max * y_max + sum_human_pop)
+
+        # Nombre de bit sur lequel coder au minimum les positions
+        n_bit = floor(log2(N_possible_boxes))
+        # Marge sur la taille du bit de codage pour éviter les collisions
+        m_bit = 10
+        # Hash maximal
+        nombre_max_hashage = pow(2, n_bit + m_bit)
+
+        # Création de la table de hashage
+        table = defaultdict(lambda: random.randint(0, nombre_max_hashage))
+
+        # Le hash d'une case vide est nul
+        for i, j in product(range(x_max), range(y_max)):
+            table[(i, j, 0, 0, 0)] = 0
+
+        cls.__HASH_TABLE = table
 
     def __init__(self, map_size=None, initial_positions=list(), debug_mode=False):
         """
         Initialise la carte
         :param map_size: dimensions de la carte
-        :param initial_positions: Contenu de la carte format dict[(i,j)]=(nombre_humains, nombre_vampires, nombre_loup-garous)
+        :param initial_positions: (np.array)    [[x1, y1, h1, v1, w1]
+                                                 [x2, y2, h2, v2, w2]]
         :param debug_mode: mode debug (boolean)
         """
         # Par Défaut Carte The Trap
@@ -54,7 +96,7 @@ class NumpyMap(Map):
         self._hash = 0
 
         if initial_positions == [] and map_size is None:
-            initial_positions = [(0, 1, 0, 2, 0), (1, 1, 1, 0, 0), (2, 1, 0, 0, 2)]  # 2 vampire, 1 humain, 2 loup-garou
+            initial_positions = np.array([[0, 1, 0, 2, 0], [1, 1, 1, 0, 0], [2, 1, 0, 0, 2]], dtype='intp')  # 2 vampire, 1 humain, 2 loup-garou
 
         # On crée la table de hashage des mouvements et d'autres paramètres sur les effectifs de la carte
         Map.init_map_class(self.size, initial_positions)
@@ -65,27 +107,59 @@ class NumpyMap(Map):
         self.UPD = []  # Liste des changements lors d'un update de la carte
         self.debug_mode = debug_mode
 
+    @property
+    def populations(self):
+        return tuple(self._populations)
+
     def update_content(self, positions):
         """
         Mise à jour simple de la carte
-        :param positions: liste de quintuplets de la forme (i,j,n_hum, n_vampire, n_loup_garou) 
-            avec i,j les coordonnées de la case,
-            n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
+        :param positions: (np.array)    [[x1, y1, h1, v1, w1]
+                                         [x2, y2, h2, v2, w2]]
         :return: None
         """
-        for i, j, n_hum, n_vamp, n_lg in positions:
-            old_h, old_v, old_lg = self.content[i, j]
-            # On déhash l'ancienne position
-            self._hash ^= self.hash_position((i, j, old_h, old_v, old_lg))
+        # Si on transpose positions => [[x1, x2]
+        #                               [y1, y2]
+        #                               [h1, h2]
+        #                               [v1, v2]
+        #                               [w1, w2]]
+        pos_row = positions.take([0], axis=1).flatten() # np.array([x1, x2])
+        pos_col = positions.take([1], axis=1).flatten() # np.array([y1, y2])
+        # On récupère l'ancien contenu [o_hi, o_vi, o_wi] de la case xi, yi
+        # old_content = [[o_h1, o_v1, o_w1]
+        #                [o_h2, o_v2, o_w2]]
+        old_content = self.content[pos_row, pos_col]
 
-            # On met à jour la carte
-            self.content[i, j] = (n_hum, n_vamp, n_lg)
+        # On ajoute les positions xi, yi
+        # old_content_w_pos = [[x1, y1, o_h1, o_v1, o_w1]
+        #                      [x2, y2, o_h2, o_v2, o_w2]]
+        old_content_w_pos = np.hstack((pos_row[:, np.newaxis], pos_col[:, np.newaxis], old_content))        
 
-            # On met à jour la population (les 3 sommes semblent être le plus performants d'après stackoverflow)
-            self._populations += (n_hum - old_h, n_vamp - old_v, n_lg - old_lg)
+        # On applique le hash à chaque [xi, yi, o_hi, o_vi, o_wi]
+        def xor(t):
+            self._hash ^= self.hash_position(tuple(t))
 
-            # On hash la nouvelle position
-            self._hash ^= self.hash_position((i, j, *self.content[i, j]))
+        np.apply_along_axis(xor, 1, old_content_w_pos)
+
+
+        # On récupère le nouveau contenu [n_hi, n_vi, n_wi] de la case xi, yi
+        # new_content = [[n_h1, n_v1, n_w1]
+        #                [n_h2, n_v2, n_w2]]
+        new_content = positions.take([2,3,4], axis=1) # eq. positions[:, 2:]
+
+        # On met à jour la carte
+        self.content[pos_row, pos_col] = new_content
+
+        # On met à jour la population
+        self._populations += np.sum(new_content-old_content, axis=0)
+
+        # On ajoute les positions xi, yi
+        # new_content_w_pos = [[x1, y1, n_h1, n_v1, n_w1]
+        #                      [x2, y2, n_h2, n_v2, n_w2]]
+        new_content_w_pos = np.hstack((pos_row[:, np.newaxis], pos_col[:, np.newaxis], new_content))        
+
+        # On applique le hash à chaque [xi, yi, n_hi, n_vi, n_wi]
+        np.apply_along_axis(xor, 1, new_content_w_pos)
 
     def home_vampire(self):
         """
@@ -109,7 +183,7 @@ class NumpyMap(Map):
         Utilisé par l'envoi des informations de la carte aux joueurs par le serveur
         :return: n (int), elements (list quintuplets)
         """
-        i_x, i_y = np.any(self.content != [0,0,0], axis=2).nonzero()
+        i_x, i_y = self.content.nonzero()
         n = i_x.size
         content = self.content[i_x, i_y]
         elements = np.hstack((i_x[:, np.newaxis], i_y[:, np.newaxis], content))
@@ -122,6 +196,7 @@ class NumpyMap(Map):
         avec i,j les coordonnées de la case
         :return: None
         """
+        positions = np.array(list(map(list,positions)))
         NumpyMap.init_map_class(self.size, positions)
         self.update_content(positions)
 
@@ -134,9 +209,11 @@ class NumpyMap(Map):
 
         new_positions = defaultdict(list)
 
-        a = 1 if is_vamp else 2
         # On récupère toutes les positions initiales possibles
-        starting_x, starting_y = self.content[...,a].nonzero()
+        if is_vamp:  # Le joueur est un loup-garou
+            starting_x, starting_y = self.content[:,:,1].nonzero()
+        else:  # Le joueur est un loup-garou
+            starting_x, starting_y = self.content[:,:,2].nonzero()
 
         x_max, y_max = self.size
 
@@ -218,33 +295,39 @@ class NumpyMap(Map):
         # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
         for combined_repartitions in product(*group_repartitions.values()):
 
-            moves = list()  # Liste des mouvements
+            moves = np.zeros((1,5), dtype='int32')  # Liste des mouvements
 
             # Parcours de chaque groupe de monstre
-            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
+            for (x_old, y_old), repartition in zip(group_repartitions.keys(), combined_repartitions):
 
                 # Pour un groupe de monstre, où vont-ils partir ?
                 for i, n_mons in enumerate(repartition):
                     # Au moins un monstre se déplace
                     if n_mons:
                         # Position d'arrivée de ce sous-groupe de monstre
-                        new_position = next_possible_positions[starting_position][i]
+                        x_new, y_new = next_possible_positions[x_old, y_old][i]
 
                         # Respect de la règle 5
-                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                        if np.all([x_new, y_new] == moves.take([0,1], axis=1).flatten()):
                             continue  # On ne rajoute pas cet élément
-                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                        if np.all([x_old, y_old] == moves.take([3,4], axis=1).flatten()):
                             continue  # On ne rajoute pas cet élément
 
                         # On enregistre ce mouvement pour un groupe de monstre
-                        moves.append((*starting_position, n_mons, *new_position))
+                        moves = np.append(moves, [[x_old, y_old, n_mons, x_new, y_new]], axis=0)
 
-            if moves not in next_possible_moves:
+            # Respect de la règle 1
+            if moves.shape[0]==1:
+                continue
+            
+            moves = moves[1:,:]
+
+            if not any(np.all(moves == a) for a in next_possible_moves):
                 next_possible_moves.append(moves)
 
         # Respect de la règle 1
-        while [] in next_possible_moves:
-            next_possible_moves.remove([])
+        #while [] in next_possible_moves:
+        #    next_possible_moves.remove([])
 
         return next_possible_moves
 
@@ -254,16 +337,26 @@ class NumpyMap(Map):
         :return: numpy array des scores de chaque case
         """
         # 1 noyau gaussien, 1 noyau moyenne
+        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]], dtype='uint8')
+        avg_k   = np.ones((3,3), dtype='uint8')
+        
         a = 1 if is_vamp else 2
         d = 2 if is_vamp else 1
-
-        hum_content = self.content[...,0]
-        att_content = self.content[...,a]
-        def_content = self.content[...,d]
-        score_hum = signal.convolve2d(hum_content, self.GAUSS_K, mode="same")
-        score_adv = (signal.convolve2d(att_content, self.AVG_K, mode="same") - def_content) * def_content
+    
+        score_hum = signal.convolve2d(self.content[:,:,0], gauss_k, mode="same")
+        score_adv = (signal.convolve2d(self.content[:,:, a], avg_k, mode="same") - self.content[:,:,d]) * self.content[:,:,d]
         score = np.maximum(8 * score_hum, score_adv)
-        return score.tolist()
+        return score
+
+
+    def next_ranked_moves(self, is_vamp):
+        score = self.compute_score_map(is_vamp)
+        ranked_moves = sorted(
+            self.next_possible_moves(is_vamp),
+            key= lambda moves: np.sum(score[moves.take([3], axis=1).flatten(), moves.take([4], axis=1).flatten()]),
+            reverse=True)
+        return ranked_moves
+
 
     def random_moves(self, is_vamp):
         """ Renvoie un mouvement aléatoirement choisi
@@ -291,16 +384,18 @@ class NumpyMap(Map):
                     concat_moves[(x_old, y_old, *random.choice(next_positions))]+=1
 
         # On ecrit au bon format notre liste de mouvements attendue
-        random_moves=list()
+        random_moves=np.zeros((1,5), dtype='int32')
         for (i,j,x,y),n in concat_moves.items():
-            random_moves.append((i,j,n,x,y))
+            np.append(random_moves, [[i,j,n,x,y]], axis=0)
 
-        return random_moves
+        return random_moves[1:]
 
     def compute_moves(self, moves):
         """
         Met à jour et traite les déplacements d'un joueur sur la carte
-        :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
+        :param moves: numpy array de quintuplets de la forme 
+                                        [[old_x1, old_y1, n1, new_x1, new_x1]
+                                         [old_x2, old_y2, n2, new_x2, new_x2]]
         :return: None
         """
         # Mise à zéro de la liste des modifications de la carte
@@ -309,24 +404,24 @@ class NumpyMap(Map):
         old_map_content = self.content.copy()
 
         # Race du joueur
-        is_vamp = True if self.content[moves[0][0], moves[0][1], 1] else False
+        is_vamp = True if self.content[moves[0,0], moves[0,1], 1] else False
 
         # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
         battles_to_run = defaultdict(int)
         for i, j, n, x, y in moves:
             # Libération des cases sources
             if is_vamp:  # le joueur est un vampire
-                self.update_content([(i, j, 0,  self.content[i, j, 1] - n, 0)])
+                self.update_content(np.array([[i, j, 0,  self.content[i, j, 1] - n, 0]], dtype='int32'))
             else:  # le joueur est un loup-garou
-                self.update_content([(i, j, 0, 0, self.content[i, j, 2] - n)])
+                self.update_content(np.array([[i, j, 0, 0, self.content[i, j, 2] - n]], dtype='int32'))
 
             # Chargement des cases cibles
             # On enregistre les modifications sur les cases sans bataille
             # Population de la case cible
-            n_hum, n_vamp, n_lg = self.content[x, y]
+            n_hum, n_vamp, n_lg = tuple(self.content[x, y])
             # Si case cible est vide
             if np.all(self.content[x, y] == [0, 0, 0]):
-                self.update_content([(x, y, 0, n * is_vamp, n * (not is_vamp))])
+                self.update_content(np.array([[x, y, 0, n * is_vamp, n * (not is_vamp)]], dtype='int32'))
 
             # Case vide peuplée d'humains
             if n_hum:
@@ -336,9 +431,9 @@ class NumpyMap(Map):
             # Case cible peuplée d'ami
             # On peuple ces cases
             if n_vamp and is_vamp:
-                self.update_content([(x, y, 0, (n + n_vamp), 0)])
+                self.update_content(np.array([[x, y, 0, (n + n_vamp), 0]], dtype='int32'))
             elif n_lg and not is_vamp:
-                self.update_content([(x, y, 0, 0, (n + n_lg))])
+                self.update_content(np.array([[x, y, 0, 0, (n + n_lg)]], dtype='int32'))
 
             # Case cible avec des ennemis
             if n_vamp and not is_vamp or n_lg and is_vamp:
@@ -348,7 +443,7 @@ class NumpyMap(Map):
         # On traite les batailles enregistrées
         for x, y in battles_to_run:
             n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
-            n_hum, n_vamp, n_lg = self.content[x, y]  # Populations initiales de la case cible
+            n_hum, n_vamp, n_lg = tuple(self.content[x, y])  # Populations initiales de la case cible
 
             ######################## Bataille Humain vs Monstre ##################
 
@@ -364,7 +459,7 @@ class NumpyMap(Map):
                     n_surv = sum(
                         self.tirage(n_att, n_hum) for _ in range(n_att))  # Nombre de survivants de l'espèce attaquante
                     # Enregistrement des nouvelles populations sur la carte
-                    self.update_content([(x, y, 0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))])
+                    self.update_content(np.array([[x, y, 0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv)]], dtype='int32'))
                     if self.debug_mode:
                         print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(n_surv, n_conv))
 
@@ -381,7 +476,7 @@ class NumpyMap(Map):
                         n_surv = sum(self.tirage(n_att, n_hum) for _ in
                                      range(n_att))  # Nombre de survivants de l'espèce attaquante
                         # Enregistrement des nouvelles populations sur la carte
-                        self.update_content([(x, y, 0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv))])
+                        self.update_content(np.array([[x, y, 0, is_vamp * (n_surv + n_conv), (not is_vamp) * (n_surv + n_conv)]], dtype='int32'))
 
                         if self.debug_mode:
                             print(
@@ -390,7 +485,7 @@ class NumpyMap(Map):
                         n_surv = n_hum - sum(
                             self.tirage(n_att, n_hum) for _ in range(n_hum))  # Nombre d'humain survivant
                         # Enregistrement des humains survivants sur la carte
-                        self.update_content([(x, y, n_surv, 0,0)])
+                        self.update_content(np.array([[x, y, n_surv, 0,0]], dtype='int32'))
                         if self.debug_mode:
                             print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
 
@@ -411,7 +506,7 @@ class NumpyMap(Map):
                     n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_att))  # Nombre d'attaquants survivants
 
                     # Enregistrement des attaquants survivants
-                    self.update_content([(x, y, 0, is_vamp * n_surv, (not is_vamp) * n_surv)])
+                    self.update_content(np.array([[x, y, 0, is_vamp * n_surv, (not is_vamp) * n_surv]], dtype='int32'))
 
                     if self.debug_mode:
                         print("Victoire de l'attaquant ! {} survivants".format(n_surv))
@@ -429,7 +524,7 @@ class NumpyMap(Map):
                     if victory:
                         n_surv = sum(self.tirage(n_att, n_def) for _ in range(n_att))  # Nombre d'attaquants survivants
                         # Enregistrement sur la carte
-                        self.update_content([(x, y, 0, is_vamp * n_surv, (not is_vamp) * n_surv)])
+                        self.update_content(np.array([[x, y, 0, is_vamp * n_surv, (not is_vamp) * n_surv]], dtype='int32'))
 
                         if self.debug_mode:
                             print("Victoire de l'attaquant ! {} survivants".format(n_surv))
@@ -439,7 +534,7 @@ class NumpyMap(Map):
                         n_surv = n_def - sum(
                             self.tirage(n_att, n_def) for _ in range(n_def))  # Nombre de défenseur survivant
                         # Enregistrement sur la carte
-                        self.update_content([(x, y, 0, (not is_vamp) * n_surv, is_vamp * n_surv)])
+                        self.update_content(np.array([[x, y, 0, (not is_vamp) * n_surv, is_vamp * n_surv]], dtype='int32'))
 
                         if self.debug_mode:
                             print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
@@ -455,30 +550,31 @@ class NumpyMap(Map):
         """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
         et la probabilité de la dite issue
 
-        :param moves: liste de mouvements de la forme [(i,j,n,x,y),...]
+        :param moves: nparray de mouvements de la forme [[i1,j1,n1,x1,y1]
+                                                         [i2,j2,n2,x2,y2]]
         :return: liste du type [(probabilité associée, liste des mises à jour de positions)...]
         """
         battles_to_run = defaultdict(int)
-
-        # Race du joueur
-        is_vamp = True if self.content[moves[0][0], moves[0][1], 1] else False
-
         peaceful_moves = []  # Liste des nouvelles positions sans bataille
 
-        for move in moves:
-            i, j, n_mons, x, y = move
-            n_hum, n_vamp, n_lg = self.content[x, y]
-            if is_vamp and n_hum == 0 and n_lg == 0:  # Cas mouvement amical vampire
-                peaceful_moves.append(move)
-            elif not is_vamp and n_hum == 0 and n_vamp == 0:  # Cas mouvement amical loup-garou
-                peaceful_moves.append(move)
-            else:
-                battles_to_run[(x, y)] += n_mons
+        # Race du joueur
+        is_vamp = True if self.content[moves[0,0], moves[0,1], 1] else False
+        #a = 1 if is_vamp else 2 # attaquant
+        d = 2 if is_vamp else 1 # défenseur
 
+        x_v = moves.take([3], axis=1).flatten()
+        y_v = moves.take([4], axis=1).flatten()
+        x_y_content = self.content[x_v, y_v]
+
+        battle_index = np.any(x_y_content.take([0,d], axis= 1) != [0,0], axis=1)
+        peaceful_moves = moves[~battle_index]
+        for move in moves[battle_index]:
+            battles_to_run[(move[3],move[4])] += move[2]
+        
         # On parcourt les batailles possibles
         battles_possible_outcomes = {}  # Référence pour chaque bataille les issues possibles
         for (x, y), n_att in battles_to_run.items():
-            n_hum, n_vamp, n_lg = self.content[x, y]
+            n_hum, n_vamp, n_lg = tuple(self.content[x, y])
             possible_outcomes = []
             n_def = n_lg + n_hum if is_vamp else n_vamp + n_hum
             proba_p = self.proba_p(n_att, n_def)
@@ -491,9 +587,9 @@ class NumpyMap(Map):
                         proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
                         if is_vamp and proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                            possible_outcomes.append((proba_outcome, [x, y, 0, k_surv, 0]))
                         elif proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                            possible_outcomes.append((proba_outcome, [x, y, 0, 0, k_surv]))
                 # Cas victoire non sure
                 else:
                     # Si victoire des monstres
@@ -502,15 +598,15 @@ class NumpyMap(Map):
                         proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
                         if is_vamp:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                            possible_outcomes.append((proba_victory * proba_outcome, [x, y, 0, k_surv, 0]))
                         else:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+                            possible_outcomes.append((proba_victory * proba_outcome, [x, y, 0, 0, k_surv]))
 
                     # Si victoire des humains
                     for k_surv in range(n_hum + 1):
                         proba_outcome = pow(proba_p, n_hum - k_surv) * pow((1 - proba_p), k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_hum)
-                        possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, k_surv, 0, 0)))
+                        possible_outcomes.append(((1 - proba_victory) * proba_outcome, [x, y, k_surv, 0, 0]))
 
             # Cas bataille monstre vs monstre
             else:
@@ -521,9 +617,9 @@ class NumpyMap(Map):
                         proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_att)
                         if is_vamp:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
+                            possible_outcomes.append((proba_outcome, [x, y, 0, k_surv, 0]))
                         else:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                            possible_outcomes.append((proba_outcome, [x, y, 0, 0, k_surv]))
                 # Cas victoire non assurée
                 else:
                     proba_victory = proba_p
@@ -533,18 +629,18 @@ class NumpyMap(Map):
                         proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_att)
                         if is_vamp:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
+                            possible_outcomes.append((proba_victory * proba_outcome, [x, y, 0, k_surv, 0]))
                         else:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
+                            possible_outcomes.append((proba_victory * proba_outcome, [x, y, 0, 0, k_surv]))
 
                     # Si défaite de l'attaquant
                     for k_surv in range(n_def + 1):
                         proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_def - k_surv)
                         proba_outcome *= self.binomial_coefficient(k_surv, n_def)
                         if is_vamp:
-                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, 0, k_surv)))
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, [x, y, 0, 0, k_surv]))
                         else:
-                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, k_surv, 0)))
+                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, [x, y, 0, k_surv, 0]))
 
             battles_possible_outcomes[(x, y)] = possible_outcomes
 
@@ -571,11 +667,16 @@ class NumpyMap(Map):
         # Liste des mises à jour de position triviales
         trivial_positions_update = []
 
-        for (i, j), n_mons in peaceful_positions_update.items():
-            if is_vamp:
-                trivial_positions_update.append((i, j, 0, n_mons, 0))
-            else:
-                trivial_positions_update.append((i, j, 0, 0, n_mons))
+        i_j = np.array(list(peaceful_positions_update.keys()))
+        n_m = np.array(list(peaceful_positions_update.values()))
+        k = i_j.shape[0]
+        if is_vamp:
+            trivial_positions_update = np.hstack(
+                (i_j, np.zeros((k,1), dtype='int32'), n_m[:, np.newaxis], np.zeros((k,1), dtype='int32')))
+        else:
+            trivial_positions_update = np.hstack(
+                (i_j, np.zeros((k,2), dtype='int32'), n_m[:, np.newaxis]))
+
 
         # Notre liste en sortie
         # De la forme [(proba_outcome, [liste des positions (i,j,n_hum,n_vamp,n_lg)...]),...]
@@ -583,10 +684,10 @@ class NumpyMap(Map):
         # On sélectionne des combinaisons possibles d'issues de chaque bataille
         for combined_battles_outcomes in product(*battles_possible_outcomes.values()):
             proba_conbined_battle = 1
-            possible_outcome = list(trivial_positions_update)
+            possible_outcome = trivial_positions_update
             for proba_outcome, new_battle_positions in combined_battles_outcomes:
                 proba_conbined_battle *= proba_outcome
-                possible_outcome.append(new_battle_positions)
+                possible_outcome = np.append(possible_outcome, [new_battle_positions], axis=0)
             if proba_conbined_battle:
                 possible_outcomes.append((proba_conbined_battle, possible_outcome))
 
@@ -602,47 +703,43 @@ class NumpyMap(Map):
         :param is_vamp: Boolean Vrai si c'est le joueur 1/ Vampire qui propose ses mouvements, Faux sinon
         :return: Boolean
         """
-        """Vérifie les mouvements proposés par un joueur. Renvoie Vrai si les mouvements sont corrects, faux sinon.
+        a = 1 if is_vamp else 2 # attaquant
+        d = 2 if is_vamp else 1 # défenseur
 
-        :param moves: list liste des mouvements proposés par un joueur
-        :param is_vamp: Boolean Vrai si c'est le joueur 1/ Vampire qui propose ses mouvements, Faux sinon
-        :return: Boolean
-        """
-        moves_checked = []  # liste des mouvements vérifiés parmi ceux proposés
-
-        a = 1 if is_vamp else 2
+        i_v = moves.take([0], axis=1).flatten()
+        j_v = moves.take([1], axis=1).flatten()
+        n_v = moves.take([2], axis=1).flatten()
+        x_v = moves.take([3], axis=1).flatten()
+        y_v = moves.take([4], axis=1).flatten()
 
         # Règle 1 : Au moins un mouvement
-        if len(moves) == 0:
+        if moves.shape[0] == 0:
             return False
 
         # Règle 6 : Au moins un pion qui bouge
-        if all(n == 0 for _, _, n, _, _ in moves):
+        if np.sum(n_v == 0):
+            return False
+        
+        # Règle 4 : 8 cases adjacentes
+        if np.any(np.abs(i_v - x_v) > 1):
+            return False
+        if np.any(np.abs(j_v - y_v) > 1):
             return False
 
-        for i, j, n, x, y in moves:
-            # Règle 4 : 8 cases adjacentes
-            if abs(i - x) > 1 or abs(j - y) > 1:
-                return False
+        # Règle 2 : On ne bouge que nos pions
+        if np.any(self.content[i_v, j_v].take([0, d], axis=1) != [0,0]):
+            return False
 
-            n_initial = self.content[i, j, a]
-            n_checked = sum([n_c for (i_c, j_c, n_c, _, _) in moves_checked if (i_c, j_c) == (i, j)])
-
-            # Règle 3 : On ne peut pas bouger plus que nos pions
-            if n_initial < n_checked + n:
-                return False
-            moves_checked.append((i, j, n, x, y))
-
-            # Règle 3 et 2 : On ne bouge que nos pions
-            if n_initial == 0:
+        # Règle 3 : On ne bouge plus de pions que le nombre disponibles
+        unique_i_j = np.unique(np.vstack((i_v, j_v)), axis=1).T
+        for i_u, j_u in unique_i_j:
+            cond = np.all(moves.take([0,1], axis=1) == [i_u, j_u], axis=1)
+            if np.sum(moves[cond, 2]) > self.content[i_u, j_u, a]:
                 return False
 
         # Règle 5 : Une case ne pas se retrouver cible et source
-        for move_1, move_2 in combinations(moves, 2):
-            if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
-                return False
-            if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
-                return False
+        if np.any(np.all(moves[:, :2] == moves[:, 3:], axis=1)):
+            return False
 
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
@@ -680,11 +777,10 @@ class NumpyMap(Map):
 
 if __name__ == "__main__":
     carte = NumpyMap()
-    carte.print_map()
-    carte.compute_score_map(True)
-    #print(carte.hash)
-    #carte.update_content(np.array([[0,1,2,0,0]]))
-    #print(carte.hash)
+    #carte.print_map()
+    print(carte.hash)
+    carte.update_content(np.array([[0,1,2,0,0]]))
+    print(carte.hash)
     #carte.update_content(np.array([[0,0,5,0,0]]))
     #move = np.array([[0,1,1,1,1],[0,2,1,1,2]])
     #for i in carte.possible_outcomes(move):

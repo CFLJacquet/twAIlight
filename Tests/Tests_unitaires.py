@@ -43,10 +43,10 @@ class TestMap(unittest.TestCase):
                 if child.content != seen_hashes[child.hash].content:
                     collision = True
                     break
-            if child.next_possible_moves(is_vamp=True):
-                to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=True))))
-            if child.next_possible_moves(is_vamp=False):
-                to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=False))))
+            if child.next_ranked_moves(is_vamp=True):
+                to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=True))))
+            if child.next_ranked_moves(is_vamp=False):
+                to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=False))))
 
         self.assertTrue(not collision)
 
@@ -68,7 +68,7 @@ class TestMap(unittest.TestCase):
         _ = carte.hash
         _ = carte.content
         carte.state_evaluation()
-        carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.is_valid_moves([(0, 0, 1, 0, 1)], True)
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
     def test_next_moves(self):
@@ -223,4 +223,7 @@ class TestMapTheTrap(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    test = TestMap()
+    import cProfile
+    cProfile.run("test.test_hash()")
+    #unittest.main()

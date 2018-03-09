@@ -356,13 +356,25 @@ class Map:
         """
         repartitions = list()
 
-        if pop_of_monster == 0:
-            return [[0] * n_case]
+        #if pop_of_monster == 0:
+        #    return [[0] * n_case]
         if n_case == 1:
-            for i in range(pop_of_monster + 1):
-                repartitions.append([i])
+            for pop_last_case in range(pop_of_monster + 1):
+                # Test : Pas de groupe de 1
+                if pop_of_monster > 1  :
+                    if pop_of_monster-pop_last_case == 1:
+                        continue
+                    if pop_last_case == 1:
+                        continue
+                repartitions.append([pop_last_case])
             return repartitions
         for pop_first_case in range(pop_of_monster + 1):
+            # Test : Pas de groupe de 1
+            if pop_of_monster > 1 :
+                if pop_of_monster-pop_first_case == 1:
+                    continue
+                if pop_first_case == 1:
+                    continue
             for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
                 new_rep = [pop_first_case] + rep
                 repartitions.append(new_rep)
@@ -372,16 +384,16 @@ class Map:
     def compute_score_map(self, is_vamp):
         """Calcule les scores de chaque cases de la carte et renvoie un nparray
 
-        :return: numpy array des scores de chaque case
+        :return: scores de chaque case list(list)
         """
         # 1 noyau gaussien, 1 noyau moyenne
-        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]], dtype='uint8')
-        avg_k   = np.ones((3,3), dtype='uint8')
+        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]])
+        avg_k   = np.array([[1,1,1],[1,1,1], [1,1,1]])
         
         a = 1 if is_vamp else 2
         d = 2 if is_vamp else 1
 
-        temp = np.array(list(map(list,self.content.values())), dtype='uint8')
+        temp = np.array(list(map(list,self.content.values())))
         matrix = temp.reshape((self.size[0], self.size[1], 3))
         score_hum = signal.convolve2d(matrix[:,:,0], gauss_k, mode="same")
         score_adv = (signal.convolve2d(matrix[:,:, a], avg_k, mode="same") - matrix[:,:,d]) * matrix[:,:,d]
@@ -944,8 +956,14 @@ class Map:
 
 if __name__ == "__main__":
     carte = Map()
-    carte.print_map()
-    print(len(carte.next_possible_moves(True)))
-    moves = [(0, 1, 1, 1, 1)]
+    #carte.print_map()
+    #print(len(carte.next_possible_moves(True)))
+    #moves = [(0, 1, 1, 1, 1)]
 
-    print(carte.possible_outcomes(moves))
+    #print(carte.possible_outcomes(moves))
+    #move = np.array([[0,1,1,1,1],[0,1,1,1,2]])
+    #for i in carte.possible_outcomes(move):
+    #    print(i)
+    print(carte.hash)
+    carte.update_content(np.array([[0,1,2,0,0]]))
+    print(carte.hash)
