@@ -1,0 +1,137 @@
+02/01/2018 11:32:01	Démarrage de l'attente de 2 connexion(s).
+02/01/2018 11:32:03	Réception de NME en cours pour le joueur 0
+02/01/2018 11:32:03	Nom du joueur #0 est Joueur 3
+02/01/2018 11:32:03	Envoi de la description de la carte au joueur 0
+02/01/2018 11:32:03	Envoi de la description de la carte au joueur 0 terminé
+02/01/2018 11:32:03	Réception de NME en cours pour le joueur 1
+02/01/2018 11:32:03	Nom du joueur #1 est TwAIlight
+02/01/2018 11:32:03	Envoi de la description de la carte au joueur 1
+02/01/2018 11:32:03	Envoi de la description de la carte au joueur 1 terminé
+02/01/2018 11:32:03	Connexion(s) effectuée(s).
+02/01/2018 11:32:03	Démarrage du tour à tour
+02/01/2018 11:32:03	Démarrage du chrono
+02/01/2018 11:32:03	Coup n°1
+			-> Tour du joueur #0
+02/01/2018 11:32:03	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:03	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:08	Les Vampires ont fait un time out
+02/01/2018 11:32:08	Coup n°2
+			-> Tour du joueur #1
+02/01/2018 11:32:08	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:08	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:13	Les Werewolves ont fait un time out
+02/01/2018 11:32:13	Coup n°3
+			-> Tour du joueur #0
+02/01/2018 11:32:13	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:13	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:18	Les Vampires ont fait un time out
+02/01/2018 11:32:18	Coup n°4
+			-> Tour du joueur #1
+02/01/2018 11:32:18	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:18	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:23	Les Werewolves ont fait un time out
+02/01/2018 11:32:23	Coup n°5
+			-> Tour du joueur #0
+02/01/2018 11:32:23	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:23	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:28	Les Vampires ont fait un time out
+02/01/2018 11:32:28	Coup n°6
+			-> Tour du joueur #1
+02/01/2018 11:32:28	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:28	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:33	Les Werewolves ont fait un time out
+02/01/2018 11:32:33	Coup n°7
+			-> Tour du joueur #0
+02/01/2018 11:32:33	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:33	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:38	Les Vampires ont fait un time out
+02/01/2018 11:32:38	Coup n°8
+			-> Tour du joueur #1
+02/01/2018 11:32:38	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:38	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:43	Les Werewolves ont fait un time out
+02/01/2018 11:32:43	Coup n°9
+			-> Tour du joueur #0
+02/01/2018 11:32:43	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:43	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:48	Les Vampires ont fait un time out
+02/01/2018 11:32:48	Coup n°10
+			-> Tour du joueur #1
+02/01/2018 11:32:48	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:48	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:53	Les Werewolves ont fait un time out
+02/01/2018 11:32:53	Coup n°11
+			-> Tour du joueur #0
+02/01/2018 11:32:53	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:53	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:32:58	Les Vampires ont fait un time out
+02/01/2018 11:32:58	Coup n°12
+			-> Tour du joueur #1
+02/01/2018 11:32:58	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:32:58	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:03	Les Werewolves ont fait un time out
+02/01/2018 11:33:03	Coup n°13
+			-> Tour du joueur #0
+02/01/2018 11:33:03	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:03	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:08	Les Vampires ont fait un time out
+02/01/2018 11:33:08	Coup n°14
+			-> Tour du joueur #1
+02/01/2018 11:33:08	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:08	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:13	Les Werewolves ont fait un time out
+02/01/2018 11:33:13	Coup n°15
+			-> Tour du joueur #0
+02/01/2018 11:33:13	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:13	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:18	Les Vampires ont fait un time out
+02/01/2018 11:33:18	Coup n°16
+			-> Tour du joueur #1
+02/01/2018 11:33:18	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:18	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:23	Les Werewolves ont fait un time out
+02/01/2018 11:33:23	Coup n°17
+			-> Tour du joueur #0
+02/01/2018 11:33:23	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:23	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:33:28	Les Vampires ont fait un time out
+02/01/2018 11:33:28	Coup n°18
+			-> Tour du joueur #1
+02/01/2018 11:33:29	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:33:29	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets

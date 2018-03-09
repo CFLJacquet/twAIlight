@@ -1,0 +1,46 @@
+02/01/2018 09:52:27	Démarrage de l'attente de 2 connexion(s).
+02/01/2018 09:52:42	Réception de NME en cours pour le joueur 1
+02/01/2018 09:52:42	Réception de NME en cours pour le joueur 0
+02/01/2018 09:52:42	Nom du joueur #0 est TwAIlight
+02/01/2018 09:52:42	Envoi de la description de la carte au joueur 0
+02/01/2018 09:52:42	Nom du joueur #1 est Joueur 3
+02/01/2018 09:52:42	Envoi de la description de la carte au joueur 1
+02/01/2018 09:52:42	Envoi de la description de la carte au joueur 0 terminé
+02/01/2018 09:52:42	Envoi de la description de la carte au joueur 1 terminé
+02/01/2018 09:52:42	Connexion(s) effectuée(s).
+02/01/2018 09:52:43	Démarrage du tour à tour
+02/01/2018 09:52:43	Démarrage du chrono
+02/01/2018 09:52:43	Coup n°1
+			-> Tour du joueur #0
+02/01/2018 09:52:43	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 09:52:43	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+		-> Les 4 premiers octets ont bien été reçus
+			MOV: en attente de 10 octets
+			MOV: tous les octets ont été reçus
+			MOV: les mouvements sont en cours de calculs
+02/01/2018 09:52:43	Coup n°2
+			-> Tour du joueur #1
+02/01/2018 09:52:43	Envoi de UPD pour 3 mise(s) à jour
+		Trame de UPD: 55-50-44-03-04-04-00-02-00-05-04-00-00-00-04-03-00-02-00
+02/01/2018 09:52:43	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+		-> Les 4 premiers octets ont bien été reçus
+			MOV: en attente de 10 octets
+			MOV: tous les octets ont été reçus
+			MOV: les mouvements sont en cours de calculs
+02/01/2018 09:52:43	Coup n°3
+			-> Tour du joueur #0
+02/01/2018 09:52:43	Envoi de UPD pour 6 mise(s) à jour
+		Trame de UPD: 55-50-44-06-04-04-00-02-00-05-04-00-00-00-04-03-00-02-00-03-02-00-00-02-02-03-00-00-00-03-03-00-00-01
+02/01/2018 09:52:43	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+		-> Les 4 premiers octets ont bien été reçus
+			MOV: en attente de 15 octets
+			MOV: tous les octets ont été reçus
+			MOV: les mouvements sont en cours de calculs
+02/01/2018 09:52:43	Les Vampires ont triché: 1@(4,3)->(4,4), 2@(4,4)->(3,4)
+02/01/2018 09:52:43	Fin de la partie car les Vampires ont triché.
+02/01/2018 09:52:43	Envoi de END et BYE et fermeture de la socket aux Vampires
+02/01/2018 09:52:43	Envoi de END et BYE et fermeture de la socket aux Werewolves

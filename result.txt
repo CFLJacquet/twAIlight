@@ -38,3 +38,21 @@ Match sur TheTrap Evaluation 3:7 MonteCarlo
 	Average play duration : 				0.03s
 	Maximum duration of a play : 			2.22s
 	Number of vertices created per play : 	0 vertices
+
+
+Match sur TheTrap Aleatoire 1:9 MonteCarlo
+Match sur TheTrap Aleatoire 3:7 Temporal Difference 0
+Match sur TheTrap MonteCarlo 8:2 Temporal Difference 0
+
+1. MonteCarlo : win ratio 85.00%
+	Average play duration : 				2.02s
+	Maximum duration of a play : 			2.81s
+	Number of vertices created per play : 	6037 vertices
+2. Temporal Difference 0 : win ratio 45.00%
+	Average play duration : 				3.62s
+	Maximum duration of a play : 			22.68s
+	Number of vertices created per play : 	4359 vertices
+3. Aleatoire : win ratio 20.00%
+	Average play duration : 				0.02s
+	Maximum duration of a play : 			0.92s
+	Number of vertices created per play : 	0 vertices
