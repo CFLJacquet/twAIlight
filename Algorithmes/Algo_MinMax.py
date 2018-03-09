@@ -30,8 +30,8 @@ class AlgoMinMax(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoMinMax
-    MapDust2 = MapDust2
-    Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="ALEA", name2="MINIMAX", print_map=True, debug_mode=False)
+    carte = MapLigne13
+    Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="ALEA", name2="MINIMAX", print_map=True, debug_mode=False)
     Serveur.start()
     Serveur.join()
     print(AlgoMinMax.nb_vertices_created())
