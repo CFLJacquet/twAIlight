@@ -20,56 +20,88 @@ class HumanFirst(Joueur):
             if self.is_vamp and n_lg!=0 or not self.is_vamp and n_vamp!=0:
                 forbidden_places|=set([(i+i_0, j+j_0) for (i_0,j_0) in product((-1,0,1),repeat=2)])
             if n_hum>=current_population:
-                forbidden_places |= set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)])
+                forbidden_places.add((i , j))
             elif 1.5*n_hum >=current_population:
                 risky_humans[(i,j)]=n_hum
             elif n_hum>0:
                 risk_free_humans[(i,j)]=n_hum
 
+        distance_to_target = dict()
         # On attaque d'abord les humains faciles
         if risk_free_humans:
-            distance_to_target=dict()
-            for (i,j) in risk_free_humans:
-                distance_to_target[(i,j)]=max(abs(i-current_position[0]), abs(j-current_position[1]))
+            for pos in risk_free_humans:
+                distance_to_target[pos]= HumanFirst.distance(current_position, pos)
 
 
         # Cas que des humains nombreux, obligations de prendre des risques
         else:
-            distance_to_target = dict()
-            for (i, j) in risky_humans:
-                distance_to_target[(i, j)] = max(abs(i - current_position[0]), abs(j - current_position[1]))
+            for pos in risky_humans:
+                distance_to_target[pos] = HumanFirst.distance(current_position, pos)
 
         # Choix Glouton
         target = min(distance_to_target, key=distance_to_target.get)
-        if target[0] > current_position[0]:
-            move_x = 1
-        elif target[0] < current_position[0]:
-            move_x = -1
-        else:
-            move_x = 0
+        next_position=HumanFirst.next_position_to_target(current_position, target, forbidden_places=forbidden_places)
 
-        if target[1] > current_position[1]:
-            move_y = 1
-        elif target[1] < current_position[1]:
-            move_y = -1
-        else:
-            move_y = 0
+        return [(*current_position, current_population,*next_position)]
 
-        return [
-            (*current_position, current_population, current_position[0] + move_x, current_position[1] + move_y)]
+
 
     @staticmethod
-    def distance_A_star(origin, destination,forbidden_places):
+    def next_position_to_target(origin, destination,forbidden_places=set()):
+        """Prochain mouvement vers une cible en utilisant l'algorithme A*"""
         visited=set()
-        next_possible_path = []
+        to_visit=set()
         distance_from_origin={origin:0}
+        predecessor=dict()
         evaluations={origin:HumanFirst.distance(origin, destination)}
         current_position=origin
 
         while current_position != destination:
             visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance=distance_from_origin[current_position]
             i,j=current_position
-            next_possible_moves=[(i+i_0, j+j_0) for (i_0, j_0) in product((-1,0,1), repeat=2) if (i_0,j_0)!= (0,0) ]
+            new_positions_to_explore=set([(i+i_0, j+j_0) for (i_0, j_0) in product((-1,0,1), repeat=2)])
+            new_positions_to_explore-=visited
+            new_positions_to_explore-=forbidden_places
+            new_positions_to_explore-=to_visit
+            to_visit|=new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos]=current_distance+1
+                evaluations[pos]=HumanFirst.distance(pos,destination)
+                predecessor[pos]=current_position
+            current_position=min(to_visit, key=lambda x:distance_from_origin[x]+evaluations[x])
+
+        while predecessor[current_position]!=origin:
+            current_position=predecessor[current_position]
+
+        return current_position
+
+    @staticmethod
+    def real_distance(origin, destination , forbidden_places=set()):
+        """Distance entre origin et destination sans passer par les forbidden places en utilisant l'algorithme A*"""
+        visited = set()
+        to_visit = set()
+        distance_from_origin = {origin: 0}
+        evaluations = {origin: HumanFirst.distance(origin, destination)}
+        current_position = origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance = distance_from_origin[current_position]
+            i, j = current_position
+            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)])
+            new_positions_to_explore -= visited
+            new_positions_to_explore -= forbidden_places
+            new_positions_to_explore -= to_visit
+            to_visit |= new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos] = current_distance + 1
+                evaluations[pos] = HumanFirst.distance(pos, destination)
+            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
+
+        return distance_from_origin[destination]
 
     @staticmethod
     def distance(origin, destination):
@@ -77,7 +109,17 @@ class HumanFirst(Joueur):
 
 
 
+
 if __name__ == '__main__':
+
+    current_position=(0,0)
+    print(current_position)
+    destination=(5,0)
+    forbidden_places = set([(2, -1), (2, 0), (2, 1), (2, 2)])
+    while current_position!=destination:
+        current_position=HumanFirst.next_position_to_target(current_position,destination,forbidden_places)
+        print(current_position)
+
     starving_player=HumanFirst()
     carte=MapLigne13()
     carte.print_map()

@@ -670,13 +670,13 @@ class Map:
             if n_hum:
                 # Cas victoire assurée
                 if n_att >= n_hum:
-                    for k_surv in range(n_hum + n_att + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
-                        if is_vamp and proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
-                        elif proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
+                    proba_outcome=1
+                    n_surv=n_att+n_hum
+                    if is_vamp and proba_outcome:
+                        possible_outcomes.append((proba_outcome, (x, y, 0, n_surv, 0)))
+                    elif proba_outcome:
+                        possible_outcomes.append((proba_outcome, (x, y, 0, 0, n_surv)))
+
                 # Cas victoire non sure
                 else:
                     # Si victoire des monstres
