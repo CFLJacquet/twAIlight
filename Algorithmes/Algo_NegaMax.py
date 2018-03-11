@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
-from Joueur_Interne import JoueurInterne
-from Serveur_Interne import ServeurInterne
-from Algorithmes.Sommet_du_jeu_NegaMax_Transposition import SommetDuJeu_NegaMax, SommetChance_Negamax
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Joueur_Interne import JoueurInterne
+from twAIlight.Serveur_Interne import ServeurInterne
+from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_Transposition import SommetDuJeu_NegaMax, SommetChance_Negamax
+from twAIlight.Cartes.Map_Dust2 import MapDust2
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -32,6 +32,7 @@ class AlgoNegaMax(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoNegaMax
+    """
     MapDust2 = MapTheTrap
     Serveur = ServeurInterne(MapDust2, Joueur1, Joueur2, name1="ALEA", name2="Negamax", print_map=True, debug_mode=False)
     Serveur.start()
@@ -39,8 +40,8 @@ if __name__ == "__main__":
     print(AlgoNegaMax.nb_vertices_created())
     """
     carte=MapDust2()
-    carte.update_positions([(0,1,0,0,0),(1,2,0,2,0)])
+    carte.update_content([(0,1,0,0,0),(1,2,0,2,0)])
     carte.print_map()
-    racine=SommetDuJeu_NegaMax(is_vamp=False,depth=1,game_map=carte,init_map=True)
+    racine=SommetDuJeu_NegaMax(is_vamp=False,depth=2,game_map=carte,init_map=True)
     print(racine.next_move())
-    """
+    

@@ -1,6 +1,6 @@
-from Map import Map
 from copy import deepcopy
-from Algorithmes.Sommet_du_jeu import SommetOutcome
+from twAIlight.Map import Map
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
 class SommetDuJeu_NegaMax(SommetOutcome):
     __vertices_created = 0
@@ -42,6 +42,8 @@ class SommetDuJeu_NegaMax(SommetOutcome):
                 self._children.append(child)
         return self._children
 
+
+
     def negamax(self, alpha, beta):
         alphaOrig = alpha
         color = 1 if self.is_vamp else -1
@@ -76,11 +78,11 @@ class SommetDuJeu_NegaMax(SommetOutcome):
             if alpha is None and beta is None:
                 v = - child.negamax(None, None)
             elif beta is None:
-                v = - child.negamax(None, -alpha)
+                v = - child.negamax(None, -1*alpha)
             elif alpha is None:
-                v = - child.negamax(-beta, None)
+                v = - child.negamax(-1*beta, None)
             else:
-                v = - child.negamax(-beta, -alpha)
+                v = - child.negamax(-1*beta, -1*alpha)
 
             # On prend le max entre bestvalue et v
             if bestvalue is None:
@@ -120,11 +122,11 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         :return: le prochain mouvement
         """
         # On sélectione le noeud fils selon sa race
+
         next_child = min(self.children,
                          key=lambda child: child.negamax(alpha=None, beta=None))
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.previous_moves
-
 
 if __name__ == '__main__':
     carte = Map()

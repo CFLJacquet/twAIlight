@@ -6,7 +6,7 @@ from itertools import product
 from threading import Thread
 import time
 
-from Map import Map
+from twAIlight.Map import Map
 
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
@@ -110,7 +110,7 @@ class Joueur(Thread):
                         x, y, nb_hum, nb_vamp, nb_wv = self.get_quintuplet()
                         positions.append((x, y, nb_hum, nb_vamp, nb_wv))
                     if self.debug_mode: print(positions)
-                    self.map.update_positions(positions)  # Mise à jour de la carte du joueur
+                    self.map.update_content(positions)  # Mise à jour de la carte du joueur
 
                 if self.debug_mode: print(self.name + ": UPD received")
 

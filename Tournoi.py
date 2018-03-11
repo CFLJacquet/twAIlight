@@ -1,40 +1,40 @@
 from itertools import combinations
 from collections import defaultdict
 
-from Serveur_Interne import ServeurInterne
+from twAIlight.Serveur_Interne import ServeurInterne
 
 # Importation des algorithmes de décision
-from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
-from Algorithmes.Algo_MinMax import AlgoMinMax
-from Algorithmes.Algo_NegaMax import AlgoNegaMax
-from Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
-from Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
-from Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
+from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
+from twAIlight.Algorithmes.Algo_MinMax import AlgoMinMax
+from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
+from twAIlight.Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
+from twAIlight.Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
+from twAIlight.Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
+from twAIlight.Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
 
 
 # Importation des des cartes du tournoi
-from Cartes.Map_Ligne13 import MapLigne13
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
-from Cartes.Map_Random import MapRandom
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Cartes.Map_Dust2 import MapDust2
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Cartes.Map_Random import MapRandom
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-MAPS = {#"Dust2": MapDust2,
+MAPS = {"Dust2": MapDust2,
         #"Map8":Map8,
         #"TheTrap":MapTheTrap,
-        "CarteAléatoire":MapRandom
-
+        #"CarteAléatoire":MapRandom
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"Aleatoire": AlgoAleatoireInterne,
-         #"MinMax": AlgoMinMax,
+         "MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
          #"NegaMaxOriente": AlgoNegMaxOriente,
-         "Evaluation": AlgoCustomizedEvaluation,
-         "MonteCarlo": AlgoMonteCarlo
+         #"Evaluation": AlgoCustomizedEvaluation,
+         #"MonteCarlo": AlgoMonteCarlo
          }
 
 # Nombre de parties par carte
