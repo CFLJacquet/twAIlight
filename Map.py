@@ -87,7 +87,7 @@ class Map:
             self.size = (3, 3)
         else:
             self.size = map_size
-        void_content = {}
+        void_content = defaultdict(tuple)
         for i, j in product(range(self.size[0]), range(self.size[1])):
             void_content[(i, j)] = (0, 0, 0)
         self._content = void_content
@@ -105,6 +105,13 @@ class Map:
 
         self.UPD = []  # Liste des changements lors d'un update de la carte
         self.debug_mode = debug_mode
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        setattr(result, '_content', self.content.copy())
+        return result
 
     @property
     def hash(self):
@@ -157,7 +164,6 @@ class Map:
         return n, elements
 
     def most_probable_outcome(self,moves):
-
         """
         Met à jour et traite les déplacements d'un joueur sur la carte en considérant uniquement le cas le plus probable dans chaque configuration de bataille
         :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
@@ -276,10 +282,6 @@ class Map:
                     if self.debug_mode:
                         print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
 
-        # Remplissage de la liste UPD à partir des modifications de la carte
-        for (i, j), (n_hum, n_vamp, n_lg) in self.content.items():  # Parcours de la carte
-            if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
-                self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
 
     def create_positions(self, positions):
         """ Crée la carte à partir de la commande MAP reçu par le joueur
@@ -452,7 +454,7 @@ class Map:
                 pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
 
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            repartitions = Map.repartitions_recursive(pop_of_monsters, n_case)
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case)
 
             group_repartitions[starting_position] = repartitions
 
