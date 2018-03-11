@@ -409,7 +409,7 @@ class Map:
 
             if dangerous_enn :
                 # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
-                dist_min = min( [ int(max(abs(starting_position[0]-starting_position[0]),abs(starting_position[1]-starting_position[1]))/2)-1 \
+                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
                                     for group_enn in dangerous_enn ] )
                 if dist_min < 0:
                     print("ATTENTION ennemi a cote")
@@ -417,21 +417,21 @@ class Map:
                     de nous """
 
             else : #distance par défaut
+                if self.debug_mode:
+                    print("\nPas d'ennemi dangereux -> dist_min = 1/2 * taille carte ")
                 dist_min = min(x_max//2, y_max//2)
-
-            # on récupère les groupes d'humains suffisamment petits (<= taille)
-            humains_delicieux = [x_y for x_y in all_humains \
-                                # sum donne le nombre d'individus sur la case
-                                if sum(self.content[x_y]) <= sum(self.content[starting_position]) ] 
             
-            # on calcule le produit de convolution de taille de noyau (2*dist_min+1) pour chaque case autour de notre groupe 
+            # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
             valeur = []
             for direction in moves:
                 grad = 0
                 for i in range(-dist_min, dist_min+1):
                     for j in range(-dist_min, dist_min+1):
                         try :
-                            grad += self.content[(direction[0] + i, direction[1] + j)][0]
+                            # on récupère les groupes d'humains suffisamment petits (<= taille)
+                            hum = self.content[(direction[0] + i, direction[1] + j)][0]
+                            if hum <= sum(self.content[starting_position]) :
+                                grad += hum
                         except:
                             pass
                 valeur.append( (grad, sum(self.content[direction]), direction) )
@@ -441,8 +441,8 @@ class Map:
             next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
 
             if self.debug_mode:
-                    print("Demi-distance a l'adversaire le plus proche :", dist_min)
-                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur)
+                    print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
+                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur,"\n")
 
         return next_best_moves
 
