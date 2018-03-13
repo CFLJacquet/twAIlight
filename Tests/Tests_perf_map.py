@@ -149,10 +149,14 @@ def test_main_map(carte):
 
 if __name__ == '__main__':
     carte = Map8()
-    #POP_M = 1
-    #N_CASE = 8
+    # POP_M = 1
+    # N_CASE = 8
     #test_relevant_repartitions(carte, POP_M, N_CASE)
     #test_repartitions_recursive(carte, POP_M, N_CASE)
     import cProfile
     #cProfile.run("test_possible_moves(carte)")
-    cProfile.run("test_probable_outcome(carte)")
+    def to_test(carte):
+        next_moves = carte.relevant_repartitions(5, 2, split_enabled=True, stay_enabled=False)
+        carte.print_map()
+        return len(next_moves), next_moves
+    cProfile.run("print(to_test(carte))")

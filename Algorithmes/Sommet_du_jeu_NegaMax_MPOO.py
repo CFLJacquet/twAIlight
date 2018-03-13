@@ -1,19 +1,22 @@
 from copy import deepcopy, copy
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Map_Silv import Map
+from twAIlight.Cartes.Map_Silv_Map8 import Map8
 from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
 NB = 0
 
-class SommetDuJeu_NegaMax(SommetOutcome):
+class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
 
-    def __init__(self, is_vamp=None, depth=None, game_map=None, init_map=False):
+    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, stay_enabled=True, nb_cases=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
-        SommetDuJeu_NegaMax.__vertices_created += 1
+        self.nb_group_max = nb_group_max
+        self.stay_enabled = stay_enabled
+        self.nb_cases = nb_cases
+        SommetDuJeu_NegaMax_MPOO.__vertices_created += 1
         if init_map:
-            SommetDuJeu_NegaMax.__transposion_table={}
+            SommetDuJeu_NegaMax_MPOO.__transposion_table={}
 
     @classmethod
     def nb_vertices_created(cls):
@@ -24,29 +27,34 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         return cls.__transposion_table
 
     def get_score(self):
-        if self.map.hash in SommetDuJeu_NegaMax.__transposion_table:
-            return SommetDuJeu_NegaMax.__transposion_table[self.map.hash]
+        if self.map.hash in SommetDuJeu_NegaMax_MPOO.__transposion_table:
+            return SommetDuJeu_NegaMax_MPOO.__transposion_table[self.map.hash]
         else:
             return None, None, None
 
     def set_score_tt(self, flag, depth, score):
-        SommetDuJeu_NegaMax.__transposion_table[self.map.hash] = (flag, depth, score)
+        SommetDuJeu_NegaMax_MPOO.__transposion_table[self.map.hash] = (flag, depth, score)
 
     @property
     def children(self):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        if self._children is None:
+        if not self._children is None:
+            return self._children
+        else:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases):
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves)
-                child = SommetDuJeu_NegaMax(
+                child = SommetDuJeu_NegaMax_MPOO(
                     is_vamp=not self.is_vamp,
                     depth=self.depth-1,
+                    nb_group_max=self.nb_group_max,
+                    stay_enabled=self.stay_enabled,
+                    nb_cases=self.nb_cases,
                     game_map=carte)
                 child.previous_moves = moves
-                self._children.append(child)  
-        return self._children
+                self._children.append(child)
+                yield child
 
     def negamax(self, alpha, beta):
         alphaOrig = alpha
@@ -134,8 +142,11 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map8()
-    racine= SommetDuJeu_NegaMax(
-        depth=2,
+    racine= SommetDuJeu_NegaMax_MPOO(
+        depth=7,
+        nb_group_max=2,
+        stay_enabled=False,
+        nb_cases=3,
         game_map=carte,
         is_vamp=True,
         init_map=True)

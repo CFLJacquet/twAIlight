@@ -304,6 +304,7 @@ class Map:
         Map.init_map_class(self.size, positions)
         self.update_content(positions)
 
+
     def update_content(self, positions):
         """
         Mise à jour simple de la carte
@@ -342,17 +343,23 @@ class Map:
         """
 
         new_positions = defaultdict(list)
+        # Race du joueur
+        race = 1 if is_vamp else 2
 
         # On récupère toutes les positions initiales possibles
-        if is_vamp:  # Le joueur est un loup-garou
-            starting_positions = [x_y for x_y in self.content if self.content[x_y][1] != 0]
-        else:  # Le joueur est un loup-garou
-            starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
+        starting_positions = []
+        for (x, y), content in self.content.items():
+            if content[race] != 0:
+                starting_positions.append((x, y, content[race]))
+        
+        starting_positions = sorted(starting_positions, key=itemgetter(2), reverse=True)
+        if not nb_group_max is None:
+            starting_positions = starting_positions[:nb_group_max]
 
         x_max, y_max = self.size
 
         for starting_pos in starting_positions:
-            x_old, y_old = starting_pos
+            x_old, y_old, _ = starting_pos
 
             available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
                                    if (i, j) != (0, 0) \
@@ -362,28 +369,6 @@ class Map:
             for new_pos in available_positions:
                 new_positions[starting_pos].append(new_pos)
         return new_positions
-
-    @staticmethod
-    def repartitions_recursive(pop_of_monster, n_case):
-        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case \n\n
-
-        :param pop_of_monster: int \n
-        :param n_case: int \n 
-        :return: list : liste des répartitions possibles
-        """
-        repartitions = list()
-
-        if pop_of_monster == 0:
-            return [[0] * n_case]
-        if n_case == 1:
-            for pop_last_case in range(pop_of_monster + 1):
-                repartitions.append([pop_last_case])
-            return repartitions
-        for pop_first_case in range(pop_of_monster + 1):
-            for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
-                new_rep = [pop_first_case] + rep
-                repartitions.append(new_rep)
-        return repartitions
 
 
     @staticmethod
@@ -424,108 +409,36 @@ class Map:
                     repartitions.append(l)
         return repartitions
 
-    def next_relevant_possible_moves(self,is_vamp, nb_moves=3):
-        """ Renvoie les combinaisons de mouvements pertinentes pour un joueur. \n\n
+    def next_relevant_positions(self, is_vamp, nb_group_max=None, nb_cases=None):
+        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
+        next_relevant_positions = {}
 
-            Hypotheses: \n
-            - on ne considère que les groupes d'humains convertible a 100% => risque de ne pas
-            pouvoir bouger si y a que des gros \n
-            - demi-dist de l'ennemi => risque immobilisation si ennemi a cote \n
-            - si il y a rien d'interessant prendre une direction rapprochant d'un groupe humain
-            convertible    ________________ A IMPLEMENTER AVEC UN ALGO A* ________________
-            :param is_vamp: race du joueur \n
-            :return: liste ordonnée des meilleurs mouvements possibles
-        """
-        next_possible_positions = self.next_possible_positions(is_vamp)
-        next_best_moves = {}
-        x_max, y_max = self.size
-        
-
-        if is_vamp: all_ennemis = [x_y for x_y in self.content if self.content[x_y][2]]
-        else : all_ennemis = [x_y for x_y in self.content if self.content[x_y][1]]
-
-        all_humains = [x_y for x_y in self.content if self.content[x_y][0]]
-
-        for starting_position, moves in next_possible_positions.items():
-            # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
-            # ... afin de régler la taille du kernel pour le produit de convolution. On considère
-            # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
-            dangerous_enn = [x_y for x_y in all_ennemis \
-                                # sum donne le nombre d'individus sur la case
-                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
-
-            if dangerous_enn :
-                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
-                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
-                                    for group_enn in dangerous_enn ] )
-                if dist_min < 0:
-                    print("ATTENTION ennemi a cote")
-                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
-                    de nous """
-
-            else : #distance par défaut
-                if self.debug_mode:
-                    print("\nPas d'ennemi dangereux -> dist_min = 1/2 * taille carte ")
-                dist_min = min(x_max//2, y_max//2)
+    
+        for (x, y, n_mob) in next_possible_positions:
             
-            # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
-            valeur = []
-            for direction in moves:
-                grad = 0
-                for i in range(-dist_min, dist_min+1):
-                    for j in range(-dist_min, dist_min+1):
-                        try :
-                            # on récupère les groupes d'humains suffisamment petits (<= taille)
-                            hum = self.content[(direction[0] + i, direction[1] + j)][0]
-                            if hum <= sum(self.content[starting_position]) :
-                                grad += hum
-                        except:
-                            pass
-                valeur.append( (grad, sum(self.content[direction]), direction) )
+            def sort_function(pos):
+                n_hum, _, _ = self.content[pos]
+                return n_hum if 1.5*n_hum <= n_mob else -n_mob 
+
+            relevant_positions = sorted(
+                next_possible_positions[(x, y, n_mob)],
+                key=sort_function,
+                reverse=True)
+
+            if not nb_cases is None:
+                relevant_positions = relevant_positions[:nb_cases]
             
-            """if not all(v == 0 for v in [x[0] for x in valeur]): """
-            valeur.sort(key=lambda x: (-x[1], -x[0]))
-            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
+            next_relevant_positions[(x, y)] = relevant_positions
+        return next_relevant_positions 
 
-            if self.debug_mode:
-                    print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
-                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur,"\n")
 
-        return next_best_moves
-
-    def compute_score_map(self, is_vamp):
-        """Calcule les scores de chaque cases de la carte et renvoie un nparray
-        :return: scores de chaque case list(list)
-        """
-        # 1 noyau gaussien, 1 noyau moyenne
-        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]])
-        avg_k   = np.array([[1,1,1],[1,1,1], [1,1,1]])
-        
-        a = 1 if is_vamp else 2
-        d = 2 if is_vamp else 1
-
-        temp = np.array(list(map(list,self.content.values())))
-        matrix = temp.reshape((self.size[0], self.size[1], 3))
-        score_hum = signal.convolve2d(matrix[...,0], gauss_k, mode="same")
-        score_adv = (signal.convolve2d(matrix[..., a], avg_k, mode="same") - matrix[...,d]) * matrix[...,d]
-        score = np.maximum(8 * score_hum, score_adv)
-        return score.tolist()
-
-    def next_ranked_moves(self, is_vamp, nb_group_max=None, stay_enabled=None):
-        score = self.compute_score_map(is_vamp)
-        ranked_moves = sorted(
-            self.next_possible_moves(is_vamp, nb_group_max, stay_enabled),
-            key= lambda moves: sum(score[move[3]][move[4]] * move[2] for move in moves),
-            reverse=True)
-        return ranked_moves
-
-    def next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None):
+    def next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
         """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
 
         :param is_vamp: race du joueur
         :return: liste des mouvements possibles
         """
-        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
+        next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
         nb_group = len(next_possible_positions)
 
         group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
@@ -567,10 +480,10 @@ class Map:
                         new_position = next_possible_positions[starting_position][i]
 
                         # Respect de la règle 5
-                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
-                            continue  # On ne rajoute pas cet élément
-                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
-                            continue  # On ne rajoute pas cet élément
+                        # if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                        #     continue  # On ne rajoute pas cet élément
+                        # if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                        #     continue  # On ne rajoute pas cet élément
 
                         # On enregistre ce mouvement pour un groupe de monstre
                         moves.append((*starting_position, n_mons, *new_position))
@@ -616,7 +529,6 @@ class Map:
             random_moves.append((i,j,n,x,y))
 
         return random_moves
-
 
 
     def compute_moves(self, moves):
@@ -770,146 +682,6 @@ class Map:
             if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
                 self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
 
-    def possible_outcomes(self, moves):
-        """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
-        et la probabilité de la dite issue
-
-        :param moves: liste de mouvements de la forme [(i,j,n,x,y),...]
-        :return: liste du type [(probabilité associée, liste des mises à jour de positions)...]
-        """
-        battles_to_run = defaultdict(int)
-
-        # Race du joueur
-        is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
-
-        peaceful_moves = []  # Liste des nouvelles positions sans bataille
-
-        for move in moves:
-            i, j, n_mons, x, y = move
-            n_hum, n_vamp, n_lg = self.content[(x, y)]
-            if is_vamp and n_hum == 0 and n_lg == 0:  # Cas mouvement amical vampire
-                peaceful_moves.append(move)
-            elif not is_vamp and n_hum == 0 and n_vamp == 0:  # Cas mouvement amical loup-garou
-                peaceful_moves.append(move)
-            else:
-                battles_to_run[(x, y)] += n_mons
-
-        # On parcourt les batailles possibles
-        battles_possible_outcomes = {}  # Référence pour chaque bataille les issues possibles
-        for (x, y), n_att in battles_to_run.items():
-            n_hum, n_vamp, n_lg = self.content[(x, y)]
-            possible_outcomes = []
-            n_def = n_lg + n_hum if is_vamp else n_vamp + n_hum
-            proba_p = self.proba_p(n_att, n_def)
-
-            # Cas bataille contre des humains
-            if n_hum:
-                # Cas victoire assurée
-                if n_att >= n_hum:
-                    for k_surv in range(n_hum + n_att + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
-                        if is_vamp and proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
-                        elif proba_outcome:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
-                # Cas victoire non sure
-                else:
-                    # Si victoire des monstres
-                    proba_victory = proba_p
-                    for k_surv in range(n_hum + n_att + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_hum + n_att - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum + n_att)
-                        if is_vamp:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
-                        else:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
-
-                    # Si victoire des humains
-                    for k_surv in range(n_hum + 1):
-                        proba_outcome = pow(proba_p, n_hum - k_surv) * pow((1 - proba_p), k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_hum)
-                        possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, k_surv, 0, 0)))
-
-            # Cas bataille monstre vs monstre
-            else:
-
-                # Cas victoire sure
-                if n_att >= 1.5 * n_def:
-                    for k_surv in range(n_att + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
-                        if is_vamp:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, k_surv, 0)))
-                        else:
-                            possible_outcomes.append((proba_outcome, (x, y, 0, 0, k_surv)))
-                # Cas victoire non assurée
-                else:
-                    proba_victory = proba_p
-
-                    # Si victoire de l'attaquant
-                    for k_surv in range(n_att + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_att - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_att)
-                        if is_vamp:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, k_surv, 0)))
-                        else:
-                            possible_outcomes.append((proba_victory * proba_outcome, (x, y, 0, 0, k_surv)))
-
-                    # Si défaite de l'attaquant
-                    for k_surv in range(n_def + 1):
-                        proba_outcome = pow(proba_p, k_surv) * pow((1 - proba_p), n_def - k_surv)
-                        proba_outcome *= self.binomial_coefficient(k_surv, n_def)
-                        if is_vamp:
-                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, 0, k_surv)))
-                        else:
-                            possible_outcomes.append(((1 - proba_victory) * proba_outcome, (x, y, 0, k_surv, 0)))
-
-            battles_possible_outcomes[(x, y)] = possible_outcomes
-
-        # Calcul des mises à jours de positions
-
-        # On vide les cases de départ et on remplit les destinations sans conflits
-        # Par défaut, peacedul_positions_update revoie le nombre de monstre présent initialement sur la case
-
-        peaceful_positions_update = {}
-
-        # case source à vider
-        for move in moves:
-            i, j, n_mons, x, y = move
-            if (i, j) not in peaceful_positions_update:
-                peaceful_positions_update[(i, j)] = sum(self.content[(i, j)])
-            peaceful_positions_update[(i, j)] -= n_mons
-        # case destination pacifique à remplir
-        for move in peaceful_moves:
-            i, j, n_mons, x, y = move
-            if (x, y) not in peaceful_positions_update:
-                peaceful_positions_update[(x, y)] = sum(self.content[(x, y)])
-            peaceful_positions_update[(x, y)] += n_mons
-
-        # Liste des mises à jour de position triviales
-        trivial_positions_update = []
-
-        for (i, j), n_mons in peaceful_positions_update.items():
-            if is_vamp:
-                trivial_positions_update.append((i, j, 0, n_mons, 0))
-            else:
-                trivial_positions_update.append((i, j, 0, 0, n_mons))
-
-        # Notre liste en sortie
-        # De la forme [(proba_outcome, [liste des positions (i,j,n_hum,n_vamp,n_lg)...]),...]
-        possible_outcomes = []
-        # On sélectionne des combinaisons possibles d'issues de chaque bataille
-        for combined_battles_outcomes in product(*battles_possible_outcomes.values()):
-            proba_conbined_battle = 1
-            possible_outcome = list(trivial_positions_update)
-            for proba_outcome, new_battle_positions in combined_battles_outcomes:
-                proba_conbined_battle *= proba_outcome
-                possible_outcome.append(new_battle_positions)
-            if proba_conbined_battle:
-                possible_outcomes.append((proba_conbined_battle, possible_outcome))
-
-        return possible_outcomes
 
     @staticmethod
     def binomial_coefficient(k, n):
@@ -1003,6 +775,7 @@ class Map:
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
 
+
     def state_evaluation(self):
         if self.game_over():  # Si la partie est terminée
             if self.winner() is None:  # Match nul
@@ -1015,7 +788,6 @@ class Map:
         _, n_vamp, n_lg = self.populations
 
         return n_vamp - n_lg  # Score pour une partie en cours
-
 
     def game_over(self):
         """ Renvoie si la partie est terminée
