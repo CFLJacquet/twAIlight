@@ -30,7 +30,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
         depth_max = 5
         nb_group_max = 2
         stay_enabled = False
-        nb_cases = 3
+        nb_cases = [3,3,3,3,3,4]
 
         if show_map: self.map.print_map()
         

@@ -286,21 +286,22 @@ class Map:
         next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
         next_relevant_positions = {}
     
-        for (x_y, n_mob) in next_possible_positions:
+        for starting_config in next_possible_positions:
+            _, n_mob = starting_config
             
             def sort_function(pos):
                 n_hum, _, _ = self.content[pos]
                 return n_hum if 1.5*n_hum <= n_mob else -n_mob 
 
             relevant_positions = sorted(
-                next_possible_positions[x_y, n_mob],
+                next_possible_positions[starting_config],
                 key=sort_function,
                 reverse=True)
 
             if not nb_cases is None:
                 relevant_positions = relevant_positions[:nb_cases]
             
-            next_relevant_positions[x_y, n_mob] = relevant_positions
+            next_relevant_positions[starting_config] = relevant_positions
         return next_relevant_positions 
 
 

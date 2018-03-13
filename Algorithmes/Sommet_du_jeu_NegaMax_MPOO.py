@@ -42,7 +42,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             return self._children
         else:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases):
+            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
                 child = SommetDuJeu_NegaMax_MPOO(
@@ -143,10 +143,10 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
 if __name__ == '__main__':
     carte = Map8()
     racine= SommetDuJeu_NegaMax_MPOO(
-        depth=11,
+        depth=9,
         nb_group_max=2,
         stay_enabled=False,
-        nb_cases=2,
+        nb_cases=[None,1,1,1,2,2,3,3,4,4],
         game_map=carte,
         is_vamp=True,
         init_map=True)
