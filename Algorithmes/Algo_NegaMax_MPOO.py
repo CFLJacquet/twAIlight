@@ -4,6 +4,7 @@ from twAIlight.Joueur_Interne import JoueurInterne
 from twAIlight.Serveur_Interne import ServeurInterne
 from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_MPOO import SommetDuJeu_NegaMax_MPOO
 from twAIlight.Cartes.Map_Silv_Map8 import Map8
+from twAIlight.Map_Silv import Map
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -17,6 +18,14 @@ class AlgoNegMax_MPOO(JoueurInterne):
     Une réécriture de la classe JoueurInterne
 
     """
+    def create_map(self, map_size):
+        """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
+
+        :param map_size: (n,m) dimension de la carte
+        :return: None
+        """
+        self.map = Map(map_size=map_size) # Map_Silv
+
     def next_moves(self, show_map=True):
         depth_max = 5
         nb_group_max = 2

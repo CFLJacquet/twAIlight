@@ -8,7 +8,7 @@ from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
 from twAIlight.Algorithmes.Algo_MinMax import AlgoMinMax
 from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
 from twAIlight.Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
-from twAIlight.Algorithmes.Algo_NegaMax_probable_outcome import AlgoNegMax_MPO
+from twAIlight.Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
 from twAIlight.Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
 from twAIlight.Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
 from twAIlight.Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
@@ -30,10 +30,10 @@ MAPS = {#"Dust2": MapDust2,
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
-ALGOS = {#"Aleatoire": AlgoAleatoireInterne,
-         "MinMax": AlgoMinMax,
+ALGOS = {"Aleatoire": AlgoAleatoireInterne,
+         #"MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
-         "NegaMax_MPO" : AlgoNegMax_MPO
+         "NegaMax_MPOO" : AlgoNegMax_MPOO
          #"NegaMaxOriente": AlgoNegMaxOriente,
          #"Evaluation": AlgoCustomizedEvaluation,
          #"MonteCarlo": AlgoMonteCarlo
