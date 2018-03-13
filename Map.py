@@ -169,11 +169,6 @@ class Map:
         :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
         :return: None
         """
-        # Mise à zéro de la liste des modifications de la carte
-        self.UPD = []
-        # On enregistre la carte actuelle pour la comparer avec sa version à jour
-        old_map_content = dict(self.content)
-
         # Race du joueur
         is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
 
@@ -181,10 +176,11 @@ class Map:
         battles_to_run = defaultdict(int)
         for i, j, n, x, y in moves:
             # Libération des cases sources
+            old_h, old_v, old_lg = self.content[i,j]
             if is_vamp:  # le joueur est un vampire
-                self.update_content([(i, j, 0,  self.content[(i, j)][1] - n, 0)])
+                self.simple_update_content(i, j, 0,  old_v-n, 0, old_h, old_v, old_lg)
             else:  # le joueur est un loup-garou
-                self.update_content([(i, j, 0, 0, self.content[(i, j)][2] - n)])
+                self.simple_update_content(i, j, 0, 0, old_lg - n, old_h, old_v, old_lg)
 
             # Chargement des cases cibles
             # On enregistre les modifications sur les cases sans bataille
@@ -192,7 +188,7 @@ class Map:
             n_hum, n_vamp, n_lg = self.content[(x, y)]
             # Si case cible est vide
             if self.content[(x, y)] == (0, 0, 0):
-                self.update_content([(x, y, 0, n * is_vamp, n * (not is_vamp))])
+                self.simple_update_content(x, y, 0, n * is_vamp, n * (not is_vamp), 0, 0, 0)
 
             # Case vide peuplée d'humains
             if n_hum:
@@ -202,9 +198,9 @@ class Map:
             # Case cible peuplée d'ami
             # On peuple ces cases
             if n_vamp and is_vamp:
-                self.update_content([(x, y, 0, (n + n_vamp), 0)])
+                self.simple_update_content(x, y, 0, (n + n_vamp), 0, n_hum, n_vamp, n_lg)
             elif n_lg and not is_vamp:
-                self.update_content([(x, y, 0, 0, (n + n_lg))])
+                self.simple_update_content(x, y, 0, 0, (n + n_lg), n_hum, n_vamp, n_lg)
 
             # Case cible avec des ennemis
             if n_vamp and not is_vamp or n_lg and is_vamp:
@@ -228,7 +224,10 @@ class Map:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
                     n_total = n_att+n_hum
                     # Enregistrement des nouvelles populations sur la carte
-                    self.update_content([(x, y, 0, is_vamp * (n_total), (not is_vamp) * (n_total))])
+                    self.simple_update_content(
+                        x, y, 
+                        0, is_vamp * (n_total), (not is_vamp) * (n_total),
+                        n_hum, n_vamp, n_lg)
                     if self.debug_mode:
                         print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(0, 0))
 
@@ -242,7 +241,10 @@ class Map:
 
                     n_surv = round(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
                     # Enregistrement des humains survivants sur la carte
-                    self.update_content([(x, y, n_surv, 0, 0)])
+                    self.simple_update_content(
+                        x, y, 
+                        n_surv, 0, 0,
+                        n_hum, n_vamp, n_lg)
                     if self.debug_mode:
                         print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
 
@@ -262,7 +264,10 @@ class Map:
                     n_surv =round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
 
                     # Enregistrement des attaquants survivants
-                    self.update_content([(x, y, 0, is_vamp * n_surv, (not is_vamp) * n_surv)])
+                    self.simple_update_content(
+                        x, y, 
+                        0, is_vamp * n_surv, (not is_vamp) * n_surv,
+                        n_hum, n_vamp, n_lg)
 
                     if self.debug_mode:
                         print("Victoire de l'attaquant ! {} survivants".format(n_surv))
@@ -277,7 +282,10 @@ class Map:
                     # Victoire du défenseur
                     n_surv = round(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
                     # Enregistrement sur la carte
-                    self.update_content([(x, y, 0, (not is_vamp) * n_surv, is_vamp * n_surv)])
+                    self.simple_update_content(
+                        x, y, 
+                        0, (not is_vamp) * n_surv, is_vamp * n_surv,
+                        n_hum, n_vamp, n_lg)
 
                     if self.debug_mode:
                         print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
@@ -302,21 +310,26 @@ class Map:
         :return: None
         """
         for i, j, n_hum, n_vamp, n_lg in positions:
-            old_h, old_v, old_lg = self.content[(i, j)]
+            old_h, old_v, old_lg = self.content[i, j]
+            self.simple_update_content(i, j, n_hum, n_vamp, n_lg, old_h, old_v, old_lg)
+    
+    def simple_update_content(self, i, j, n_hum, n_vamp, n_lg, old_h, old_v, old_lg):
             # On déhash l'ancienne position
-            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+            self._hash ^= self.hash_position((i, j, old_h, old_v, old_lg))
 
             # On met à jour la carte
-            self.content[(i, j)] = (n_hum, n_vamp, n_lg)
+            self._content[i, j] = (n_hum, n_vamp, n_lg)
 
             # On met à jour la population (les 3 sommes semblent être le plus performants d'après stackoverflow)
+            tot_h, tot_v, tot_lg = self._populations
+            
             self._populations = (
-                self._populations[0] + (n_hum - old_h),
-                self._populations[1] + (n_vamp - old_v),
-                self._populations[2] + (n_lg - old_lg))
+                tot_h  + (n_hum - old_h),
+                tot_v  + (n_vamp - old_v),
+                tot_lg + (n_lg - old_lg))
 
             # On hash la nouvelle position
-            self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
+            self._hash ^= self.hash_position((i, j, n_hum, n_vamp, n_lg))
 
 
     def next_possible_positions(self, is_vamp):

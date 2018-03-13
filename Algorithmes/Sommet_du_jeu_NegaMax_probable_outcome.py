@@ -131,7 +131,7 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map8()
-    racine= SommetDuJeu_NegaMax(depth=1, game_map=carte, is_vamp=True, init_map=True)
+    racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
     #for child in racine.children:
     #    print(child.previous_moves)
     #    child.map.print_map()
