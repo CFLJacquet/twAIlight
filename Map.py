@@ -5,6 +5,7 @@ from copy import deepcopy
 from math import log2, pow, floor
 from scipy import signal
 import numpy as np
+from pprint import pprint
 
 class Map:
     """
@@ -334,7 +335,7 @@ class Map:
 
     def next_possible_positions(self, is_vamp):
         """
-        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe)
+        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe) \n
 
         :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
         """
@@ -363,10 +364,10 @@ class Map:
 
     @staticmethod
     def repartitions_recursive(pop_of_monster, n_case):
-        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case
+        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case \n\n
 
-        :param pop_of_monster: int
-        :param n_case: int
+        :param pop_of_monster: int \n
+        :param n_case: int \n 
         :return: list : liste des répartitions possibles
         """
         repartitions = list()
@@ -385,7 +386,7 @@ class Map:
 
 
     @staticmethod
-    def relevant_repartitions(pop_of_monster, n_case):
+    def relevant_repartitions(pop_of_monster, n_case, split_enabled=True):
         """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
             - max 2 sous-groupes à la fin
             - pas de sous-groupe de moins de pop_of_monster // 3
@@ -394,9 +395,10 @@ class Map:
         :param n_case: int
         :return: list : liste des répartitions possibles
         """
+
         pop_combinaisons = list()
         min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
-        for pop_1 in range(pop_of_monster):
+        for pop_1 in range(pop_of_monster if split_enabled else 1):
             pop_2 = pop_of_monster - pop_1
             if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
                 continue
@@ -419,10 +421,77 @@ class Map:
                     repartitions.append(l)
         return repartitions
 
+    def next_possible_relevant_moves(self,is_vamp, nb_moves=3):
+        """ Renvoie les combinaisons de mouvements pertinentes pour un joueur. \n\n
+
+            Hypotheses: \n
+            - on ne considère que les groupes d'humains convertible a 100% => risque de ne pas
+            pouvoir bouger si y a que des gros \n
+            - demi-dist de l'ennemi => risque immobilisation si ennemi a cote \n
+            - si il y a rien d'interessant prendre une direction rapprochant d'un groupe humain
+            convertible    ________________ A IMPLEMENTER AVEC UN ALGO A* ________________
+            :param is_vamp: race du joueur \n
+            :return: liste ordonnée des meilleurs mouvements possibles
+        """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+        next_best_moves = {}
+        x_max, y_max = self.size
+        
+
+        if is_vamp: all_ennemis = [x_y for x_y in self.content if self.content[x_y][2]]
+        else : all_ennemis = [x_y for x_y in self.content if self.content[x_y][1]]
+
+        all_humains = [x_y for x_y in self.content if self.content[x_y][0]]
+
+        for starting_position, moves in next_possible_positions.items():
+            # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
+            # ... afin de régler la taille du kernel pour le produit de convolution. On considère
+            # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
+            dangerous_enn = [x_y for x_y in all_ennemis \
+                                # sum donne le nombre d'individus sur la case
+                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
+
+            if dangerous_enn :
+                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
+                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
+                                    for group_enn in dangerous_enn ] )
+                if dist_min < 0:
+                    print("ATTENTION ennemi a cote")
+                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
+                    de nous """
+
+            else : #distance par défaut
+                if self.debug_mode:
+                    print("\nPas d'ennemi dangereux -> dist_min = 1/2 * taille carte ")
+                dist_min = min(x_max//2, y_max//2)
+            
+            # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
+            valeur = []
+            for direction in moves:
+                grad = 0
+                for i in range(-dist_min, dist_min+1):
+                    for j in range(-dist_min, dist_min+1):
+                        try :
+                            # on récupère les groupes d'humains suffisamment petits (<= taille)
+                            hum = self.content[(direction[0] + i, direction[1] + j)][0]
+                            if hum <= sum(self.content[starting_position]) :
+                                grad += hum
+                        except:
+                            pass
+                valeur.append( (grad, sum(self.content[direction]), direction) )
+            
+            """if not all(v == 0 for v in [x[0] for x in valeur]): """
+            valeur.sort(key=lambda x: (-x[1], -x[0]))
+            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
+
+            if self.debug_mode:
+                    print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
+                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur,"\n")
+
+        return next_best_moves
 
     def compute_score_map(self, is_vamp):
         """Calcule les scores de chaque cases de la carte et renvoie un nparray
-
         :return: scores de chaque case list(list)
         """
         # 1 noyau gaussien, 1 noyau moyenne
@@ -467,7 +536,8 @@ class Map:
                 pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
 
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case)
+            split_enabled = True if len(next_possible_positions) <= 4 else False
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled)
 
             group_repartitions[starting_position] = repartitions
 
@@ -855,10 +925,10 @@ class Map:
 
     @staticmethod
     def proba_p(n_att, n_def):
-        """ Calcule et renvoie la probabilité P définie dans le sujet du Projet
-
-        :param n_att: nombre d'attaquant
-        :param n_def: nombre de défenseur
+        """ Calcule et renvoie la probabilité P définie dans le sujet du Projet \n\n
+ 
+        :param n_att: nombre d'attaquant \n
+        :param n_def: nombre de défenseur \n
         :return: probabilite P (float)
         """
         ratio_att_def = n_att / n_def
@@ -994,20 +1064,11 @@ class Map:
 
 if __name__ == "__main__":
     carte = Map()
-    #carte.print_map()
-    #print(len(carte.next_possible_moves(True)))
-    #moves = [(0, 1, 1, 1, 1)]
+    carte.print_map()
+    # print(len(carte.next_possible_moves(True)))
 
-    #print(carte.possible_outcomes(moves))
-    move = [(0,1,1,1,1),(0,1,1,1,2)]
-    rel = carte.relevant_repartitions(1,3)
-    print(rel)
-    print(len(rel))
-    rec = carte.repartitions_recursive(1,3)
-    print(rec)
-    print(len(rec))
-    #for i in carte.possible_outcomes(move):
-    #    print(i)
-    #print(carte.hash)
-    #arte.update_content(np.array([[0,1,2,0,0]]))
-    #print(carte.hash)
+    # print(carte.next_possible_relevant_moves(True, 3))
+
+    # moves = [(0, 1, 1, 1, 1)]
+    
+    # print(carte.possible_outcomes(moves))
