@@ -948,6 +948,73 @@ class Map:
         else:  # Autant de loups-garous ni de vampires ==> Match Nul
             return None
 
+
+    def next_position_to_target(self,origin, destination, forbidden_places=set()):
+        """Prochain mouvement vers une cible en utilisant l'algorithme A*"""
+        visited = set()
+        to_visit = set()
+        distance_from_origin = {origin: 0}
+        predecessor = dict()
+        evaluations = {origin: Map.distance(origin, destination)}
+        current_position = origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance = distance_from_origin[current_position]
+            i, j = current_position
+            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
+                                            if 0<=(i + i_0)<self.size[0]
+                                            and 0<= (j+j_0) < self.size[1]])
+            new_positions_to_explore -= visited
+            new_positions_to_explore -= forbidden_places
+            new_positions_to_explore -= to_visit
+            to_visit |= new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos] = current_distance + 1
+                evaluations[pos] = Map.distance(pos, destination)
+                predecessor[pos] = current_position
+            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
+
+        while predecessor[current_position] != origin:
+            current_position = predecessor[current_position]
+
+        return current_position
+
+
+    def real_distance(self,origin, destination, forbidden_places=set()):
+        """Distance entre origin et destination sans passer par les forbidden places en utilisant l'algorithme A*"""
+        visited = set()
+        to_visit = set()
+        distance_from_origin = {origin: 0}
+        evaluations = {origin: Map.distance(origin, destination)}
+        current_position = origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance = distance_from_origin[current_position]
+            i, j = current_position
+            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
+                                            if 0 <= (i + i_0) < self.size[0]
+                                            and 0 <= (j + j_0) < self.size[1]])
+            new_positions_to_explore -= visited
+            new_positions_to_explore -= forbidden_places
+            new_positions_to_explore -= to_visit
+            to_visit |= new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos] = current_distance + 1
+                evaluations[pos] = Map.distance(pos, destination)
+            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
+
+        return distance_from_origin[destination]
+
+    @staticmethod
+    def distance(origin, destination):
+        return max(abs(origin[0] - destination[0]), abs(origin[1] - destination[1]))
+
+
+
     def print_map(self):
         """ Affiche la carte et des scores
         :return: None

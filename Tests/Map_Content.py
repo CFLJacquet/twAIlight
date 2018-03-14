@@ -12,6 +12,8 @@ class MapContent(dict):
             if key in self.keys():
                 dict.__delitem__(self, key)
 
+# TODO numpy sparse array
+
 if __name__ == '__main__':
     map_content=MapContent()
     assert map_content[(0,0)] ==(0,0,0)
