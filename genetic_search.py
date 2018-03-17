@@ -1,6 +1,6 @@
 from itertools import combinations
 from collections import defaultdict
-import copy
+import copy,math
 
 from twAIlight.Serveur_Interne import ServeurInterne
 
@@ -14,24 +14,22 @@ from twAIlight.Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvalu
 from twAIlight.Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
 from twAIlight.Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
 
-
 # Importation des des cartes du tournoi
 from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 from twAIlight.Cartes.Map_Dust2 import MapDust2
 from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Random import MapRandom
-
 import random
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
 
 # Nombre de parties par carte
-N_GAME = 2
-POOL_SIZE = 10
+N_GAME = 1
+POOL_SIZE = 5
 N_SURVIVORS = 3
-TIMER = 1000
+TIMER = 100
 
 # Function to generate an algorithm  class
 
@@ -46,8 +44,9 @@ def main():
     pool =[]
     historical_presence={}
     # Iterations
-    for epoch in range (0,TIMER):
-        print("Running epoch number %i" % epoch)
+    print("Nombre de combats à faire: %i " %(N_GAME*TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
+
+    for epoch in range(TIMER):
         if epoch==0:
         # Initialisation de la pool aléatoire
             for i in range(0, POOL_SIZE):
@@ -70,7 +69,8 @@ def main():
                 rand = random.randint(0, population_size - 1)
             pool.append(population[rand])
 
-    print("\n\nClassement des top %i algorithmes sur %i" %(N_SURVIVORS,population_size))
+    print("Nombre de combats: %i \n" %(TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
+    print("\nClassement des top %i algorithmes sur %i\n" %(N_SURVIVORS,population_size))
     for surv in individual_survivors:
         print("\nL'algorithme %i (présent pendant %i tours (sur %i) dans les survivants (TOP %i d'une pool)" %(surv,history[surv],TIMER,N_SURVIVORS))
         print("\nSes caractéristiques sont:\n")
@@ -109,11 +109,6 @@ def tournoi(pool,population_dic,nb_survivors=10,pool_size=20):
 
         individual_2_name = individual_2[0]
         individual_2_properties = individual_2[1]
-
-        print("\nCe combat est entre: ")
-        print(individual_1_properties)
-        print(individual_2_properties)
-        print("\n")
 
         if individual_1_name not in result:
             result[individual_1_name] = {individual_2_name: {}}
