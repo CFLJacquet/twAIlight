@@ -31,9 +31,10 @@ MAPS = {#"Dust2": MapDust2,
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"Aleatoire": AlgoAleatoireInterne,
+        "Aleatoire2": AlgoAleatoireInterne,
          #"MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
-         "NegaMax_MPOO" : AlgoNegMax_MPOO
+        # "NegaMax_MPOO" : AlgoNegMax_MPOO
          #"NegaMaxOriente": AlgoNegMaxOriente,
          #"Evaluation": AlgoCustomizedEvaluation,
          #"MonteCarlo": AlgoMonteCarlo
@@ -161,7 +162,6 @@ def main():
         print(f"\tAverage play duration : \t\t\t\t{average_play_duration:.2f}s")
         print(f"\tMaximum duration of a play : \t\t\t{max_play_duration:.2f}s")
         print(f"\tNumber of vertices created per play : \t{vertices_created_per_round:.0f} vertices")
-
 
 if __name__ == "__main__":
     main()

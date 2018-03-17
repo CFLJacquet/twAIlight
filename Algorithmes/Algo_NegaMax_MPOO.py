@@ -18,6 +18,8 @@ class AlgoNegMax_MPOO(JoueurInterne):
     Une réécriture de la classe JoueurInterne
 
     """
+
+
     def create_map(self, map_size):
         """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
 
@@ -27,18 +29,15 @@ class AlgoNegMax_MPOO(JoueurInterne):
         self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
-        depth_max = 5
-        nb_group_max = 2
         stay_enabled = False
-        nb_cases = [3,3,3,3,3,4]
 
         if show_map: self.map.print_map()
-        
+
         racine = SommetDuJeu_NegaMax_MPOO(
-            depth=depth_max,
-            nb_group_max=nb_group_max,
+            depth=self.depth_max,
+            nb_group_max=self.nb_group_max,
             stay_enabled=stay_enabled,
-            nb_cases=nb_cases,
+            nb_cases=self.nb_cases,
             game_map=copy(self.map),
             is_vamp=self.is_vamp,
             init_map=True)

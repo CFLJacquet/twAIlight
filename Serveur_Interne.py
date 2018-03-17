@@ -122,8 +122,8 @@ class ServeurInterne(Thread):
             if self.print_map: self.map.print_map()
 
             # On affiche l'espèce qui doit jouer
-            print("Server : Round " + str(self.round_nb) + " : "
-                  + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
+            #print("Server : Round " + str(self.round_nb) + " : "
+             #     + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
             if self.debug_mode: print('Server : Map updated')
 
@@ -187,8 +187,8 @@ class ServeurInterne(Thread):
 
             self.round_nb += 1  # Tour suivant
             # Affichage du tour et de l'expèce qui doit jouer
-            print("Server : Round " + str(self.round_nb) + " : "
-                  + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
+            #print("Server : Round " + str(self.round_nb) + " : "
+             #     + ("Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
             # Cas : la partie est terminée
             if self.map.game_over() or self.is_game_too_long():
@@ -295,8 +295,8 @@ class ServeurInterne(Thread):
         self.updates_for_1, self.updates_for_2 = [], []
 
         # Affichage du premier tour
-        print("Server : Round " + str(self.round_nb) + " : " + (
-            "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
+        #print("Server : Round " + str(self.round_nb) + " : " + (
+         #   "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
         # Envoi des dimensions de la carte aux deux joueurs
         self.send_both_players(b"SET")
