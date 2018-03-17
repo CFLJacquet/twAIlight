@@ -32,10 +32,10 @@ class NegaMaxAstar(SommetDuJeu):
         children = super().children
         if self.is_vamp:
             # Pour les besoins du max des alphas, on ordonne la liste avec les noeuds les plus forts d'abord
-            self._children = sorted(children, key=lambda child: child.evaluation)
+            self._children = sorted(children, key=lambda child: child.score)
         else:
             # Pour les besoins du mix des alphas, on ordonne la liste avec les noeuds les pluus faible
-            self._children = sorted(children, key=lambda child: -child.evaluation)
+            self._children = sorted(children, key=lambda child: -child.score)
         return self._children
 
     def negamax(self, depth, alpha, beta):

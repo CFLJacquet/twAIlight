@@ -2,8 +2,8 @@ from threading import Thread
 from queue import Queue
 import time
 
-from Joueur_Interne import JoueurInterne
-from Map import Map
+from twAIlight.Joueur_Interne import JoueurInterne
+from twAIlight.Map import Map
 
 
 class ServeurInterne(Thread):

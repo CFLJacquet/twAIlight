@@ -1,16 +1,16 @@
-from unittest import TestCase
-from copy import deepcopy
+import unittest
+from copy import deepcopy, copy
 import random
 
-from Map import Map
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_Ligne13 import MapLigne13
-from Cartes.Map_Map8 import Map8
-from Cartes.Map_Random import MapRandom
-from Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Map import Map
+from twAIlight.Cartes.Map_Dust2 import MapDust2
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Cartes.Map_Random import MapRandom
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 
 
-class TestMap(TestCase):
+class TestMap(unittest.TestCase):
     """Teste la carte et son bon comportement"""
 
     def test_hash(self):
@@ -27,7 +27,7 @@ class TestMap(TestCase):
         to_visit = list()
 
         # instance de carte (par défaut)
-        carte = Map()
+        carte = Map8()
 
         seen_hashes[carte.hash] = carte
 
@@ -37,7 +37,7 @@ class TestMap(TestCase):
         while to_visit and n_test_performed < N_TEST:
             n_test_performed += 1
             carte, next_moves = to_visit.pop()
-            child = deepcopy(carte)
+            child = copy(carte)
             child.compute_moves(next_moves)
             if child.hash in seen_hashes:
                 if child.content != seen_hashes[child.hash].content:
@@ -47,6 +47,7 @@ class TestMap(TestCase):
                 to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=True))))
             if child.next_possible_moves(is_vamp=False):
                 to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=False))))
+                
 
         self.assertTrue(not collision)
 
@@ -57,18 +58,18 @@ class TestMap(TestCase):
         carte = Map()
         carte.next_possible_moves(is_vamp=True)
         carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
+        carte.update_content([(0, 0, 0, 0, 0)])
         carte.next_possible_positions(is_vamp=True)
         carte.next_possible_positions(is_vamp=False)
         carte.winner()
         carte.game_over()
         carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
+        carte.populations
         carte.print_map()
         _ = carte.hash
         _ = carte.content
         carte.state_evaluation()
-        carte.is_valid_moves([(0, 0, 1, 0, 1)], is_vamp=True)
+        carte.is_valid_moves([(0, 0, 1, 0, 1)], True)
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
     def test_next_moves(self):
@@ -77,8 +78,8 @@ class TestMap(TestCase):
         :return:
         """
         carte = Map()
-        carte.update_positions([(0, 1, 0, 3, 0)])
-        carte.update_positions([(0, 0, 0, 4, 0)])
+        carte.update_content([(0, 1, 0, 3, 0)])
+        carte.update_content([(0, 0, 0, 4, 0)])
         carte.print_map()
         for moves in carte.next_possible_moves(is_vamp=True):
             self.assertTrue(carte.is_valid_moves(moves, is_vamp=True))
@@ -103,7 +104,7 @@ class TestMap(TestCase):
         self.assertEqual(sum_proba, 1)
 
 
-class TestDust2(TestCase):
+class TestDust2(unittest.TestCase):
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -111,13 +112,13 @@ class TestDust2(TestCase):
         carte = MapDust2()
         carte.next_possible_moves(is_vamp=True)
         carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
+        carte.update_content([(0, 0, 0, 0, 0)])
         carte.next_possible_positions(is_vamp=True)
         carte.next_possible_positions(is_vamp=False)
         carte.winner()
         carte.game_over()
         carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
+        carte.populations
         carte.print_map()
         _ = carte.hash
         _ = carte.content
@@ -126,7 +127,7 @@ class TestDust2(TestCase):
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
-class TestLigne13(TestCase):
+class TestLigne13(unittest.TestCase):
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -134,13 +135,13 @@ class TestLigne13(TestCase):
         carte = MapLigne13()
         carte.next_possible_moves(is_vamp=True)
         carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
+        carte.update_content([(0, 0, 0, 0, 0)])
         carte.next_possible_positions(is_vamp=True)
         carte.next_possible_positions(is_vamp=False)
         carte.winner()
         carte.game_over()
         carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
+        carte.populations
         carte.print_map()
         _ = carte.hash
         _ = carte.content
@@ -149,7 +150,7 @@ class TestLigne13(TestCase):
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
-class TestMap8(TestCase):
+class TestMap8(unittest.TestCase):
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -157,13 +158,13 @@ class TestMap8(TestCase):
         carte = Map8()
         carte.next_possible_moves(is_vamp=True)
         carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
+        carte.update_content([(0, 0, 0, 0, 0)])
         carte.next_possible_positions(is_vamp=True)
         carte.next_possible_positions(is_vamp=False)
         carte.winner()
         carte.game_over()
         carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
+        carte.populations
         carte.print_map()
         _ = carte.hash
         _ = carte.content
@@ -172,7 +173,7 @@ class TestMap8(TestCase):
         carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
-class TestMapRandom(TestCase):
+class TestMapRandom(unittest.TestCase):
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -183,13 +184,13 @@ class TestMapRandom(TestCase):
             carte = MapRandom()
             carte.next_possible_moves(is_vamp=True)
             carte.next_possible_moves(is_vamp=False)
-            carte.update_positions([(0, 0, 0, 0, 0)])
+            carte.update_content([(0, 0, 0, 0, 0)])
             carte.next_possible_positions(is_vamp=True)
             carte.next_possible_positions(is_vamp=False)
             carte.winner()
             carte.game_over()
             carte.compute_moves([(0, 1, 1, 0, 0)])
-            carte.populations()
+            carte.populations
             carte.print_map()
             _ = carte.hash
             _ = carte.content
@@ -198,7 +199,7 @@ class TestMapRandom(TestCase):
             carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
 
-class TestMapTheTrap(TestCase):
+class TestMapTheTrap(unittest.TestCase):
     def test_methods(self):
         """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
 
@@ -206,13 +207,13 @@ class TestMapTheTrap(TestCase):
         carte = MapTheTrap()
         carte.next_possible_moves(is_vamp=True)
         carte.next_possible_moves(is_vamp=False)
-        carte.update_positions([(0, 0, 0, 0, 0)])
+        carte.update_content([(0, 0, 0, 0, 0)])
         carte.next_possible_positions(is_vamp=True)
         carte.next_possible_positions(is_vamp=False)
         carte.winner()
         carte.game_over()
         carte.compute_moves([(0, 1, 1, 0, 0)])
-        carte.populations()
+        carte.populations
         carte.print_map()
         _ = carte.hash
         _ = carte.content
@@ -223,4 +224,7 @@ class TestMapTheTrap(TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    test = TestMap()
+    import cProfile
+    cProfile.run("test.test_hash()")
+    #unittest.main()

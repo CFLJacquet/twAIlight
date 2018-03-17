@@ -1,7 +1,7 @@
-from Map import Map
+from twAIlight.Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_Negamax(SommetChance):
@@ -22,12 +22,12 @@ class SommetChance_Negamax(SommetChance):
 
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetDuJeu_NegaMax(is_vamp=self.is_vamp, game_map=self.map.__copy__(self.map),
-                                                        depth=self.depth)
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetDuJeu_NegaMax(is_vamp=self.is_vamp, game_map=carte, depth=self.depth)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
@@ -112,13 +112,13 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         bestvalue = None
         for child in self.children:
             if alpha is None and beta is None:
-                v = - child.negamax(None, None)
+                v = -1*child.negamax(None, None)
             elif beta is None:
-                v = - child.negamax(None, -alpha)
+                v = -1*child.negamax(None, -1*alpha)
             elif alpha is None:
-                v = - child.negamax(-beta, None)
+                v = -1*child.negamax(-1*beta, None)
             else:
-                v = - child.negamax(-beta, -alpha)
+                v = -1*child.negamax(-1*beta, -1*alpha)
 
             # On prend le max entre bestvalue et v
             if bestvalue is None:
@@ -166,7 +166,16 @@ class SommetDuJeu_NegaMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map()
-    racine= SommetDuJeu_NegaMax(depth=2, game_map=carte, is_vamp=True, init_map=True)
-    import cProfile
-    cProfile.run('racine.next_move()')
+    racine= SommetDuJeu_NegaMax(depth=6
+                                , game_map=carte, is_vamp=True, init_map=True)
+    for child in racine.children:
+        print(child.previous_moves,child.negamax(alpha=None, beta=None))
+    print()
+    print(racine.next_move())
+    print()
+    print()
+    racine= SommetDuJeu_NegaMax(depth=6, game_map=carte, is_vamp=False, init_map=True)
+    for child in racine.children:
+        print(child.previous_moves,child.negamax(alpha=None, beta=None))
+    print()
     print(racine.next_move())

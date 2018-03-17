@@ -1,4 +1,4 @@
-from Joueur import Joueur
+from twAIlight.Joueur import Joueur
 
 
 class JoueurInterne(Joueur):
