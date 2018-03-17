@@ -47,6 +47,8 @@ def main():
     print("Nombre de combats à faire: %i " %(N_GAME*TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
 
     for epoch in range(TIMER):
+        print("This is epoch %i" %epoch)
+
         if epoch==0:
         # Initialisation de la pool aléatoire
             for i in range(0, POOL_SIZE):
