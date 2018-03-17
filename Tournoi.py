@@ -31,10 +31,9 @@ MAPS = {#"Dust2": MapDust2,
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"Aleatoire": AlgoAleatoireInterne,
-        "Aleatoire2": AlgoAleatoireInterne,
          #"MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
-        # "NegaMax_MPOO" : AlgoNegMax_MPOO
+         "NegaMax_MPOO" : AlgoNegMax_MPOO
          #"NegaMaxOriente": AlgoNegMaxOriente,
          #"Evaluation": AlgoCustomizedEvaluation,
          #"MonteCarlo": AlgoMonteCarlo

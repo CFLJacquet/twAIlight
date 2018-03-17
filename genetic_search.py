@@ -1,19 +1,9 @@
 from itertools import combinations
-from collections import defaultdict
-import copy,math
-
+import math
 from twAIlight.Serveur_Interne import ServeurInterne
-
+import operator
 # Importation des algorithmes de décision
-from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
-from twAIlight.Algorithmes.Algo_MinMax import AlgoMinMax
-from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
-from twAIlight.Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
 from twAIlight.Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
-from twAIlight.Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
-from twAIlight.Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
-from twAIlight.Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
-
 # Importation des des cartes du tournoi
 from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 from twAIlight.Cartes.Map_Dust2 import MapDust2
@@ -22,19 +12,13 @@ from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Random import MapRandom
 import random
 
-# Dictionnaires des cartes : nom de la carte --> carte (classe)
-# MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-
-# Nombre de parties par carte
-N_GAME = 1
-POOL_SIZE = 5
-N_SURVIVORS = 3
-TIMER = 100
-
-# Function to generate an algorithm  class
+N_GAME = 2 # nombre de parties par carte (chaque carte est appelée dans une pool)
+POOL_SIZE = 5 # Taille des pools de combats
+N_SURVIVORS = 1 # Nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
+TIMER = 50 # Nombre d'itérations
 
 def main():
-    range_parameters = {'depth_max': [1,2,3,4,5,6,7],'nb_group_max': [1],'nb_cases':[[i for i in range (0,10)]]}
+    range_parameters = {'depth_max': [1,2,3],'nb_group_max': [1,2,3,4],'nb_cases':[[i for i in range (0,10)]]}
     tuned_parameters = [{'depth_max':a, 'nb_group_max':b, 'nb_cases':d} for a in range_parameters['depth_max'] for b in range_parameters['nb_group_max'] for d in range_parameters['nb_cases']]
     # Generation de la population à explorer. Les individus sont numérotés de 1 à n
     population = [(i,tuned_parameters[i]) for i in range(0,len(tuned_parameters))]
@@ -42,7 +26,17 @@ def main():
     population_size = len(population)
     print("There are %i individuals " % population_size)
     pool =[]
+
+    # Initialisation du decompte du nombre de victoire en pool
     historical_presence={}
+    for s in range(0,population_size):
+        historical_presence[s] = 0
+
+    # Initialisation du decompte d'ajout à la pool
+    ajout={}
+    for s in range(0,population_size):
+        ajout[s] = 0
+
     # Iterations
     print("Nombre de combats à faire: %i " %(N_GAME*TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
 
@@ -54,15 +48,14 @@ def main():
             for i in range(0, POOL_SIZE):
                 rand = random.randint(0, population_size - 1)
                 pool.append(population[rand])
+                ajout[rand] += 1
 
-        individual_survivors = tournoi(pool,population_dic,nb_survivors=N_SURVIVORS,pool_size=POOL_SIZE)
+        individual_survivors = tournoi(pool,population_dic,nb_survivors=N_SURVIVORS)
 
         pool=[]
         for s in individual_survivors:
             pool.append(population[s])
-            if s not in historical_presence:
-                historical_presence[s]=0
-                historical_presence[s]+=1
+            historical_presence[s]+=1
 
         # On remplit les places restantes dans la pool aléatoirement
         for i in range (N_SURVIVORS,POOL_SIZE-N_SURVIVORS+1):
@@ -70,15 +63,29 @@ def main():
             while rand in individual_survivors:
                 rand = random.randint(0, population_size - 1)
             pool.append(population[rand])
+            ajout[rand] += 1
 
-    print("Nombre de combats: %i \n" %(TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
-    print("\nClassement des top %i algorithmes sur %i\n" %(N_SURVIVORS,population_size))
+
+    # On peut aussi choisir de regarder les algos restés le plus longtemps
+    print("\n########  Algorithmes le plus vus en pool (normalisation par le nombre d'ajout au pool)")
+    sorted_hist_presence = sorted(historical_presence.items(), key=operator.itemgetter(1),reverse=True)
+    for elem in sorted_hist_presence[:5]:
+        if ajout[elem[0]]!=0:
+            print("\nAlgo numero %i : vu %i en pool pour %i ajouts " %(elem[0],elem[1],ajout[elem[0]]))
+            print("Cet algo est caractérisé par :")
+            print(population_dic[sorted_hist_presence[elem[0]][0]])
+        else:
+            print("%i n'a jamais été tiré et ajouté à la pool ! " %elem[0])
+
+    # On peut choisir de regarder les algos survivants
+    print("\n######## Nombre de combats: %i" %(TIMER*math.factorial(POOL_SIZE)/(math.factorial(2)*math.factorial(POOL_SIZE-2))))
+    print("Classement des top %i algorithmes sur %i" %(N_SURVIVORS,population_size))
     for surv in individual_survivors:
-        print("\nL'algorithme %i (présent pendant %i tours (sur %i) dans les survivants (TOP %i d'une pool)" %(surv,history[surv],TIMER,N_SURVIVORS))
-        print("\nSes caractéristiques sont:\n")
+        print("L'algorithme %i (présent pendant %i tours (sur %i) dans les survivants (TOP %i d'une pool)" %(surv,historical_presence[surv],TIMER,N_SURVIVORS))
+        print("Ses caractéristiques sont:")
         print(population_dic[surv])
 
-def tournoi(pool,population_dic,nb_survivors=10,pool_size=20):
+def tournoi(pool,population_dic,nb_survivors=10):
     """
     A partir des cartes définies plus haut, on effectue tous les duels possibles, et on les joue N_GAME fois et on renvoie les N_SURVIVORS
 
@@ -99,10 +106,6 @@ def tournoi(pool,population_dic,nb_survivors=10,pool_size=20):
     }
 
     # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
-
-    print(pool)
-    print(population_dic)
-
 
     for (individual_1,individual_2) in combinations(pool, 2):
 
@@ -182,6 +185,9 @@ def tournoi(pool,population_dic,nb_survivors=10,pool_size=20):
                 stats[individual_1_name]["nb_play"] += server_game.nb_play_1
                 stats[individual_2_name]["nb_play"] += server_game.nb_play_2
 
+                #stats[individual_1_name]["nb_vertices"] += algo_individual_1.nb_vertices_created()
+                #stats[individual_2_name]["nb_vertices"] += algo_individual_2.nb_vertices_created()
+
     # Affichage des résultats du tournoi
     print()
     for algo_1_name in result:
@@ -207,7 +213,6 @@ def tournoi(pool,population_dic,nb_survivors=10,pool_size=20):
         print(f"\tAverage play duration : \t\t\t\t{average_play_duration:.2f}s")
         print(f"\tMaximum duration of a play : \t\t\t{max_play_duration:.2f}s")
         print(f"\tNumber of vertices created per play : \t{vertices_created_per_round:.0f} vertices")
-
     return ranking[:nb_survivors]
 
 if __name__ == "__main__":
