@@ -390,7 +390,7 @@ class Map:
             :return: liste ordonnée des meilleurs mouvements possibles
         """
         next_possible_positions = self.next_possible_positions(is_vamp)
-        next_best_moves = {}
+        next_best_moves = []
         x_max, y_max = self.size
         
 
@@ -403,9 +403,11 @@ class Map:
             # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
             # ... afin de régler la taille du kernel pour le produit de convolution. On considère
             # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
+            gp_num = sum(self.content[starting_position])
+
             dangerous_enn = [x_y for x_y in all_ennemis \
                                 # sum donne le nombre d'individus sur la case
-                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
+                                if sum(self.content[x_y]) >  gp_num ] 
 
             if dangerous_enn :
                 # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
@@ -430,7 +432,7 @@ class Map:
                         try :
                             # on récupère les groupes d'humains suffisamment petits (<= taille)
                             hum = self.content[(direction[0] + i, direction[1] + j)][0]
-                            if hum <= sum(self.content[starting_position]) :
+                            if hum <= gp_num :
                                 grad += hum
                         except:
                             pass
@@ -438,7 +440,11 @@ class Map:
             
             """if not all(v == 0 for v in [x[0] for x in valeur]): """
             valeur.sort(key=lambda x: (-x[1], -x[0]))
-            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
+            temp = 0
+            while len(next_best_moves) < nb_moves and temp < len(valeur):
+                if valeur[temp][1] <= gp_num:
+                    next_best_moves.append( (starting_position[0],starting_position[1], gp_num, valeur[temp][2][0], valeur[temp][2][1]) )
+                temp += 1
 
             if self.debug_mode:
                     print("Demi-distance a l'adversaire le plus proche :", dist_min+1)

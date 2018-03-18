@@ -1,7 +1,23 @@
-from Cartes.Map_Ligne13 import MapLigne13
+from Cartes.Map_Random import MapRandom
+from Cartes.Map_Map8 import Map8
 
-carte = MapLigne13(True)
-carte.print_map()
-print(len(carte.next_possible_moves(True)))
+carte = Map8()
 
-print(carte.next_possible_relevant_moves(True, 3))
+turn = 0
+while carte.game_over() == False and turn < 200:
+    print("ok")
+    moves = carte.next_possible_relevant_moves(True, 1)
+    # mettre au format liste de quintuplet next_possible_moves[0]
+
+    carte.compute_moves(moves)
+    carte.print_map()
+
+    moves = carte.random_moves(False)
+    carte.compute_moves(moves)
+    carte.print_map()
+
+    turn += 1
+
+
+# carte.print_map()
+# print(carte.next_possible_relevant_moves(True, 3))
