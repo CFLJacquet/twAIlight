@@ -405,15 +405,6 @@ class Map:
                     repartitions.append(l)
         return repartitions
 
-            if dangerous_enn :
-                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
-                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
-                                    for group_enn in dangerous_enn ] )
-                if dist_min < 0:
-                    print("ATTENTION ennemi a cote")
-                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
-                    de nous """
-
     def compute_score_map(self, is_vamp):
         """Calcule les scores de chaque cases de la carte et renvoie un nparray
 
@@ -1055,16 +1046,6 @@ class Map:
 
 if __name__ == "__main__":
     carte = Map()
-<<<<<<< HEAD
-    carte.print_map()
-    print(len(carte.next_possible_moves(True)))
-
-    print(carte.next_possible_relevant_moves(True, 3))
-
-    # moves = [(0, 1, 1, 1, 1)]
-    
-    # print(carte.possible_outcomes(moves))
-=======
     #carte.print_map()
     #print(len(carte.next_possible_moves(True)))
     #moves = [(0, 1, 1, 1, 1)]
@@ -1082,4 +1063,3 @@ if __name__ == "__main__":
     #print(carte.hash)
     #arte.update_content(np.array([[0,1,2,0,0]]))
     #print(carte.hash)
->>>>>>> master
