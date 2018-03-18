@@ -1,7 +1,7 @@
-from Map import Map
 from copy import deepcopy
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from twAIlight.Map import Map
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_MinMax(SommetChance):
@@ -34,12 +34,15 @@ class SommetChance_MinMax(SommetChance):
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetOutcome_MinMax(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                         depth=self.depth - 1)
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetOutcome_MinMax(
+                    is_vamp=is_vamp,
+                    game_map=carte,
+                    depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
@@ -80,7 +83,7 @@ class SommetOutcome_MinMax(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.next_ranked_moves(self.is_vamp)[:4]:
                 child = SommetChance_MinMax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)
@@ -140,5 +143,5 @@ class SommetOutcome_MinMax(SommetOutcome):
 
 if __name__ == '__main__':
     carte = Map()
-    racine=SommetOutcome_MinMax(is_vamp=True, depth=1, game_map=carte, init_map=True)
+    racine=SommetOutcome_MinMax(is_vamp=True, depth=3, game_map=carte, init_map=True)
     print(racine.next_move())

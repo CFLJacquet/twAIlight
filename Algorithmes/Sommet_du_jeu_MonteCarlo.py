@@ -2,11 +2,12 @@ from copy import deepcopy
 import random
 from math import sqrt, log
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
-from Map import Map
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
-from Cartes.Map_Random import MapRandom
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from twAIlight.Map import Map
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Cartes.Map_Random import MapRandom
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 
 class SommetChance_MonteCarlo(SommetChance):
@@ -45,11 +46,12 @@ class SommetChance_MonteCarlo(SommetChance):
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetOutcome_MonteCarlo(is_vamp=is_vamp, game_map=self.map.__copy__(self.map))
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetOutcome_MonteCarlo(is_vamp=is_vamp, game_map=carte)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
@@ -201,7 +203,7 @@ if __name__ == '__main__':
     from time import time
 
     start_time = time()
-    while time() < start_time + 30:
+    while time() < start_time + 2:
         racine.MCTS()
 
     for child in racine.children:
@@ -226,3 +228,8 @@ if __name__ == '__main__':
     print(SommetChance_MonteCarlo.nb_vertices_created() + SommetOutcome_MonteCarlo.nb_vertices_created())
     print("Nombre de simulations :")
     print(racine.n_games)
+"""
+    carte=MapLigne13()
+    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
+    import cProfile
+    cProfile.run("[racine.MCTS() for _ in range(20)]")"""

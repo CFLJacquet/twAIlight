@@ -2,3 +2,5 @@ __pycache__/
 .idea/
 *.pyc
 .DS_Store
+
+Tests/Tests_Silvestre.py

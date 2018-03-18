@@ -1,5 +1,6 @@
-from Map import Map
 from copy import deepcopy
+
+from Map import Map
 
 
 class SommetChance:
@@ -18,12 +19,15 @@ class SommetChance:
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                new_child_vertice = SommetOutcome(is_vamp=is_vamp, game_map=self.map.__copy__(self.map),
-                                                  depth=self.depth - 1)
+                carte=deepcopy(self.map)
+                new_child_vertice = SommetOutcome(
+                    is_vamp=is_vamp,
+                    game_map=carte,
+                    depth=self.depth - 1)
 
                 # On met la partie du sommet fils à jour
                 new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_positions(positions)
+                new_child_vertice.map.update_content(positions)
                 new_child_vertice.probability = proba
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
@@ -57,10 +61,6 @@ class SommetOutcome:
         if init_map:
             SommetOutcome.__transposion_table={}
 
-    def __copy__(self, objet):
-        t = deepcopy(objet)
-        return t
-
     @classmethod
     def nb_vertices_created(cls):
         return cls.__vertices_created
@@ -77,7 +77,8 @@ class SommetOutcome:
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-                child = SommetChance(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map.__copy__(self.map))
+                carte=deepcopy(self.map)
+                child = SommetChance(is_vamp=self.is_vamp, depth=self.depth, game_map=carte)
                 child.previous_moves = moves
                 self._children.append(child)
         return self._children

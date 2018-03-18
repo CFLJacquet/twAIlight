@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 
-from Joueur_Interne import JoueurInterne
-from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
-from Algorithmes.Algo_NegaMax import AlgoNegaMax
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
-from Serveur_Interne import ServeurInterne
+from twAIlight.Joueur_Interne import JoueurInterne
+from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
+from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
+from twAIlight.Cartes.Map_Dust2 import MapDust2
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Serveur_Interne import ServeurInterne
 
 
 class AlgoCustomizedEvaluation(JoueurInterne):
@@ -39,7 +39,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
             if game_map.game_over():
                 return game_map.state_evaluation()
 
-            pop_hum, pop_vamp, pop_lg = game_map.populations()
+            pop_hum, pop_vamp, pop_lg = game_map.populations
 
             cus_eval = pop_vamp - pop_lg  # Evaluation classique
 
@@ -102,7 +102,7 @@ class AlgoCustomizedEvaluation(JoueurInterne):
         cur_evaluation = 0
         for proba, updated_positions in self.map.possible_outcomes(moves):
             carte = deepcopy(self.map)
-            carte.update_positions(updated_positions)
+            carte.update_content(updated_positions)
             move_evaluation = AlgoCustomizedEvaluation.customized_evaluation(carte)
             cur_evaluation += proba * move_evaluation
         return cur_evaluation

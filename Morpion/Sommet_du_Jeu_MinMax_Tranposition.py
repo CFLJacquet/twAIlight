@@ -71,9 +71,9 @@ class SommetDuJeuMinMaxTransposition(SommetDuJeu):
 
         # On sélectionne le noeud fils selon sa race
         if self.is_vamp:
-            next_child = max(self.children, key=lambda x: x.MinValue(3))
+            next_child = max(self.children, key=lambda x: x.MinValue(10))
         else:
-            next_child = min(self.children, key=lambda x: x.MaxValue(3))
+            next_child = min(self.children, key=lambda x: x.MaxValue(10))
 
         # On retourne le dernier mouvement pour arriver à ce sommet fils
         return next_child.map.previous_moves[-1]

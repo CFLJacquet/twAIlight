@@ -1,11 +1,15 @@
-from collections import defaultdict
 import random
-from itertools import combinations, product
+from collections import defaultdict
 from copy import deepcopy
+from itertools import combinations, product
 from math import log2, pow, floor
-from scipy import signal
+
 import numpy as np
-from pprint import pprint
+from scipy import signal
+
+from Cartes.Map_Ligne13 import MapLigne13 as OriginalMapLigne13
+from Tests.Map_Content import MapContent
+
 
 class Map:
     """
@@ -88,10 +92,7 @@ class Map:
             self.size = (3, 3)
         else:
             self.size = map_size
-        void_content = {}
-        for i, j in product(range(self.size[0]), range(self.size[1])):
-            void_content[(i, j)] = (0, 0, 0)
-        self._content = void_content
+        self._content = MapContent()
         self._populations = (0, 0, 0) # 0 Humains, 0 Vampires, 0 Werewolves
         self._hash = 0
 
@@ -167,7 +168,7 @@ class Map:
         # Mise à zéro de la liste des modifications de la carte
         self.UPD = []
         # On enregistre la carte actuelle pour la comparer avec sa version à jour
-        old_map_content = dict(self.content)
+        old_map_content = MapContent(self.content)
 
         # Race du joueur
         is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
@@ -306,6 +307,7 @@ class Map:
             self._hash ^= self.hash_position((i, j, *self.content[(i, j)]))
 
             # On met à jour la carte
+
             self.content[(i, j)] = (n_hum, n_vamp, n_lg)
 
             # On met à jour la population (les 3 sommes semblent être le plus performants d'après stackoverflow)
@@ -320,7 +322,7 @@ class Map:
 
     def next_possible_positions(self, is_vamp):
         """
-        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe) \n
+        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe)
 
         :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
         """
@@ -349,10 +351,10 @@ class Map:
 
     @staticmethod
     def repartitions_recursive(pop_of_monster, n_case):
-        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case \n\n
+        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case
 
-        :param pop_of_monster: int \n
-        :param n_case: int \n 
+        :param pop_of_monster: int
+        :param n_case: int
         :return: list : liste des répartitions possibles
         """
         repartitions = list()
@@ -405,14 +407,6 @@ class Map:
                     repartitions.append(l)
         return repartitions
 
-            if dangerous_enn :
-                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
-                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
-                                    for group_enn in dangerous_enn ] )
-                if dist_min < 0:
-                    print("ATTENTION ennemi a cote")
-                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
-                    de nous """
 
     def compute_score_map(self, is_vamp):
         """Calcule les scores de chaque cases de la carte et renvoie un nparray
@@ -426,7 +420,7 @@ class Map:
         a = 1 if is_vamp else 2
         d = 2 if is_vamp else 1
 
-        temp = np.array(list(map(list,self.content.values())))
+        temp = np.array(list(map(lambda pos:list(self.content[pos]),product(range(self.size[0]),range(self.size[1])))))
         matrix = temp.reshape((self.size[0], self.size[1], 3))
         score_hum = signal.convolve2d(matrix[...,0], gauss_k, mode="same")
         score_adv = (signal.convolve2d(matrix[..., a], avg_k, mode="same") - matrix[...,d]) * matrix[...,d]
@@ -545,7 +539,7 @@ class Map:
         # Mise à zéro de la liste des modifications de la carte
         self.UPD = []
         # On enregistre la carte actuelle pour la comparer avec sa version à jour
-        old_map_content = dict(self.content)
+        old_map_content = MapContent(self.content)
 
         # Race du joueur
         is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
@@ -849,10 +843,10 @@ class Map:
 
     @staticmethod
     def proba_p(n_att, n_def):
-        """ Calcule et renvoie la probabilité P définie dans le sujet du Projet \n\n
- 
-        :param n_att: nombre d'attaquant \n
-        :param n_def: nombre de défenseur \n
+        """ Calcule et renvoie la probabilité P définie dans le sujet du Projet
+
+        :param n_att: nombre d'attaquant
+        :param n_def: nombre de défenseur
         :return: probabilite P (float)
         """
         ratio_att_def = n_att / n_def
@@ -957,73 +951,6 @@ class Map:
         else:  # Autant de loups-garous ni de vampires ==> Match Nul
             return None
 
-
-    def next_position_to_target(self,origin, destination, forbidden_places=set()):
-        """Prochain mouvement vers une cible en utilisant l'algorithme A*"""
-        visited = set()
-        to_visit = set()
-        distance_from_origin = {origin: 0}
-        predecessor = dict()
-        evaluations = {origin: Map.distance(origin, destination)}
-        current_position = origin
-
-        while current_position != destination:
-            visited.add(current_position)
-            to_visit.discard(current_position)
-            current_distance = distance_from_origin[current_position]
-            i, j = current_position
-            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
-                                            if 0<=(i + i_0)<self.size[0]
-                                            and 0<= (j+j_0) < self.size[1]])
-            new_positions_to_explore -= visited
-            new_positions_to_explore -= forbidden_places
-            new_positions_to_explore -= to_visit
-            to_visit |= new_positions_to_explore
-            for pos in new_positions_to_explore:
-                distance_from_origin[pos] = current_distance + 1
-                evaluations[pos] = Map.distance(pos, destination)
-                predecessor[pos] = current_position
-            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
-
-        while predecessor[current_position] != origin:
-            current_position = predecessor[current_position]
-
-        return current_position
-
-
-    def real_distance(self,origin, destination, forbidden_places=set()):
-        """Distance entre origin et destination sans passer par les forbidden places en utilisant l'algorithme A*"""
-        visited = set()
-        to_visit = set()
-        distance_from_origin = {origin: 0}
-        evaluations = {origin: Map.distance(origin, destination)}
-        current_position = origin
-
-        while current_position != destination:
-            visited.add(current_position)
-            to_visit.discard(current_position)
-            current_distance = distance_from_origin[current_position]
-            i, j = current_position
-            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
-                                            if 0 <= (i + i_0) < self.size[0]
-                                            and 0 <= (j + j_0) < self.size[1]])
-            new_positions_to_explore -= visited
-            new_positions_to_explore -= forbidden_places
-            new_positions_to_explore -= to_visit
-            to_visit |= new_positions_to_explore
-            for pos in new_positions_to_explore:
-                distance_from_origin[pos] = current_distance + 1
-                evaluations[pos] = Map.distance(pos, destination)
-            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
-
-        return distance_from_origin[destination]
-
-    @staticmethod
-    def distance(origin, destination):
-        return max(abs(origin[0] - destination[0]), abs(origin[1] - destination[1]))
-
-
-
     def print_map(self):
         """ Affiche la carte et des scores
         :return: None
@@ -1053,33 +980,251 @@ class Map:
                 n_vamp, n_lg, n_hum))
 
 
-if __name__ == "__main__":
+#     Tests (issues dans tests unitaires
+
+def test_hash():
+    """On s'intéresse aux collisions éventuelles sur le hash de la carte
+    """
+    N_TEST = 10000  # Nombre de cartes générées pour le test
+
+    collision = False
+    # Dictionnaire des hashs déjà vu, de la forme seen_hashes[hash]=carte
+    seen_hashes = dict()
+
+    # liste des cartes à visiter avec leur prochains mouvements
+    # de la forme [(carte, next_move)..]
+    to_visit = list()
+
+    # instance de carte (par défaut)
     carte = Map()
-<<<<<<< HEAD
+
+    seen_hashes[carte.hash] = carte
+
+    to_visit = [(carte, random.choice(carte.next_possible_moves(is_vamp=True)))]
+    to_visit.append((carte, random.choice(carte.next_possible_moves(is_vamp=False))))
+    n_test_performed = 0
+    while to_visit and n_test_performed < N_TEST:
+        n_test_performed += 1
+        carte, next_moves = to_visit.pop()
+        child = deepcopy(carte)
+        child.compute_moves(next_moves)
+        if child.hash in seen_hashes:
+            if child.content != seen_hashes[child.hash].content:
+                collision = True
+                break
+        if child.next_ranked_moves(is_vamp=True):
+            to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=True))))
+        if child.next_ranked_moves(is_vamp=False):
+            to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=False))))
+
+    assert not collision
+
+def test_methods():
+    """ Teste si toutes les méthodes se lancent bien, et ne donnent pas de messages d'erreur.
+
+    """
+    carte = Map()
+    carte.next_possible_moves(is_vamp=True)
+    carte.next_possible_moves(is_vamp=False)
+    carte.update_content([(0, 0, 0, 0, 0)])
+    carte.next_possible_positions(is_vamp=True)
+    carte.next_possible_positions(is_vamp=False)
+    carte.winner()
+    carte.game_over()
+    carte.compute_moves([(0, 1, 1, 0, 0)])
+    carte.populations
     carte.print_map()
-    print(len(carte.next_possible_moves(True)))
+    _ = carte.hash
+    _ = carte.content
+    carte.state_evaluation()
+    carte.is_valid_moves([(0, 0, 1, 0, 1)], True)
+    carte.possible_outcomes(carte.next_possible_moves(is_vamp=True)[0])
 
-    print(carte.next_possible_relevant_moves(True, 3))
+def test_next_moves():
+    """On s'intéresse à la méthode .next_possible_moves
 
-    # moves = [(0, 1, 1, 1, 1)]
-    
-    # print(carte.possible_outcomes(moves))
-=======
-    #carte.print_map()
-    #print(len(carte.next_possible_moves(True)))
-    #moves = [(0, 1, 1, 1, 1)]
+    :return:
+    """
+    carte = Map()
+    carte.update_content([(0, 1, 0, 3, 0)])
+    carte.update_content([(0, 0, 0, 4, 0)])
+    carte.print_map()
+    for moves in carte.next_possible_moves(is_vamp=True):
+        assert carte.is_valid_moves(moves, is_vamp=True)
+    for moves in carte.next_possible_moves(is_vamp=False):
+         assert carte.is_valid_moves(moves, is_vamp=False)
 
-    #print(carte.possible_outcomes(moves))
-    move = [(0,1,1,1,1),(0,1,1,1,2)]
-    rel = carte.relevant_repartitions(1,3)
-    print(rel)
-    print(len(rel))
-    rec = carte.repartitions_recursive(1,3)
-    print(rec)
-    print(len(rec))
-    #for i in carte.possible_outcomes(move):
-    #    print(i)
-    #print(carte.hash)
-    #arte.update_content(np.array([[0,1,2,0,0]]))
-    #print(carte.hash)
->>>>>>> master
+def test_binomial():
+    assert Map.binomial_coefficient(10, 15) == 3003
+    assert Map.binomial_coefficient(-1, 2) == 0
+    assert Map.binomial_coefficient(29, 60) == 114449595062769120
+
+def test_possible_outcomes():
+    """ On teste si la somme des probabilités des conséquences d'un mouvement est bien égale à 1.
+
+    """
+    carte = Map()
+    moves = [(0, 1, 1, 1, 1)]
+    sum_proba = sum(proba for proba, _ in carte.possible_outcomes(moves))
+    assert sum_proba==1
+    moves = [(0, 1, 2, 1, 1)]
+    sum_proba = sum(proba for proba, _ in carte.possible_outcomes(moves))
+    assert sum_proba ==1
+
+
+class Map8(Map):
+    """
+
+    Carte proposée sur le repo github avec le serveur du projet en Go
+
+    ________________________________________
+    | 5H | 14H| 14H| 7H | 6H |    | 3H |    |
+    ________________________________________
+    | 1H | 9H |    | 12H|    | 17H| 14H|    |
+    ________________________________________
+    | 14H|    | 5H |    | 13H| 14H|    |    |
+    ________________________________________
+    | 8H | 5W | 3H | 16H| 3H |    |    | 8H |
+    ________________________________________
+    | 8H |    |    | 3H | 16H| 3H | 5V | 8H |
+    ________________________________________
+    |    |    | 14H| 13H|    | 5H |    | 13H|
+    ________________________________________
+    |    | 14H| 17H|    | 12H|    | 9H | 1H |
+    ________________________________________
+    |    | 3H |    | 6H | 7H | 14H| 14H| 5H |
+    ________________________________________
+
+    """
+
+    def __init__(self, debug_mode=False):
+        map_size = (8, 8)
+        initial_positions = [(0, 0, 5, 0, 0),
+                             (0, 1, 1, 0, 0),
+                             (0, 2, 14, 0, 0),
+                             (0, 3, 8, 0, 0),
+                             (0, 4, 8, 0, 0),
+                             (1, 0, 14, 0, 0),
+                             (1, 1, 9, 0, 0),
+                             (1, 3, 0, 0, 5),
+                             (1, 6, 14, 0, 0),
+                             (1, 7, 3, 0, 0),
+                             (2, 0, 14, 0, 0),
+                             (2, 2, 5, 0, 0),
+                             (2, 3, 3, 0, 0),
+                             (2, 5, 14, 0, 0),
+                             (2, 6, 17, 0, 0),
+                             (3, 0, 7, 0, 0),
+                             (3, 1, 12, 0, 0),
+                             (3, 3, 16, 0, 0),
+                             (3, 4, 3, 0, 0),
+                             (3, 5, 13, 0, 0),
+                             (3, 7, 6, 0, 0),
+                             (4, 0, 6, 0, 0),
+                             (4, 2, 13, 0, 0),
+                             (4, 3, 3, 0, 0),
+                             (4, 4, 16, 0, 0),
+                             (4, 6, 12, 0, 0),
+                             (4, 7, 7, 0, 0),
+                             (5, 1, 17, 0, 0),
+                             (5, 2, 14, 0, 0),
+                             (5, 4, 3, 0, 0),
+                             (5, 5, 5, 0, 0),
+                             (5, 7, 14, 0, 0),
+                             (6, 0, 3, 0, 0),
+                             (6, 1, 14, 0, 0),
+                             (6, 4, 0, 5, 0),
+                             (6, 6, 9, 0, 0),
+                             (6, 7, 14, 0, 0),
+                             (7, 3, 8, 0, 0),
+                             (7, 4, 8, 0, 0),
+                             (7, 5, 13, 0, 0),
+                             (7, 6, 1, 0, 0),
+                             (7, 7, 5, 0, 0)]
+
+        super().__init__(map_size=map_size, initial_positions=initial_positions, debug_mode=debug_mode)
+
+class MapLigne13(Map):
+    """
+
+    Carte "ligne 13": contient beaucoup d'humains, (surtout le matin et le soir)
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |
+    _________________________________________________________________________________________________________
+    |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    | 1H |    |
+    _________________________________________________________________________________________________________
+    | 10V|    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    | 10W|
+    _________________________________________________________________________________________________________
+    Scores:		Vampires 10 | 10 Werewolves
+        Remaining Humans: 210
+
+    """
+
+    def __init__(self, debug_mode=False):
+        map_size = (21, 21)
+        initial_positions = []
+        for i, j in product(range(map_size[0]), range(map_size[1] - 1)):
+            if i % 2 == j % 2:
+                initial_positions.append((i, j, 1, 0, 0))  # Quadrillage d'humains
+
+        initial_positions.append((0, 20, 0, 10, 0))
+        initial_positions.append((20, 20, 0, 0, 10))
+        super().__init__(map_size=map_size, initial_positions=initial_positions, debug_mode=debug_mode)
+if __name__ == "__main__":
+    test_binomial()
+    test_hash()
+    test_methods()
+    test_next_moves()
+    test_possible_outcomes()
+
+    carte=MapLigne13()
+    import cProfile
+    print("next possible moves")
+    print()
+    cProfile.run("carte.next_possible_moves(is_vamp=True)")
+
+    original_carte=OriginalMapLigne13()
+    cProfile.run("original_carte.next_possible_moves(is_vamp=True)")
+
+    print()
+    print("Compute Moves")
+    print()
+    moves=random.choice(carte.next_possible_moves(is_vamp=True))
+    cProfile.run("carte.compute_moves(moves)")
+    cProfile.run("original_carte.compute_moves(moves)")

@@ -1,0 +1,37 @@
+Match Aleatoire vs MinMax: score 0V 1N 9D
+Match Aleatoire vs AlphaBeta: score 0V 0N 10D
+Match Aleatoire vs AlphaBetaAstar: score 0V 2N 8D
+Match Aleatoire vs MinMax_Transposition: score 0V 0N 10D
+Match Aleatoire vs Negamax_A_Star: score 0V 2N 8D
+Match Aleatoire vs Negamax: score 0V 0N 10D
+Match MinMax vs AlphaBeta: score 0V 10N 0D
+Match MinMax vs AlphaBetaAstar: score 0V 10N 0D
+Match MinMax vs MinMax_Transposition: score 0V 10N 0D
+Match MinMax vs Negamax_A_Star: score 0V 10N 0D
+Match MinMax vs Negamax: score 0V 10N 0D
+Match AlphaBeta vs AlphaBetaAstar: score 0V 10N 0D
+Match AlphaBeta vs MinMax_Transposition: score 0V 10N 0D
+Match AlphaBeta vs Negamax_A_Star: score 0V 10N 0D
+Match AlphaBeta vs Negamax: score 0V 10N 0D
+Match AlphaBetaAstar vs MinMax_Transposition: score 0V 10N 0D
+Match AlphaBetaAstar vs Negamax_A_Star: score 0V 10N 0D
+Match AlphaBetaAstar vs Negamax: score 0V 10N 0D
+Match MinMax_Transposition vs Negamax_A_Star: score 0V 10N 0D
+Match MinMax_Transposition vs Negamax: score 0V 10N 0D
+Match Negamax_A_Star vs Negamax: score 0V 10N 0D
+
+296 sommets ont été créés pour la classe Aleatoire
+21138535 sommets ont été créés pour la classe MinMax
+21137066 sommets ont été créés pour la classe AlphaBeta
+21112573 sommets ont été créés pour la classe AlphaBetaAstar
+18326 sommets ont été créés pour la classe MinMax_Transposition
+20811 sommets ont été créés pour la classe Negamax_A_Star
+24463 sommets ont été créés pour la classe Negamax
+
+Aleatoire a joué durant 0.00 s.
+MinMax a joué durant 860.40 s.
+AlphaBeta a joué durant 657.73 s.
+AlphaBetaAstar a joué durant 1609.12 s.
+MinMax_Transposition a joué durant 0.29 s.
+Negamax_A_Star a joué durant 1.25 s.
+Negamax a joué durant 0.42 s.

@@ -1,0 +1,49 @@
+02/01/2018 11:29:18	Démarrage de l'attente de 2 connexion(s).
+02/01/2018 11:29:21	Réception de NME en cours pour le joueur 0
+02/01/2018 11:29:21	Réception de NME en cours pour le joueur 1
+02/01/2018 11:29:21	Nom du joueur #0 est Joueur 3
+02/01/2018 11:29:21	Envoi de la description de la carte au joueur 0
+02/01/2018 11:29:21	Nom du joueur #1 est TwAIlight
+02/01/2018 11:29:21	Envoi de la description de la carte au joueur 1
+02/01/2018 11:29:21	Envoi de la description de la carte au joueur 0 terminé
+02/01/2018 11:29:21	Envoi de la description de la carte au joueur 1 terminé
+02/01/2018 11:29:21	Connexion(s) effectuée(s).
+02/01/2018 11:29:21	Démarrage du tour à tour
+02/01/2018 11:29:21	Démarrage du chrono
+02/01/2018 11:29:21	Coup n°1
+			-> Tour du joueur #0
+02/01/2018 11:29:21	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:29:21	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:29:26	Les Vampires ont fait un time out
+02/01/2018 11:29:26	Coup n°2
+			-> Tour du joueur #1
+02/01/2018 11:29:26	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:29:26	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:29:31	Les Werewolves ont fait un time out
+02/01/2018 11:29:31	Coup n°3
+			-> Tour du joueur #0
+02/01/2018 11:29:31	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:29:31	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:29:36	Les Vampires ont fait un time out
+02/01/2018 11:29:36	Coup n°4
+			-> Tour du joueur #1
+02/01/2018 11:29:36	Envoi de UPD pour 0 mise(s) à jour
+		Trame de UPD: 55-50-44-00
+02/01/2018 11:29:36	Attente de la réponse du joueur
+			-> Attente des 4 premiers octets
+02/01/2018 11:29:41	Les Werewolves ont fait un time out
+02/01/2018 11:29:41	Coup n°5
+			-> Tour du joueur #0
+02/01/2018 11:29:41	Envoi de UPD pour 0 mise(s) à jour
+02/01/2018 11:29:41	Fin de la partie car les Vampires ont triché.
+Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte: 			Message:{1}
+02/01/2018 11:29:41	Envoi de END et BYE et fermeture de la socket aux Vampires
+02/01/2018 11:29:41	Echec Envoi de END et BYE et fermeture de la socket aux Vampires
+02/01/2018 11:29:41	Envoi de END et BYE et fermeture de la socket aux Werewolves
+02/01/2018 11:29:41	Echec Envoi de END et BYE et fermeture de la socket aux Werewolves
