@@ -1,9 +1,9 @@
 from queue import Queue
 from copy import deepcopy, copy
 
-from twAIlight.Map_Silv import Map
-from twAIlight.Cartes.Map_Silv_Map8 import Map8
-from twAIlight.Cartes.Map_Silv_Ligne13 import MapLigne13
+from twAIlight.Map import Map
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
@@ -54,7 +54,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             return self._children
         else:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
+            for moves in self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
                 if not self.q_m_s is None and not self.q_m_s.empty(): break
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
@@ -68,7 +68,6 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                 child.previous_moves = moves
                 self._children.append(child)
                 yield child
-            return
 
     def negamax(self, alpha, beta):
         alphaOrig = alpha
@@ -166,10 +165,10 @@ if __name__ == '__main__':
     carte = Map8()
     carte.print_map()
     racine= SommetDuJeu_NegaMax_MPOO(
-        depth=11,
-        nb_group_max=2,
+        depth=6,
+        nb_group_max=3,
         stay_enabled=False,
-        nb_cases=[None,1,1,1,1,2,1,2,2,3,2,5],
+        nb_cases=[None,2,3,2,4,3,4],
         game_map=carte,
         is_vamp=True,
         init_map=True)
@@ -177,4 +176,4 @@ if __name__ == '__main__':
     #    print(child.previous_moves)
     #    child.map.print_map()
     import cProfile
-    cProfile.run("print(racine.next_move()); print(racine.nb_vertices_created())")
+    cProfile.run('print(racine.next_move()); print(racine.nb_vertices_created())')

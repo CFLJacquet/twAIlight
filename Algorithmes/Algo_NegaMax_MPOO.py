@@ -11,7 +11,7 @@ from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_MPOO import SommetDuJeu_NegaMax
 from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
-from twAIlight.Map_Silv import Map
+#from twAIlight.Map_Silv import Map
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -21,16 +21,16 @@ class AlgoAleatoireInterne(JoueurInterne):
 
 class AlgoNaive(JoueurInterne):
 
-    def create_map(self, map_size):
-        """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
-
-        :param map_size: (n,m) dimension de la carte
-        :return: None
-        """
-        self.map = Map(map_size=map_size) # Map_Silv
+    #def create_map(self, map_size):
+    #    """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
+    #
+    #    :param map_size: (n,m) dimension de la carte
+    #    :return: None
+    #    """
+    #    self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
-        next_move =  random.choice(self.map.next_possible_moves(
+        next_move =  random.choice(self.map.next_relevant_moves(
             self.is_vamp,
             stay_enabled=False,
             nb_group_max=4,
@@ -66,13 +66,13 @@ class AlgoNegMax_MPOO(JoueurInterne):
     Une réécriture de la classe JoueurInterne
 
     """
-    def create_map(self, map_size):
-        """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
-
-        :param map_size: (n,m) dimension de la carte
-        :return: None
-        """
-        self.map = Map(map_size=map_size) # Map_Silv
+    #def create_map(self, map_size):
+    #    """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
+    #
+    #    :param map_size: (n,m) dimension de la carte
+    #    :return: None
+    #    """
+    #    self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
         depth_max = 7
@@ -97,12 +97,10 @@ class AlgoNegMax_MPOO(JoueurInterne):
         thread = TreeParseThread(queue_master_slave, queue_slave_master, params)
         thread.start()
         thread.join(timeout=1.8)
-        #sleep(1.8)
 
         if queue_slave_master.empty():
             queue_master_slave.put(0)
-            ##thread.stop()
-            next_move = self.map.next_possible_moves(self.is_vamp, nb_cases=2, nb_group_max=2)[0]
+            next_move = self.map.next_relevant_moves(self.is_vamp, nb_cases=2, nb_group_max=2)[0]
             print("TimeOut !")
         else:
             next_move = queue_slave_master.get_nowait()
