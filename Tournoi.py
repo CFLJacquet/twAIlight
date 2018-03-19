@@ -162,6 +162,5 @@ def main():
         print(f"\tMaximum duration of a play : \t\t\t{max_play_duration:.2f}s")
         print(f"\tNumber of vertices created per play : \t{vertices_created_per_round:.0f} vertices")
 
-
 if __name__ == "__main__":
     main()
