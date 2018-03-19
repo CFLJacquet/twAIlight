@@ -187,10 +187,10 @@ if __name__ == '__main__':
     carte.compute_moves(racine.next_move())
     
     racine= SommetDuJeu_NegaMax_MPOO(
-        depth=5,
+        depth=6,
         nb_group_max=2,
         stay_enabled=False,
-        nb_cases=[None,1,2,1,2,4],
+        nb_cases=[None,1,2,2,3,2,4],
         game_map=carte,
         is_vamp=True,
         init_map=True)

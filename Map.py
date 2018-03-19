@@ -818,7 +818,7 @@ class Map:
 
         pop_combinaisons = list()
         min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
-        for pop_1 in range(0, pop_of_monster if split_enabled else 1, max(1, pop_of_monster // 10)):
+        for pop_1 in range(0, pop_of_monster if split_enabled else 1, max(1, pop_of_monster // 5)):
             pop_2 = pop_of_monster - pop_1
             if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
                 continue
@@ -926,8 +926,11 @@ class Map:
             _, n_mob = starting_config
             
             def sort_function(pos):
-                n_hum, _, _ = self.content[pos]
-                return n_hum if 1.5*n_hum <= n_mob else -n_hum 
+                n_hum, n_vamp, n_lg = self.content[pos]
+                n_adv = n_lg if is_vamp else n_vamp
+                score_h   = n_hum if 1.2*n_hum <= n_mob else -n_hum
+                score_adv = n_adv if 1.5*n_adv <= n_mob else -n_adv
+                return score_h + score_adv 
 
             relevant_positions = sorted(
                 next_possible_positions[starting_config],

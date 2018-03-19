@@ -35,11 +35,11 @@ class AlgoNaive(JoueurInterne):
     #    self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
-        next_move =  random.choice(self.map.next_relevant_moves(
+        next_move =  self.map.next_relevant_moves(
             self.is_vamp,
             stay_enabled=False,
             nb_group_max=4,
-            nb_cases=4))
+            nb_cases=8)[0]
         print("Naive: ", next_move)
         return next_move
 
