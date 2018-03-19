@@ -185,8 +185,8 @@ def tournoi(pool,population_dic,nb_survivors=10):
                 stats[individual_1_name]["nb_play"] += server_game.nb_play_1
                 stats[individual_2_name]["nb_play"] += server_game.nb_play_2
 
-                #stats[individual_1_name]["nb_vertices"] += algo_individual_1.nb_vertices_created()
-                #stats[individual_2_name]["nb_vertices"] += algo_individual_2.nb_vertices_created()
+                stats[individual_1_name]["nb_vertices"] += algo_individual_1.nb_vertices_created()
+                stats[individual_2_name]["nb_vertices"] += algo_individual_2.nb_vertices_created()
 
     # Affichage des résultats du tournoi
     print()

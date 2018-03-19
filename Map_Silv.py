@@ -263,9 +263,10 @@ class Map:
             if content[race] != 0:
                 starting_positions.append(((x, y), content[race]))
         
-        starting_positions = sorted(starting_positions, key=itemgetter(1), reverse=True)
         if not nb_group_max is None:
-            starting_positions = starting_positions[:nb_group_max]
+            if len(starting_positions) > nb_group_max:
+                starting_positions = sorted(starting_positions, key=itemgetter(1), reverse=True)
+                starting_positions = starting_positions[:nb_group_max]
 
         x_max, y_max = self.size
 
@@ -291,7 +292,7 @@ class Map:
             
             def sort_function(pos):
                 n_hum, _, _ = self.content[pos]
-                return n_hum if 1.5*n_hum <= n_mob else -n_mob 
+                return n_hum if 1.5*n_hum <= n_mob else -n_hum 
 
             relevant_positions = sorted(
                 next_possible_positions[starting_config],
@@ -323,11 +324,9 @@ class Map:
             pop_of_monsters = n_mob
 
             # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            split_enabled = True
-            if not nb_group_max is None:
-                split_enabled = True if nb_group < nb_group_max else False
+            split_enabled = True if nb_group_max is None else nb_group < nb_group_max
             repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
-            if split_enabled: nb_group += 1
+            nb_group += 1
 
             group_repartitions[starting_config] = repartitions
 
@@ -362,6 +361,59 @@ class Map:
 
         return next_possible_moves
 
+    def i_next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """ Génère toutes les combinaisons possibles de mouvements possibles par un joueur
+
+        ITERATOR !!!
+
+        :param is_vamp: race du joueur
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
+        nb_group = len(next_possible_positions)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_config, next_positions in next_possible_positions.items():
+            _, n_mob = starting_config
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            pop_of_monsters = n_mob
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            split_enabled = True if nb_group_max is None else nb_group < nb_group_max
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
+            nb_group += 1
+
+            group_repartitions[starting_config] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        #next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
+                
+                starting_position, _ = starting_config
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_config][i]
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves == []:
+                continue
+
+            yield(moves)
+
 
     def random_moves(self, is_vamp):
         """ Renvoie un mouvement aléatoirement choisi
@@ -375,8 +427,8 @@ class Map:
         next_possible_positions = self.next_possible_positions(is_vamp)
         # On souhaite avoir au moins un mouvement
         while not concat_moves:
-            for starting_position, next_positions in next_possible_positions.items():
-                (x_old, y_old), n_mob = starting_position
+            for starting_config, next_positions in next_possible_positions.items():
+                starting_position, n_mob = starting_config
                 
                 pop_of_monsters = n_mob
 
@@ -821,6 +873,9 @@ class Map:
             print("|")
         print("_" * (self.size[0] * 5))
 
+        self.print_score()
+
+    def print_score(self):
         # Score
         n_hum, n_vamp, n_lg = self.populations
         print(
