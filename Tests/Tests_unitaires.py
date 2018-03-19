@@ -1,5 +1,5 @@
 import unittest
-from copy import deepcopy
+from copy import deepcopy, copy
 import random
 
 from twAIlight.Map import Map
@@ -27,7 +27,7 @@ class TestMap(unittest.TestCase):
         to_visit = list()
 
         # instance de carte (par défaut)
-        carte = Map()
+        carte = Map8()
 
         seen_hashes[carte.hash] = carte
 
@@ -37,16 +37,17 @@ class TestMap(unittest.TestCase):
         while to_visit and n_test_performed < N_TEST:
             n_test_performed += 1
             carte, next_moves = to_visit.pop()
-            child = deepcopy(carte)
+            child = copy(carte)
             child.compute_moves(next_moves)
             if child.hash in seen_hashes:
                 if child.content != seen_hashes[child.hash].content:
                     collision = True
                     break
-            if child.next_ranked_moves(is_vamp=True):
-                to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=True))))
-            if child.next_ranked_moves(is_vamp=False):
-                to_visit.append((child, random.choice(child.next_ranked_moves(is_vamp=False))))
+            if child.next_possible_moves(is_vamp=True):
+                to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=True))))
+            if child.next_possible_moves(is_vamp=False):
+                to_visit.append((child, random.choice(child.next_possible_moves(is_vamp=False))))
+                
 
         self.assertTrue(not collision)
 
