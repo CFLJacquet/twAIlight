@@ -1,6 +1,10 @@
+from queue import Queue
 from copy import deepcopy, copy
+
 from twAIlight.Map_Silv import Map
 from twAIlight.Cartes.Map_Silv_Map8 import Map8
+from twAIlight.Cartes.Map_Silv_Ligne13 import MapLigne13
+
 from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
 NB = 0
@@ -8,6 +12,14 @@ NB = 0
 class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
+    q_s_m = None
+    q_m_s = None
+
+    
+    @classmethod
+    def init_queues(cls, q_m_s, q_s_m):
+        cls.q_m_s = q_m_s
+        cls.q_s_m = q_s_m
 
     def __init__(self, is_vamp=None, depth=None, nb_group_max=None, stay_enabled=True, nb_cases=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
@@ -43,6 +55,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         else:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
+                if not self.q_m_s is None and not self.q_m_s.empty(): break
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
                 child = SommetDuJeu_NegaMax_MPOO(
@@ -55,6 +68,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                 child.previous_moves = moves
                 self._children.append(child)
                 yield child
+            return
 
     def negamax(self, alpha, beta):
         alphaOrig = alpha
@@ -111,6 +125,8 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                 if alpha >= beta:
                     break
 
+        if bestvalue is None: return None
+
         flag = None
         if alphaOrig is not None:
             if bestvalue <= alphaOrig:
@@ -138,15 +154,22 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         next_child = min(self.children,
                          key=lambda child: child.negamax(alpha=None, beta=None))
         # On retourne le dernier mouvement pour arriver à ce sommet fils
-        return next_child.previous_moves
+        next_move = next_child.previous_moves
+        
+
+        if self.q_s_m is None:
+            return next_move # For testing
+        if self.q_m_s.empty():
+            self.q_s_m.put(next_move)
 
 if __name__ == '__main__':
     carte = Map8()
+    carte.print_map()
     racine= SommetDuJeu_NegaMax_MPOO(
-        depth=9,
+        depth=11,
         nb_group_max=2,
         stay_enabled=False,
-        nb_cases=[None,1,1,1,2,2,3,3,4,4],
+        nb_cases=[None,1,1,1,1,2,1,2,2,3,2,5],
         game_map=carte,
         is_vamp=True,
         init_map=True)
