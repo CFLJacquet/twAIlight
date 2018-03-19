@@ -1,10 +1,15 @@
 import time
 from itertools import product
+import random
+from copy import copy, deepcopy
+
 import numpy as np
 from scipy import signal
 
 from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+#from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Cartes.Map_Silv_Ligne13 import MapLigne13
+from twAIlight.Cartes.Map_Silv_Map8 import Map8
 from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 
 def create_matrix1(carte):
@@ -69,7 +74,7 @@ def test_convolve2(matrix2, kernel):
     end_time = time.time()
     print(end_time - start_time)
 
-def main_test():
+def main_test_convolution():
     carte = MapLigne13()
     test_create_matrix1(carte)
     test_create_matrix2(carte)
@@ -85,20 +90,28 @@ def main_test():
 
 def test_ranked_moves(carte):
     start_time = time.time()
-    for _ in range(100):
+    for _ in range(1000):
         carte.next_ranked_moves(True)
     end_time = time.time()
     print(end_time - start_time)
 
 def test_possible_moves(carte):
     start_time = time.time()
-    for _ in range(100):
+    for _ in range(1000):
         carte.next_possible_moves(True)
+    end_time = time.time()
+    print(end_time - start_time)
+
+def test_probable_outcome(carte):
+    start_time = time.time()
+    for _ in range(1000):
+        carte.most_probable_outcome([(6,4,5,7,4)])
     end_time = time.time()
     print(end_time - start_time)
 
 def test_repartitions_recursive(carte, pop_m, n_case):
     start_time = time.time()
+    #print(carte.repartitions_recursive(pop_m, n_case))
     for _ in range(100):
         carte.repartitions_recursive(pop_m, n_case)
     end_time = time.time()
@@ -107,22 +120,24 @@ def test_repartitions_recursive(carte, pop_m, n_case):
 
 def test_relevant_repartitions(carte, pop_m, n_case):
     start_time = time.time()
+    #print(carte.relevant_repartitions(pop_m, n_case))
     for _ in range(100):
         carte.relevant_repartitions(pop_m, n_case)
     end_time = time.time()
     print(end_time - start_time)
 
-if __name__ == '__main__':
-    carte = MapTheTrap()
-    POP_M = 50
-    N_CASE = 3
-    test_relevant_repartitions(carte, POP_M, N_CASE)
-    test_repartitions_recursive(carte, POP_M, N_CASE)
-    #import cProfile
-    #cProfile.run("test_possible_moves(carte)")
+def test_copy(carte):
+    moves = random.choice(carte.next_possible_moves(is_vamp=True))
+    carte.print_map()
+    
+    child = copy(carte)
+    #print(child.content)
+    child.print_map()
+    child.compute_moves(moves)
+    carte.print_map()
+    child.print_map()
 
-    """
-    carte.update_content([(1,0,2,0,0)])
+def test_main_map(carte):
     is_vamp = False
     for _ in range(5):
         carte.print_map()
@@ -131,5 +146,18 @@ if __name__ == '__main__':
         next_moves = carte.next_ranked_moves(is_vamp)
         print("{} possible moves".format(len(next_moves)))
         print(next_moves[:3])
-        carte.compute_moves(next_moves[0])
-    """
+        carte.compute_moves(random.choice(next_moves[:5]))
+
+if __name__ == '__main__':
+    carte = MapLigne13()
+    # POP_M = 1
+    # N_CASE = 8
+    #test_relevant_repartitions(carte, POP_M, N_CASE)
+    #test_repartitions_recursive(carte, POP_M, N_CASE)
+    import cProfile
+    #cProfile.run("test_possible_moves(carte)")
+    def to_test(carte):
+        next_moves = carte.next_possible_moves(True, nb_group_max=None, stay_enabled=None, nb_cases=1)
+        #carte.print_map()
+        return len(next_moves), next_moves
+    cProfile.run("print(to_test(carte))")

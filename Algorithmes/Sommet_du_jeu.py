@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from Map import Map
 
@@ -19,7 +19,7 @@ class SommetChance:
             is_vamp = not self.is_vamp
             for proba, positions in self.map.possible_outcomes(self.previous_moves):
                 # Création du sommet fils
-                carte=deepcopy(self.map)
+                carte= copy(self.map)
                 new_child_vertice = SommetOutcome(
                     is_vamp=is_vamp,
                     game_map=carte,
@@ -77,7 +77,7 @@ class SommetOutcome:
         if self._children is None:
             self._children = list()
             for moves in self.map.next_possible_moves(self.is_vamp):
-                carte=deepcopy(self.map)
+                carte= copy(self.map)
                 child = SommetChance(is_vamp=self.is_vamp, depth=self.depth, game_map=carte)
                 child.previous_moves = moves
                 self._children.append(child)

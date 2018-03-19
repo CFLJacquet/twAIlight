@@ -8,6 +8,7 @@ from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
 from twAIlight.Algorithmes.Algo_MinMax import AlgoMinMax
 from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
 from twAIlight.Algorithmes.Algo_NegaMax_Oriente import AlgoNegMaxOriente
+from twAIlight.Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
 from twAIlight.Algorithmes.Algo_Customized_Evaluation import AlgoCustomizedEvaluation
 from twAIlight.Algorithmes.Algo_MonteCarloTreeSearch import AlgoMonteCarlo
 from twAIlight.Algorithmes.Algo_Temporal_Difference_0 import AlgoTemporalDifference0
@@ -22,16 +23,17 @@ from twAIlight.Cartes.Map_Random import MapRandom
 
 # Dictionnaires des cartes : nom de la carte --> carte (classe)
 # MAPS = {"Dust_2": MapDust2, "ligne13": MapLigne13, "TheTrap": MapTheTrap, "Map_8": Map8}
-MAPS = {"Dust2": MapDust2,
-        #"Map8":Map8,
+MAPS = {#"Dust2": MapDust2,
+        "Map8":Map8,
         #"TheTrap":MapTheTrap,
         #"CarteAléatoire":MapRandom
         }
 
 # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 ALGOS = {"Aleatoire": AlgoAleatoireInterne,
-         "MinMax": AlgoMinMax,
+         #"MinMax": AlgoMinMax,
          #"NegaMax": AlgoNegaMax,
+         "NegaMax_MPOO" : AlgoNegMax_MPOO
          #"NegaMaxOriente": AlgoNegMaxOriente,
          #"Evaluation": AlgoCustomizedEvaluation,
          #"MonteCarlo": AlgoMonteCarlo
