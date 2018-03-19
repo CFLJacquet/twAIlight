@@ -1,4 +1,4 @@
-from twAIlight.Map import Map
+from Map import Map
 
 
 class Map8(Map):
