@@ -4,6 +4,7 @@ from Cartes.Map_Ligne13 import MapLigne13
 from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
 from Serveur_Interne import ServeurInterne
 from Joueur import Joueur
+import numpy as np
 
 
 class HumanFirst(Joueur):
@@ -54,18 +55,30 @@ class HumanFirst(Joueur):
             
             # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
             valeur = []
-            for direction in moves:
+            """for direction in moves:
                 grad = 0
                 for i in range(-dist_min, dist_min+1):
                     for j in range(-dist_min, dist_min+1):
-                        try :
-                            # on récupère les groupes d'humains suffisamment petits (<= taille)
-                            hum = self.map.content[(direction[0] + i, direction[1] + j)][0]
-                            if hum <= gp_num :
-                                grad += hum
-                        except:
-                            pass
-                valeur.append( (grad, sum(self.map.content[direction]), direction) )
+                        # on récupère les groupes d'humains suffisamment petits (<= taille)
+                        hum = self.map.content[(direction[0] + i, direction[1] + j)][0]
+                        if hum <= gp_num :
+                            grad += hum
+
+                valeur.append( (grad, sum(self.map.content[direction]), direction) )"""
+
+            # Creation des 9 fenetres autour du pixel considere
+            # chaque colonne de la matrice M contient les pixels d'une fenetre
+            M = np.zeros((9,9))
+            A = np.ones((dist_min, dist_min))
+            M[:, 1] = np.array([A[: 5, 1] + A[2: 4, 2] + A[3, 3]])
+            M[:, 2] = np.array([A[1, 1: 5] + A[2, 2: 4]+ A[3, 3]])
+            M[:, 3] = np.array([A[1: 5, 5] + A[2: 4, 4] + A[3, 3]])
+            M[:, 4] = np.array([A[5, 1: 5] + A[4, 2: 4], A[3, 3]])
+            M[:, 5] = np.array([A[1: 3, 1]+ A[1: 3, 2]+ A[1: 3, 3]])
+            M[:, 6] = np.array([A[1: 3, 3]+ A[1: 3, 4]+ A[1: 3, 5]])
+            M[:, 7] = np.array([A[3: 5, 1]+ A[3: 5, 2]+ A[3: 5, 3]])
+            M[:, 8] = np.array([A[3: 5, 3]+ A[3: 5, 4]+ A[3: 5, 5]])
+            M[:, 9] = np.array([A[2: 4, 2]+ A[2: 4, 3]+ A[2: 4, 4]])
             
             """if not all(v == 0 for v in [x[0] for x in valeur]): """
             valeur.sort(key=lambda x: (-x[1], -x[0]))
