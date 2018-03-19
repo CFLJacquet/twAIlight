@@ -162,18 +162,40 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             self.q_s_m.put(next_move)
 
 if __name__ == '__main__':
-    carte = Map8()
-    carte.print_map()
+    carte = MapLigne13()
+    
     racine= SommetDuJeu_NegaMax_MPOO(
-        depth=6,
-        nb_group_max=3,
+        depth=1,
+        nb_group_max=4,
         stay_enabled=False,
-        nb_cases=[None,2,3,2,4,3,4],
+        nb_cases=[None,4],
         game_map=carte,
         is_vamp=True,
         init_map=True)
-    #for child in racine.children:
-    #    print(child.previous_moves)
-    #    child.map.print_map()
+    
+    carte.compute_moves(racine.next_move())
+
+    racine= SommetDuJeu_NegaMax_MPOO(
+        depth=1,
+        nb_group_max=4,
+        stay_enabled=False,
+        nb_cases=[None,4],
+        game_map=carte,
+        is_vamp=False,
+        init_map=True)
+    
+    carte.compute_moves(racine.next_move())
+    
+    racine= SommetDuJeu_NegaMax_MPOO(
+        depth=5,
+        nb_group_max=2,
+        stay_enabled=False,
+        nb_cases=[None,1,2,1,2,4],
+        game_map=carte,
+        is_vamp=True,
+        init_map=True)
+    
+    carte.print_map()
+
     import cProfile
     cProfile.run('print(racine.next_move()); print(racine.nb_vertices_created())')

@@ -1,7 +1,7 @@
 from itertools import product
 import random
 
-from Map import Map
+from twAIlight.Map import Map
 
 
 class MapLigne13(Map):

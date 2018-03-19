@@ -18,6 +18,11 @@ class AlgoAleatoireInterne(JoueurInterne):
     """
     Joueur avec la fonction de décision aléatoire de Charles
     """
+    def next_moves(self, show_map=True):
+        if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
+        if show_map: self.map.print_map()
+
+        return random.choice(self.map.next_relevant_moves(self.is_vamp, nb_group_max=3, stay_enabled=False))
 
 class AlgoNaive(JoueurInterne):
 
@@ -79,10 +84,10 @@ class AlgoNegMax_MPOO(JoueurInterne):
         self.stay_enabled = False
 
         if show_map: self.map.print_map()
-        if not  self.depth_max:
-            self.depth_max = 3
-            self.nb_group_max = 2
-            self.nb_cases = [1,2,3,4]
+        #if not  self.depth_max:
+        self.depth_max = 6
+        self.nb_group_max = 2
+        self.nb_cases = [None,1,2,2,3,2,4]
 
 
         params = {}
@@ -102,7 +107,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         if queue_slave_master.empty():
             queue_master_slave.put(0)
-            next_move = self.map.next_relevant_moves(self.is_vamp, nb_cases=2, nb_group_max=2)[0]
+            next_move = self.map.next_relevant_moves(self.is_vamp, nb_group_max=2)[0]
             print("TimeOut !")
         else:
             next_move = queue_slave_master.get_nowait()
@@ -118,6 +123,6 @@ class AlgoNegMax_MPOO(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoNegMax_MPOO
     Joueur2 = AlgoNaive
-    carte= MapLigne13
-    Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="NegaMax_MPO", name2="Algo Naive", print_map=False, debug_mode=True)
+    carte= Map8
+    Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="NegaMax_MPO", name2="Algo Naive", print_map=True, debug_mode=False)
     Serveur.start()

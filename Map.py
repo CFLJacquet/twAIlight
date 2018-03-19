@@ -809,6 +809,7 @@ class Map:
         """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
             - max 2 sous-groupes à la fin
             - pas de sous-groupe de moins de pop_of_monster // 3
+            - un pas de repartitions = max(1, pop//10)
 
         :param pop_of_monster: int
         :param n_case: int
@@ -817,7 +818,7 @@ class Map:
 
         pop_combinaisons = list()
         min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
-        for pop_1 in range(pop_of_monster if split_enabled else 1):
+        for pop_1 in range(0, pop_of_monster if split_enabled else 1, max(1, pop_of_monster // 10)):
             pop_2 = pop_of_monster - pop_1
             if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
                 continue
@@ -870,13 +871,30 @@ class Map:
                 starting_positions = starting_positions[:nb_group_max]
 
         x_max, y_max = self.size
+        x_mid = x_max//2; y_mid = y_max//2
 
         for starting_pos in starting_positions:
             (x_old, y_old), _ = starting_pos
 
-            available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
-                                   if (i, j) != (0, 0) \
-                                   and 0 <= (x_old + i) < x_max \
+            # K1 vers le bas / gauche ~~
+            if x_old <= x_mid and y_old <= y_mid:
+                #offset_x = (0,-1,1); offset_y = (1,0,-1)
+                offset = ((-1,1), (0,1), (-1,0), (1,1), (-1,-1), (1,0), (0,-1), (1,-1))
+            # K2 vers la droite / bas
+            if x_old <= x_mid and y_old > y_mid:
+                #offset_x = (1,0,-1); offset_y = (0,1,-1)
+                offset = ((1,1), (1,0), (0,1), (1,-1), (-1,1), (0,-1), (-1,0), (-1,-1))
+            # K3 vers la gauche /haut
+            if x_old > x_mid and y_old <= y_mid:
+                #offset_x = (-1, 0 ,1); offset_y = (0,-1,1)
+                offset = ((-1,-1), (-1,0), (0,-1), (-1,1), (1, -1), (0,1), (1,0), (1,1))
+            # K4 vers le haut / droite
+            if x_old > x_mid and y_old > y_mid:
+                #offset_x = (0,-1,1); offset_y = (-1,0,1)
+                offset = ((1, -1), (0,-1), (1,0), (-1,-1), (1,1), (-1,0), (0,1), (-1,1))
+
+            available_positions = [(x_old + i, y_old + j) for i, j in offset \
+                                   if 0 <= (x_old + i) < x_max \
                                    and 0 <= (y_old + j) < y_max
                                    ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
             for new_pos in available_positions:
