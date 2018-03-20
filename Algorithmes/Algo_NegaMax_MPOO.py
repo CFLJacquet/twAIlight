@@ -36,11 +36,11 @@ class AlgoNaive(JoueurInterne):
     #    self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
-        next_move =  self.map.next_relevant_moves(
+        next_move =  next(self.map.i_next_relevant_moves_2(
             self.is_vamp,
             stay_enabled=False,
             nb_group_max=4,
-            nb_cases=8)[0]
+            nb_cases=8))
         print("Naive: ", next_move)
         return next_move
 
@@ -67,7 +67,7 @@ class TreeParseThread(threading.Thread):
         racine.init_queues(self.q_m_s, self.q_s_m)
         racine.next_move()
 
-class AlgoNegMax_MPOO(Joueur):
+class AlgoNegMax_MPOO(JoueurInterne):
     """
     Une réécriture de la classe JoueurInterne
 
@@ -79,9 +79,9 @@ class AlgoNegMax_MPOO(Joueur):
 
         if show_map: self.map.print_map()
         #if not  self.depth_max:
-        self.depth_max = 6
-        self.nb_group_max = 3
-        self.nb_cases = [None,2,2,2,2,2,2]
+        self.depth_max = 7
+        self.nb_group_max = 2
+        self.nb_cases = [None,2,2,2,2,2,2,2]
 
 
         params = {}
@@ -101,7 +101,7 @@ class AlgoNegMax_MPOO(Joueur):
 
         if queue_slave_master.empty():
             queue_master_slave.put(0)
-            next_move = self.map.next_relevant_moves(self.is_vamp, nb_group_max=2)[0]
+            next_move = next(self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=2))
             print("TimeOut !")
         else:
             next_move = queue_slave_master.get_nowait()
@@ -115,13 +115,13 @@ class AlgoNegMax_MPOO(Joueur):
 
 
 if __name__ == "__main__":
-    """ Joueur1 = AlgoNaive
-    Joueur2 = AlgoNegMax_MPOO
-    carte= Map8
+    Joueur1 = AlgoNegMax_MPOO
+    Joueur2 = AlgoNaive
+    carte= MapLigne13
     Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="Joueur1", name2="Joueur2", print_map=True, debug_mode=False)
-    Serveur.start() """
+    Serveur.start()
 
 
-    Joueur_1=AlgoNegMax_MPOO()
-    Joueur_1.start()
-    Joueur_1.join()
+    #Joueur_1=AlgoNegMax_MPOO()
+    #Joueur_1.start()
+    #Joueur_1.join()

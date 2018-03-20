@@ -54,7 +54,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             return self._children
         else:
             self._children = list()
-            for moves in self.map.next_relevant_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
+            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
                 if not self.q_m_s is None and not self.q_m_s.empty(): break
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
@@ -164,7 +164,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             self.q_s_m.put(next_move)
 
 if __name__ == '__main__':
-    carte = Map8()
+    carte = MapLigne13()
     for _ in range(1):
         next_move = carte.next_relevant_moves(
             True,
@@ -173,18 +173,26 @@ if __name__ == '__main__':
             nb_cases=8)[0]
     
         carte.compute_moves(next_move)
+        
+        next_move = carte.next_relevant_moves(
+            False,
+            stay_enabled=False,
+            nb_group_max=4,
+            nb_cases=8)[0]
+    
+        carte.compute_moves(next_move)
 
         racine= SommetDuJeu_NegaMax_MPOO(
             depth=6,
-            nb_group_max=3,
+            nb_group_max=2,
             stay_enabled=False,
-            nb_cases= [None,2,2,2,2,2,2],#[None,1,3,2,4,3,4],
+            nb_cases= [None,1,2,2,2,3,4],#[None,1,3,2,4,3,4],
             game_map=carte,
-            is_vamp=False,
+            is_vamp=True,
             init_map=True)
         
         #carte.compute_moves(racine.next_move())
-        #carte.print_map()
+        carte.print_map()
 
     import cProfile
     cProfile.run('print(racine.next_move()); print(racine.nb_vertices_created())')

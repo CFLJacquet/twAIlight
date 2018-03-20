@@ -944,6 +944,51 @@ class Map:
         return next_relevant_positions 
 
 
+
+    def next_relevant_positions_2(self, is_vamp, nb_group_max=None, nb_cases=None):
+        """
+        Une fonction qui genere un ensemble de positions pertinentes à partir d'une carte.
+        
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considere que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
+
+        De plus on ne renvoie que :param: nb_cases cases pour chaque groupes (ELAGAGE).
+
+        On choisit ces cases en fonctions du nombre d'humains mangeables présents sur chaque case.
+
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param:  nb_cases : nombre de cases renvoyées par groupes
+
+        :return: next_relevant_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs sont ([pos1, pos2, ...], split_enabled)
+        """
+        next_possible_positions = self.next_possible_positions_2(is_vamp, nb_group_max)
+        next_relevant_positions = {}
+    
+        for starting_config, next_positions in next_possible_positions.items():
+            _, n_mob = starting_config
+            
+            def score_func(pos):
+                n_hum, n_vamp, n_lg = self.content[pos]
+                n_adv = n_lg if is_vamp else n_vamp
+                score_h   = n_hum if n_hum <= n_mob else -n_hum
+                score_adv = n_adv if 1.5*n_adv <= n_mob else -n_adv
+                return score_h + score_adv 
+
+            score_list = [score_func(pos) for pos in next_positions]
+
+            if min(score_list) == 0 and max(score_list) == 0:
+                relevant_positions = next_positions
+                split_enabled = False
+            else:
+                relevant_positions = [pos for _,pos in sorted(zip(score_list, next_positions), reverse=True)]
+                split_enabled = True
+                if not nb_cases is None:
+                    relevant_positions = relevant_positions[:nb_cases]
+
+            next_relevant_positions[starting_config] = (relevant_positions, split_enabled)
+        return next_relevant_positions 
+
     def next_relevant_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
         """
         Renvoie une liste des mouvements pertinents possibles pour un joueur
@@ -1051,6 +1096,59 @@ class Map:
                     if n_mons:
                         # Position d'arrivée de ce sous-groupe de monstre
                         new_position = next_possible_positions[starting_config][i]
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves == []:
+                continue
+
+            yield(moves)
+
+    def i_next_relevant_moves_2(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """
+        Renvoie (genere) les mouvements pertinents possibles pour un joueur
+
+        :param: is_vamp: race du joueur
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param: stay_enabled : si True, autorise les groupes à ne pas bouger (au moins 1 mouvement est conservé)
+        :param: nb_cases : nombre de cases renvoyées par groupes
+
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_relevant_positions_2(is_vamp, nb_group_max, nb_cases)
+        nb_group = len(next_possible_positions)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_config, (next_positions, split_enabled) in next_possible_positions.items():
+            _, n_mob = starting_config
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            pop_of_monsters = n_mob
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            split_enabled &= True if nb_group_max is None else nb_group < nb_group_max
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
+            nb_group += 1
+
+            group_repartitions[starting_config] = repartitions
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
+                
+                starting_position, _ = starting_config
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_config][0][i]
 
                         # On enregistre ce mouvement pour un groupe de monstre
                         moves.append((*starting_position, n_mons, *new_position))
