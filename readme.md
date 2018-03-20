@@ -18,3 +18,19 @@ ServeurInterne est initialisé avec deux classes de joueurs internes et une cart
 * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur, à laquelle on surcharge la fonction next_moves.
 
 Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre différents algo de décision (du dossier Algorithmes), sur plusieurs cartes données (du dossier Cartes).
+
+# Pour lancer un joueur pour jouer sur le serveur du prof
+* Créer dans un fichier une classe héritée de Joueur (dans Joueur.py), qui override la méthode next_moves de Joueur
+* Ecrire dans ce fichier 
+```python
+if __name__=='__main__':
+  Joueur_1=NotreClasseHéritéeDeJoueur()
+  Joueur_1.start()
+  Joueur_1.join()
+```
+* Lancer le serveur du prof
+* Taper dans le terminal (avec XXX.X.X.X YYYY l'hote et le port du serveur du prof)
+```bash
+python MonAlgo.py XXX.X.X.X YYYY
+```
+

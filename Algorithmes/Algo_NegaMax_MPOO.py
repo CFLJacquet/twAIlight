@@ -75,19 +75,21 @@ class AlgoNegMax_MPOO(JoueurInterne):
         self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
-        depth_max = 7
-        nb_group_max = 2
-        stay_enabled = False
-        nb_cases = [None,2,1,2,2,3,2,3]
+
+        self.stay_enabled = False
 
         if show_map: self.map.print_map()
-        self.map.print_score()
-        
+        if not  self.depth_max:
+            self.depth_max = 3
+            self.nb_group_max = 2
+            self.nb_cases = [1,2,3,4]
+
+
         params = {}
-        params['depth_max']    = depth_max
-        params['nb_group_max'] = nb_group_max
-        params['stay_enabled'] = stay_enabled
-        params['nb_cases']     = nb_cases
+        params['depth_max']    = self.depth_max
+        params['nb_group_max'] = self.nb_group_max
+        params['stay_enabled'] = self.stay_enabled
+        params['nb_cases']     = self.nb_cases
         params['map']          = self.map
         params['is_vamp']      = self.is_vamp
 
@@ -108,6 +110,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
             next_move = queue_slave_master.get_nowait()
         print("MPOO:", next_move)
         return next_move 
+
 
     @classmethod
     def nb_vertices_created(cls):

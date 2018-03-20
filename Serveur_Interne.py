@@ -296,7 +296,7 @@ class ServeurInterne(Thread):
 
         # Affichage du premier tour
         print("Server : Round " + str(self.round_nb) + " : " + (
-            "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
+           "Vampires" if self.round_nb % 2 else "WereWolves") + " playing")
 
         # Envoi des dimensions de la carte aux deux joueurs
         self.send_both_players(b"SET")
