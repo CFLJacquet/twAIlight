@@ -928,7 +928,7 @@ class Map:
             def sort_function(pos):
                 n_hum, n_vamp, n_lg = self.content[pos]
                 n_adv = n_lg if is_vamp else n_vamp
-                score_h   = n_hum if 1.2*n_hum <= n_mob else -n_hum
+                score_h   = n_hum if n_hum <= n_mob else -n_hum
                 score_adv = n_adv if 1.5*n_adv <= n_mob else -n_adv
                 return score_h + score_adv 
 

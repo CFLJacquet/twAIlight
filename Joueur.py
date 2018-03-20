@@ -157,21 +157,21 @@ class Joueur(Thread):
 
         :return: int: entier envoyé
         """
-        return struct.unpack("b", self.sock.recv(1))[0]
+        return struct.unpack("B", self.sock.recv(1))[0]
 
     def get_couple(self):
         """ Renvoie le couple d'entiers envoyé par le serveur
 
         :return: (x,y)
         """
-        return struct.unpack("bb", self.sock.recv(2))
+        return struct.unpack("BB", self.sock.recv(2))
 
     def get_quintuplet(self):
         """ Renvoie le quintuplet d'entiers envoyé par le serveur
 
         :return: (a,b,c,d,e)
         """
-        return struct.unpack("bbbbb", self.sock.recv(5))
+        return struct.unpack("BBBBB", self.sock.recv(5))
 
     def send_NME(self):
         """ Envoie au serveur le nom du joueur
@@ -198,7 +198,7 @@ class Joueur(Thread):
         paquet += "MOV".encode("ascii")
         paquet += struct.pack("1b", n)
         for move in moves:
-            paquet += struct.pack("bbbbb", *move)
+            paquet += struct.pack("BBBBB", *move)
         self.sock.send(paquet)
 
     # Méthode de traitement

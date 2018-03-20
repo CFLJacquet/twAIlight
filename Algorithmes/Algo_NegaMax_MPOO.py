@@ -5,6 +5,7 @@ from time import sleep
 from queue import Queue
 from copy import deepcopy, copy
 
+from twAIlight.Joueur import Joueur
 from twAIlight.Joueur_Interne import JoueurInterne
 from twAIlight.Serveur_Interne import ServeurInterne
 from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_MPOO import SommetDuJeu_NegaMax_MPOO
@@ -66,18 +67,11 @@ class TreeParseThread(threading.Thread):
         racine.init_queues(self.q_m_s, self.q_s_m)
         racine.next_move()
 
-class AlgoNegMax_MPOO(JoueurInterne):
+class AlgoNegMax_MPOO(Joueur):
     """
     Une réécriture de la classe JoueurInterne
 
     """
-    #def create_map(self, map_size):
-    #    """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
-    #
-    #    :param map_size: (n,m) dimension de la carte
-    #    :return: None
-    #    """
-    #    self.map = Map(map_size=map_size) # Map_Silv
 
     def next_moves(self, show_map=True):
 
@@ -86,8 +80,8 @@ class AlgoNegMax_MPOO(JoueurInterne):
         if show_map: self.map.print_map()
         #if not  self.depth_max:
         self.depth_max = 6
-        self.nb_group_max = 2
-        self.nb_cases = [None,1,2,2,3,2,4]
+        self.nb_group_max = 3
+        self.nb_cases = [None,2,2,2,2,2,2]
 
 
         params = {}
@@ -121,8 +115,13 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
 
 if __name__ == "__main__":
-    Joueur1 = AlgoNegMax_MPOO
-    Joueur2 = AlgoNaive
+    """ Joueur1 = AlgoNaive
+    Joueur2 = AlgoNegMax_MPOO
     carte= Map8
-    Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="NegaMax_MPO", name2="Algo Naive", print_map=True, debug_mode=False)
-    Serveur.start()
+    Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="Joueur1", name2="Joueur2", print_map=True, debug_mode=False)
+    Serveur.start() """
+
+
+    Joueur_1=AlgoNegMax_MPOO()
+    Joueur_1.start()
+    Joueur_1.join()
