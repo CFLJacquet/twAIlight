@@ -1074,13 +1074,13 @@ class Map:
                 return False
 
         # Règle 5 : Une case ne pas se retrouver cible et source
-        for move_1, move_2 in combinations(moves, 2):
+        """for move_1, move_2 in combinations(moves, 2):
             if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
                 if self.debug_mode : print('Règle 5')
                 return False
             if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
                 if self.debug_mode : print('Règle 5')
-                return False
+                return False"""
 
         # Si toutes les règles sont respectées, on renvoie vrai
         return True

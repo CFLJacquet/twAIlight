@@ -2,23 +2,26 @@ from copy import deepcopy
 import random
 from math import sqrt, log
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
-from Map import Map
+from Algorithmes.Sommet_du_jeu import SommetOutcome
+from Map_Silv import Map
 from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
+from Cartes.Map_Silv_Map8 import Map8
 from Cartes.Map_Random import MapRandom
 from Cartes.Map_Ligne13 import MapLigne13
 
 
-class SommetChance_MonteCarlo(SommetChance):
+class SommetMonteCarlo(SommetOutcome):
     __vertices_created = 0
     __simulation = {}
 
-    def __init__(self, is_vamp=None, depth=None, game_map=None):
+    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, stay_enabled=True, nb_cases=None, game_map=None):
         super().__init__(is_vamp, depth, game_map)
-        SommetChance_MonteCarlo.__vertices_created += 1
+        SommetMonteCarlo.__vertices_created += 1
         self.n_wins = 0
         self.n_games = 0
+        self.nb_group_max = nb_group_max
+        self.stay_enabled = stay_enabled
+        self.nb_cases = nb_cases
 
     @classmethod
     def nb_vertices_created(cls):
@@ -43,16 +46,23 @@ class SommetChance_MonteCarlo(SommetChance):
     def children(self):
         if self._children is None:
             self._children = list()
-            is_vamp = not self.is_vamp
-            for proba, positions in self.map.possible_outcomes(self.previous_moves):
+            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max,
+                                                      stay_enabled=self.stay_enabled,
+                                                      nb_cases=self.nb_cases[self.depth]):
                 # Création du sommet fils
-                carte=deepcopy(self.map)
-                new_child_vertice = SommetOutcome_MonteCarlo(is_vamp=is_vamp, game_map=carte)
+                carte = deepcopy(self.map)
+                carte.most_probable_outcome(moves, self.is_vamp)
 
+                new_child_vertice = SommetMonteCarlo(
+                    is_vamp=not self.is_vamp,
+                    depth=self.depth - 1,
+                    nb_group_max=self.nb_group_max,
+                    stay_enabled=self.stay_enabled,
+                    nb_cases=self.nb_cases,
+                    game_map=carte)
                 # On met la partie du sommet fils à jour
-                new_child_vertice.previous_moves = self.previous_moves
-                new_child_vertice.map.update_content(positions)
-                new_child_vertice.probability = proba
+                new_child_vertice.previous_moves = moves
+
 
                 # On ajoute ce fils complété dans la liste des fils du noeud actuel
                 self._children.append(new_child_vertice)
@@ -75,75 +85,16 @@ class SommetChance_MonteCarlo(SommetChance):
             return average + confidence
 
     def MCTS(self):
-
-
-        for child in self.children:
+        """for child in self.children:
             child.MCTS()
 
         self.n_games = 0
         self.n_wins = 0
         for child in self.children:
             self.n_games += child.n_games
-            self.n_wins += child.n_games - child.n_wins
+            self.n_wins += child.n_games - child.n_wins"""
 
-    def simulation(self):
-        carte = deepcopy(self.map)
-        player = self.is_vamp
-        next_move = self.previous_moves
-        carte.compute_moves(next_move)
-        i_round = 1
-        while not carte.game_over() and i_round < 200:
-            player = not player
-            next_move = carte.random_moves(is_vamp=player)
-            carte.compute_moves(next_move)
-            i_round += 1
-        winner = carte.winner()
-
-        if winner is None:
-            if random.random() < 0.5:
-                winner = True
-            else:
-                winner = False
-
-        SommetChance_MonteCarlo.add_simulation_result(self.map.hash, is_vamp_winner=winner)
-
-        n_game, n_win_vamp = SommetChance_MonteCarlo.get_simulation(self.map.hash)
-
-        # Cas Vampire
-        if self.is_vamp:
-            self.n_games, self.n_wins = n_game, n_win_vamp
-        # Cas Loup-Garou
-        else:
-            self.n_games, self.n_wins = n_game, n_game - n_win_vamp
-
-
-class SommetOutcome_MonteCarlo(SommetOutcome):
-    __vertices_created = 0
-
-    def __init__(self, is_vamp=None, depth=None, game_map=None):
-        super().__init__(is_vamp, depth, game_map)
-        SommetOutcome_MonteCarlo.__vertices_created += 1
-        self.n_wins = 0
-        self.n_games = 0
-
-    @classmethod
-    def nb_vertices_created(cls):
-        return cls.__vertices_created
-
-    @property
-    def children(self):
-        # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        if self._children is None:
-            self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
-                child = SommetChance_MonteCarlo(is_vamp=self.is_vamp, game_map=self.map)
-                child.previous_moves = moves
-                self._children.append(child)
-        return self._children
-
-    def MCTS(self):
         if self.map.game_over():
-
             winner = self.map.winner()
             if winner is None:
                 if random.random() < 0.5:
@@ -151,16 +102,15 @@ class SommetOutcome_MonteCarlo(SommetOutcome):
                 else:
                     winner = False
 
-            SommetChance_MonteCarlo.add_simulation_result(self.map.hash, is_vamp_winner=winner)
+            SommetMonteCarlo.add_simulation_result(self.map.hash, is_vamp_winner=winner)
 
-            n_game, n_win_vamp = SommetChance_MonteCarlo.get_simulation(self.map.hash)
+            n_game, n_win_vamp = SommetMonteCarlo.get_simulation(self.map.hash)
 
             # Cas Vampire
             if self.is_vamp:
                 self.n_games, self.n_wins = n_game, n_win_vamp
             # Cas Loup-Garou
             else:
-
                 self.n_games, self.n_wins = n_game, n_game - n_win_vamp
 
         else:
@@ -182,6 +132,7 @@ class SommetOutcome_MonteCarlo(SommetOutcome):
 
             previous_n_wins = next_child.n_wins
             previous_n_games = next_child.n_games
+
             # Simulation
             if max_UCB is None:
                 next_child.simulation()
@@ -194,12 +145,45 @@ class SommetOutcome_MonteCarlo(SommetOutcome):
             self.n_games += next_child.n_games - previous_n_games
             self.n_wins += next_child.n_wins - previous_n_wins
 
+    def simulation(self):
+        carte = deepcopy(self.map)
+        player =self.is_vamp
+        i_round = 1
+        while not carte.game_over() and i_round < 200:
+            player = not player
+            next_move = carte.random_moves(is_vamp=player)
+            carte.compute_moves(next_move)
+            i_round += 1
+        winner = carte.winner()
+
+        if winner is None:
+            if random.random() < 0.5:
+                winner = True
+            else:
+                winner = False
+
+        SommetMonteCarlo.add_simulation_result(self.map.hash, is_vamp_winner=winner)
+
+        n_game, n_win_vamp = SommetMonteCarlo.get_simulation(self.map.hash)
+
+        # Cas Vampire
+        if self.is_vamp:
+            self.n_games, self.n_wins = n_game, n_win_vamp
+        # Cas Loup-Garou
+        else:
+            self.n_games, self.n_wins = n_game, n_game - n_win_vamp
+
 
 if __name__ == '__main__':
-    carte = MapRandom()
+    carte = Map8()
     carte.print_map()
-    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
-
+    racine= SommetMonteCarlo(
+        depth=11,
+        nb_group_max=2,
+        stay_enabled=False,
+        nb_cases=[None,1,1,1,1,2,1,2,2,3,2,5],
+        game_map=carte,
+        is_vamp=True)
     from time import time
 
     start_time = time()
@@ -217,15 +201,18 @@ if __name__ == '__main__':
     print()
 
     if max_child == robust_child:
-        print(max_child.previous_moves)
+        next_moves=max_child.previous_moves
+
     else:
         n_threshold = max_child.n_games / 4
         selected_children = filter(lambda child: child.n_games > n_threshold, racine.children)
-        print(max(selected_children,
-                  key=lambda child: child.n_wins / child.n_games if child.n_games != 0 else 0).previous_moves)
+        next_moves= max(selected_children, key=lambda child: child.n_wins / child.n_games if child.n_games != 0 else 0).previous_moves
+    print(next_moves)
     print()
+    carte.compute_moves(next_moves)
+    carte.print_map()
     print("Sommets créés :")
-    print(SommetChance_MonteCarlo.nb_vertices_created() + SommetOutcome_MonteCarlo.nb_vertices_created())
+    print(SommetMonteCarlo.nb_vertices_created())
     print("Nombre de simulations :")
     print(racine.n_games)
 """
