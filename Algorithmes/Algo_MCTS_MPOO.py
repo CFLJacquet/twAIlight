@@ -9,7 +9,7 @@ from Map_Silv import Map
 from Cartes.Map_Dust2 import MapDust2
 from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Silv_Map8 import  Map8
-from Cartes.Map_Random import MapRandom
+from Cartes.Map_Silv_Ligne13 import MapLigne13
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -67,7 +67,7 @@ class AlgoMCTSMPOO(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoMCTSMPOO
-    Carte = Map8
+    Carte = MapLigne13
     Serveur = ServeurInterne(Carte, Joueur1, Joueur2, name1="Aléatoire", name2="MonteCarlo", print_map=True,
                              debug_mode=False)
     Serveur.start()

@@ -7,7 +7,7 @@ from Map_Silv import Map
 from Cartes.Map_TheTrap import MapTheTrap
 from Cartes.Map_Silv_Map8 import Map8
 from Cartes.Map_Random import MapRandom
-from Cartes.Map_Ligne13 import MapLigne13
+from Cartes.Map_Silv_Ligne13 import MapLigne13
 
 
 class SommetMonteCarlo(SommetOutcome):
