@@ -30,7 +30,7 @@ if __name__=='__main__':
 ```
 * Lancer le serveur du prof
 * Taper dans le terminal (avec XXX.X.X.X YYYY l'hote et le port du serveur du prof)
-```shell
+```bash
 python MonAlgo.py XXX.X.X.X YYYY
 ```
 
