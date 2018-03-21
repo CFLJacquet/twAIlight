@@ -22,12 +22,11 @@ __Auteur__ : Silvestre Perret, Mathieu Seris, Chloé Gobé, Charles Jacquet, Eym
 Le but de ce projet est de développer une intelligence artificielle capable de jouer au jeu "Vampire contre Loups-Garou". Les règles du jeu sont dans le fichier "Projetv10b.pdf".
 Ce github contient notre implémentation des algorithmes que nous proposons pour le tournoi du 23 Mars 2018.
 
-## <a name="description"></a>1. Présentation et représentation du problème
+## <a name="description"></a>2. Présentation et représentation du problème
 
 ### Introduction
 
 Extrait du sujet:
-
 
 >Dans un monde lointain, des êtres mortels et ordinaires vivaient une vie paisible. Mais un soir, à la nuit tombée, leurs terres furent le témoin d’une lutte acharnée entre deux espèces : les Vampires et les Loups-Garous.
 
@@ -36,6 +35,7 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
 ### Arborescence détaillée du Projet
 
 - **twAIllight** Repertoire principal du projet
+
   - **Cartes** : Les différentes cartes sur lesquelles nous pouvons tester notre IA
 
   - **Joueur.py** :
@@ -112,7 +112,7 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
     - **Sommet_du_Jeu_Temporal_Diffrence_0.py**
     - **Sommet_du_Jeu.py**
 
-## <a name="test"></a>1. Approches testées et méthode de développement
+## <a name="test"></a>3. Approches testées et méthode de développement
 
 Notre approche est globalement la suivante:
 
@@ -123,11 +123,11 @@ Pour nous appropier les algorithmes nous avons utilisé un problème plus simple
 
 ##### Step 2: Tree pruning, simplification et développement d'heuristiques
 
-## <a name="alg"></a>1. Algorithmes
+## <a name="alg"></a>4. Algorithmes
 
-## <a name="strat"></a>1. Stratégies
+## <a name="strat"></a>5. Stratégies
 
-## <a name="perf"></a>1. Mesures de performance, remarques et conclusions
+## <a name="perf"></a>6. Mesures de performance, remarques et conclusions
 
 Deux moyens pour comparer la performance des algorithmes:
 
@@ -141,7 +141,7 @@ Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre di
 
 # Pour lancer un joueur pour jouer sur le serveur du prof
 * Créer dans un fichier une classe héritée de Joueur (dans Joueur.py), qui override la méthode next_moves de Joueur
-* Ecrire dans ce fichier 
+* Ecrire dans ce fichier
 ```python
 if __name__=='__main__':
   Joueur_1=NotreClasseHéritéeDeJoueur()
@@ -153,5 +153,3 @@ if __name__=='__main__':
 ```bash
 python MonAlgo.py XXX.X.X.X YYYY
 ```
-
-
