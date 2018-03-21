@@ -95,10 +95,10 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         queue_master_slave = Queue()  # Queue aller
         queue_slave_master = Queue()  # Queue retour
-
+        self.timeout = 2.0
         thread = TreeParseThread(queue_master_slave, queue_slave_master, params)
         thread.start()
-        thread.join(timeout=1.8)
+        thread.join(timeout=self.timeout)
         #sleep(1.8)
 
         if queue_slave_master.empty():
