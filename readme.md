@@ -9,12 +9,12 @@ __Auteur__ : Silvestre Perret, Mathieu Seris, Chloé Gobé, Charles Jacquet, Eym
 1. [Présentation générale](#description)
       1. [Introduction](#subparagraph1)
       2. [Arborescence détaillée du projet](#subparagraph1)
-2. [Représentation du problème](#rep)
+2. [Présentation et représentation du problème](#rep)
       1. [Le fichier Map](#map)
 3. [Approches testées et méthode de développement](#test)
 4. [Algorithmes](#alg)
       1. [MinMax](#minmax)
-5. [Stratégies](#strat)
+5. [Heuristiques](#strat)
 6. [Mesures de performance, tests et conclusions](#perf)
       1. [Tournoi](#subparagraph1)
       2. [Tournoi Darwin](#subparagraph1)
@@ -88,15 +88,11 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
   - Les algorithmes eux-mêmes,
   - Les "représentations du monde" qu'ils utilisent (les fichiers Sommets_du_jeu)
 
-  Pour tester un nouvel algo de décision:
+Ces différents algorithmes sont expliqués plus loin dans ce document.
 
-  * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
-  * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur, à laquelle on surcharge la fonction next_moves.
-
-    - **Algo_Customized_Evaluation.py** : Une réécriture de la classe JoueurInterne, qui suit une fonction d'évaluation personnalisée
-
-    - **Algo_MinMax.py** : Une réécriture "MinMax" de la classe JoueurInterne
-    - **Algo_MonteCarloTreeSearch.py** : Une réécriture "MonteCarlo" de la classe JoueurInterne
+    - **Algo_Customized_Evaluation.py**
+    - **Algo_MinMax.py**
+    - **Algo_MonteCarloTreeSearch.py**
     - **Algo_NegaMax_MPOO.py**
     - **Algo_NegaMax_Oriente.py**
     - **Algo_NegaMax_Probable_outcome.py**
@@ -112,6 +108,11 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
     - **Sommet_du_Jeu_Temporal_Diffrence_0.py**
     - **Sommet_du_Jeu.py**
 
+
+  De façon générale,  pour tester un nouvel algo de décision:
+    * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
+    * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur, à laquelle on surcharge la fonction next_moves.
+
 ## <a name="test"></a>3. Approches testées et méthode de développement
 
 Notre approche est globalement la suivante:
@@ -120,26 +121,43 @@ Notre approche est globalement la suivante:
 Pour nous appropier les algorithmes nous avons utilisé un problème plus simple (le Morpion).
 
 ##### Step 1: Utilisation des algorithmes vus en cours
+Cf Partie algorithmes
 
 ##### Step 2: Tree pruning, simplification et développement d'heuristiques
 
 ## <a name="alg"></a>4. Algorithmes
 
-## <a name="strat"></a>5. Stratégies
+Ces algorithmes reposent sur une surcharge de la fonction next move de joueur interne qui tend généralement à simplifier et à guider de façon plus intelligente l'exploration de notre arbre.
 
-## <a name="perf"></a>6. Mesures de performance, remarques et conclusions
+Remarque: ces méthodes ne sont généralement pas exclusives et reposent sur des améliorations apportées à différentes étapes du choix du next_move de nos unités. Autrement dit nous pouvons les combiner (par exemple: Negamax avec transposition et most probable outcome)
 
-Deux moyens pour comparer la performance des algorithmes:
+### <a name="a"></a> i. Variantes reposant sur une simplification du calcul des prochaines étapes potentielles du jeu
 
-- Lancer un tournoi
-Le tournoi est alors effectué sur un jeu de cartes (données en paramètres): on effectue des matchs aller et retour (adversaire A commence puis adversaire B)
+#### MinMax
+Réécriture de la fonction next_move qui applique l'algorithme minmax au choix de la position.
 
-- Lancer une compétition "darwin":
-Nous nous sommes demandés
+#### Variante Negamax
+Simplfication du MinMax qui repose sur le fait que nous sommes dans un jeu à somme nulle.
 
-Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre différents algo de décision (du dossier Algorithmes), sur plusieurs cartes données (du dossier Cartes).
+#### Most probable outcome
+Variante du negamax dans notre code qui simplifie grandement l'arbre en ne conservant que les noeuds à probabilité (ceux issus des combats par exemple) les plus probables (avec la probabilité la plus élévée).
+Cette méthode de pruning oblige notre joueur à ne considérer que les issues les plus probables de chaque tour et allège de façon importante les calculs.
 
-# Pour lancer un joueur pour jouer sur le serveur du prof
+### MonteCarlo
+
+### <a name="a"></a> ii. Améliorations liées au calcul
+
+#### Variante MinMax with Transposition
+Variante du MinMax avec une table de hashage qui permet de garder une mémoire des calculs de coùuts/gains (économie de calcul)
+
+### <a name="a"></a> iii. Variantes reposant sur une simplification dans la façon dont notre joueur voit la carte
+
+#### MPOO
+Cette variante du Most Probable Outcome effectue des choix drastiques en:
+- Limitant le nombre de groupes ennemis que nous prenons en compte
+- Limitant le nombre de sommets que nous explorons à chaque profondeur
+
+### Nota bene, Pour lancer un joueur pour jouer sur le serveur le jour du tournoi:
 * Créer dans un fichier une classe héritée de Joueur (dans Joueur.py), qui override la méthode next_moves de Joueur
 * Ecrire dans ce fichier
 ```python
@@ -148,8 +166,26 @@ if __name__=='__main__':
   Joueur_1.start()
   Joueur_1.join()
 ```
-* Lancer le serveur du prof
-* Taper dans le terminal (avec XXX.X.X.X YYYY l'hote et le port du serveur du prof)
+* Lancer le serveur
+* Taper dans le terminal (avec XXX.X.X.X YYYY l'hote et le port du serveur)
 ```bash
 python MonAlgo.py XXX.X.X.X YYYY
 ```
+
+## <a name="strat"></a>5. Heuristiques
+
+Nous avons pensé à différentes heuristiques (et méta heuristiques) que nous n'avons malheureusement pas complètement eu le temps d'implémenter.
+
+ (insérer les heuristiques de Chloé)
+ 
+## <a name="perf"></a>6. Mesures de performance, remarques et conclusions
+
+Deux moyens pour comparer la performance des algorithmes:
+
+- Lancer un tournoi
+Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre différents algo de décision (du dossier Algorithmes), sur plusieurs cartes données (du dossier Cartes).
+
+- Lancer une compétition "darwin" pour avoir une compréhension plus fine des hyper paramètres:
+Le darwin search prend en entrée un algorithme à hyper paramètres et génère une population en effectuant produit cartésien de ces paramètres discrétisés.
+C'est une variante de l'algorithme tournoi un peu spéciale car on va ajouter à un pool de combat aléatoirement ces individus, effectuer un tournoi et ne garder que les n meilleurs (les survivants).
+On répète cette idée pour voir quels algorithmes survivent le plus longtemps (ie restent dans le pool)
