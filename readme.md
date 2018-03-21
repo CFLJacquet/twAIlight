@@ -88,15 +88,11 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
   - Les algorithmes eux-mêmes,
   - Les "représentations du monde" qu'ils utilisent (les fichiers Sommets_du_jeu)
 
-  Pour tester un nouvel algo de décision:
+Ces différents algorithmes sont expliqués plus loin dans ce document.
 
-  * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
-  * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur, à laquelle on surcharge la fonction next_moves.
-
-    - **Algo_Customized_Evaluation.py** : Une réécriture de la classe JoueurInterne, qui suit une fonction d'évaluation personnalisée
-
-    - **Algo_MinMax.py** : Une réécriture "MinMax" de la classe JoueurInterne
-    - **Algo_MonteCarloTreeSearch.py** : Une réécriture "MonteCarlo" de la classe JoueurInterne
+    - **Algo_Customized_Evaluation.py**
+    - **Algo_MinMax.py**
+    - **Algo_MonteCarloTreeSearch.py**
     - **Algo_NegaMax_MPOO.py**
     - **Algo_NegaMax_Oriente.py**
     - **Algo_NegaMax_Probable_outcome.py**
@@ -112,6 +108,11 @@ NB: comme convenu ce readme se concentre sur les stratégies et algorithmes impl
     - **Sommet_du_Jeu_Temporal_Diffrence_0.py**
     - **Sommet_du_Jeu.py**
 
+
+  De façon générale,  pour tester un nouvel algo de décision:
+    * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
+    * Si on veut un joueur avec le serveur du projet, on crée une classe héritée de Joueur, à laquelle on surcharge la fonction next_moves.
+
 ## <a name="test"></a>3. Approches testées et méthode de développement
 
 Notre approche est globalement la suivante:
@@ -120,10 +121,29 @@ Notre approche est globalement la suivante:
 Pour nous appropier les algorithmes nous avons utilisé un problème plus simple (le Morpion).
 
 ##### Step 1: Utilisation des algorithmes vus en cours
+Cf Partie algorithmes
 
 ##### Step 2: Tree pruning, simplification et développement d'heuristiques
 
 ## <a name="alg"></a>4. Algorithmes
+
+Nous avons pensé à surcharger différentes fonctions.
+
+### AlgoMinMax
+Réécriture de la fonction next_move qui applique l'algorithme minmax au choix de la position.
+
+### Variante Negamax
+Simplfication du MinMax qui repose sur le fait que nous sommes dans un jeu à somme nulle.
+
+### MinMax with Transposition
+Variante du MinMax avec une table de hashage qui permet de garder une mémoire des calculs de coùuts/gains (économie de calcul)
+
+### Most probable outcome
+Variante du negamax dans notre code qui simplifie grandement l'arbre en ne conservant que les noeuds à probabilité (ceux issus des combats par exemple) les plus probables (avec la probabilité la plus élévée).
+Cette méthode de pruning oblige notre joueur à ne considérer que les issues les plus probables de chaque tour et allège de façon importante les calculs.
+
+### MonteCarlo
+
 
 ## <a name="strat"></a>5. Stratégies
 
@@ -134,8 +154,8 @@ Deux moyens pour comparer la performance des algorithmes:
 - Lancer un tournoi
 Le tournoi est alors effectué sur un jeu de cartes (données en paramètres): on effectue des matchs aller et retour (adversaire A commence puis adversaire B)
 
-- Lancer une compétition "darwin":
-Nous nous sommes demandés
+- Lancer une compétition "darwin" pour avoir une compréhension plus fine des hyper paramètres:
+Le darwin search prend en entrée un algorithme à hyper paramètres et génère une population en effectuant produit cartésien de ces paramètres discrétisés. C'est une variante de l'algorithme tournoi un peu spéciale car on va ajouter à un pool de combat aléatoirement ces individus, effectuer un tournoi et ne garder que les n meilleurs (les survivants). On répète cette idée pour voir quels algorithmes survivent le plus temps (ie restent dans le pool)
 
 Le fichier Tournoi dans le dossier Tournoi permet d'effectuer des duels entre différents algo de décision (du dossier Algorithmes), sur plusieurs cartes données (du dossier Cartes).
 
