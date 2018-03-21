@@ -85,11 +85,6 @@ class AlgoNegMax_MPOO(JoueurInterne):
             self.nb_cases = [1,2,3,4]
 
 
-        self.depth_max = 7
-        self.nb_group_max = 2
-        self.stay_enabled = False
-        self.nb_cases = [None,2,1,2,2,3,2,3]
-
         params = {}
         params['depth_max']    = self.depth_max
         params['nb_group_max'] = self.nb_group_max
@@ -100,10 +95,10 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         queue_master_slave = Queue()  # Queue aller
         queue_slave_master = Queue()  # Queue retour
-
+        self.timeout = 2.0
         thread = TreeParseThread(queue_master_slave, queue_slave_master, params)
         thread.start()
-        thread.join(timeout=1.8)
+        thread.join(timeout=self.timeout)
         #sleep(1.8)
 
         if queue_slave_master.empty():
@@ -115,6 +110,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
             next_move = queue_slave_master.get_nowait()
         print("MPOO:", next_move)
         return next_move 
+
 
     @classmethod
     def nb_vertices_created(cls):

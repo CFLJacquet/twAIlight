@@ -1,7 +1,9 @@
-from copy import deepcopy, copy
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
+from copy import deepcopy
+
+from Algorithmes.Sommet_du_jeu import SommetOutcome
+from Map import Map
+from Tests.Map_map_content_v2 import Map8 as New_Map8
+
 
 NB = 0
 
@@ -133,14 +135,16 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         return next_child.previous_moves
 
 if __name__ == '__main__':
-    carte = Map8()
-    racine= SommetDuJeu_NegaMax(
-        depth=2,
-        game_map=carte,
-        is_vamp=True,
-        init_map=True)
-    #for child in racine.children:
-    #    print(child.previous_moves)
-    #    child.map.print_map()
+
+    carte = Map()
+
+    racine= SommetDuJeu_NegaMax(depth=3, game_map=carte, is_vamp=True, init_map=True)
+
+
     import cProfile
-    cProfile.run("print(racine.next_move()); print(racine.nb_vertices_created())")
+    cProfile.run('racine.next_move()')
+
+    carte=New_Map8()
+    racine = SommetDuJeu_NegaMax(depth=3, game_map=carte, is_vamp=True, init_map=True)
+    cProfile.run('racine.next_move()')
+

@@ -2,8 +2,8 @@ from threading import Thread
 from queue import Queue
 import time
 
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Map import Map
+from Joueur_Interne import JoueurInterne
+from Map import Map
 
 
 class ServeurInterne(Thread):
@@ -17,7 +17,7 @@ class ServeurInterne(Thread):
     MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
     # MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
-    # MAX_PLAY_DURATION = 5  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
+    MAX_PLAY_DURATION = 2  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
     # MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
     MAX_PLAYS = 200  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 

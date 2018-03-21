@@ -12,17 +12,21 @@ from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Random import MapRandom
 import random
 
-N_GAME = 2 # nombre de parties par carte (chaque carte est appelée dans une pool)
-POOL_SIZE = 5 # Taille des pools de combats
-N_SURVIVORS = 1 # Nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
-TIMER = 50 # Nombre d'itérations
+N_GAME = 1 # nombre de parties par carte (chaque carte est appelée dans une pool)
+POOL_SIZE = 20 # Taille des pools de combats
+N_SURVIVORS = 5 # Nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
+TIMER = 200 # Nombre d'itérations
 
 def main():
-    range_parameters = {'depth_max': [1,2,3],'nb_group_max': [1,2,3,4],'nb_cases':[[i for i in range (0,10)]]}
+    # Declaration des caractéristiques possibles de la population
+    range_parameters = {'depth_max': [3,5,7,9],'nb_group_max': [2,3,4,5],'nb_cases':[[1,1,1,1,1,1],[1,2,1,5,1,1]]}
+
+    # Produit cartésien pour générer tous les individus possibles
     tuned_parameters = [{'depth_max':a, 'nb_group_max':b, 'nb_cases':d} for a in range_parameters['depth_max'] for b in range_parameters['nb_group_max'] for d in range_parameters['nb_cases']]
     # Generation de la population à explorer. Les individus sont numérotés de 1 à n
     population = [(i,tuned_parameters[i]) for i in range(0,len(tuned_parameters))]
     population_dic = {i:tuned_parameters[i] for i in range(0,len(tuned_parameters))}
+
     population_size = len(population)
     print("There are %i individuals " % population_size)
     pool =[]
@@ -50,14 +54,14 @@ def main():
                 pool.append(population[rand])
                 ajout[rand] += 1
 
+        # On ne garde que les individus qui survivent au tournoi (cf fonction tournoi en dessous)
         individual_survivors = tournoi(pool,population_dic,nb_survivors=N_SURVIVORS)
-
         pool=[]
         for s in individual_survivors:
             pool.append(population[s])
             historical_presence[s]+=1
 
-        # On remplit les places restantes dans la pool aléatoirement
+        # On remplit les places restantes dans la pool aléatoirement pour challenger les vainqueurs
         for i in range (N_SURVIVORS,POOL_SIZE-N_SURVIVORS+1):
             rand = individual_survivors[0]
             while rand in individual_survivors:
@@ -72,8 +76,6 @@ def main():
     for elem in sorted_hist_presence[:5]:
         if ajout[elem[0]]!=0:
             print("\nAlgo numero %i : vu %i en pool pour %i ajouts " %(elem[0],elem[1],ajout[elem[0]]))
-            print("Cet algo est caractérisé par :")
-            print(population_dic[sorted_hist_presence[elem[0]][0]])
         else:
             print("%i n'a jamais été tiré et ajouté à la pool ! " %elem[0])
 
@@ -100,10 +102,9 @@ def tournoi(pool,population_dic,nb_survivors=10):
     # Parcours de toutes les paires possibles de joueurs
 
     MAPS = {  # "Dust2": MapDust2,
-        "Map8": Map8,
+        #"Map8": Map8,
         # "TheTrap":MapTheTrap,
-        # "CarteAléatoire":MapRandom
-    }
+        "CarteAléatoire":MapRandom}
 
     # Dictionnaires des algorithmes de décision : nom de l'algo --> algo (classe)
 
