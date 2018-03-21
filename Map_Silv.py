@@ -431,7 +431,6 @@ class Map:
                 starting_position, n_mob = starting_config
                 
                 pop_of_monsters = n_mob
-
                 # On choisit le nombre de monstres à déplacer un à un.
                 n_moving_monsters= random.randint(0,pop_of_monsters)
 

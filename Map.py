@@ -493,6 +493,81 @@ class Map:
 
         return next_best_moves
 
+    def next_relevant_positions(self, is_vamp, nb_group_max=None, nb_cases=None):
+        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
+        next_relevant_positions = {}
+
+        for starting_config in next_possible_positions:
+            _, n_mob = starting_config
+
+            def sort_function(pos):
+                n_hum, _, _ = self.content[pos]
+                return n_hum if 1.5 * n_hum <= n_mob else -n_hum
+
+            relevant_positions = sorted(
+                next_possible_positions[starting_config],
+                key=sort_function,
+                reverse=True)
+
+            if not nb_cases is None:
+                relevant_positions = relevant_positions[:nb_cases]
+
+            next_relevant_positions[starting_config] = relevant_positions
+        return next_relevant_positions
+
+    def next_relevant_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """ Génère toutes les combinaisons possibles de mouvements possibles par un joueur
+
+        ITERATOR !!!
+
+        :param is_vamp: race du joueur
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
+        nb_group = len(next_possible_positions)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_config, next_positions in next_possible_positions.items():
+            _, n_mob = starting_config
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            pop_of_monsters = n_mob
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            split_enabled = True if nb_group_max is None else nb_group < nb_group_max
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
+            nb_group += 1
+
+            group_repartitions[starting_config] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        # next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
+
+                starting_position, _ = starting_config
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_config][i]
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves == []:
+                continue
+
+            yield (moves)
+
     def compute_score_map(self, is_vamp):
         """Calcule les scores de chaque cases de la carte et renvoie un nparray
         :return: scores de chaque case list(list)
@@ -999,13 +1074,13 @@ class Map:
                 return False
 
         # Règle 5 : Une case ne pas se retrouver cible et source
-        for move_1, move_2 in combinations(moves, 2):
+        """for move_1, move_2 in combinations(moves, 2):
             if (move_1[0], move_1[1]) == (move_2[3], move_2[4]):
                 if self.debug_mode : print('Règle 5')
                 return False
             if (move_1[3], move_1[4]) == (move_2[0], move_2[1]):
                 if self.debug_mode : print('Règle 5')
-                return False
+                return False"""
 
         # Si toutes les règles sont respectées, on renvoie vrai
         return True
@@ -1146,7 +1221,13 @@ class Map:
 if __name__ == "__main__":
     carte = Map()
     carte.print_map()
-    print(len(carte.next_possible_moves(True, nb_group_max=1)))
+    carte.update_content([(1,1,3,0,0)])
+    carte.print_map()
+    moves=[(0,1,2,1,1)]
+    print()
+    carte.most_probable_outcome(moves)
+    carte.print_map()
+
 
     #print(carte.next_possible_relevant_moves(True, 3))
 

@@ -19,9 +19,9 @@ class HumanFirst(Joueur):
                 current_position=(i,j)
             if self.is_vamp and n_lg!=0 or not self.is_vamp and n_vamp!=0:
                 forbidden_places|=set([(i+i_0, j+j_0) for (i_0,j_0) in product((-1,0,1),repeat=2)])
-            if n_hum>=current_population:
+            if n_hum>2*current_population:
                 forbidden_places.add((i , j))
-            elif 1.5*n_hum >=current_population:
+            elif n_hum >=1.5*current_population:
                 risky_humans[(i,j)]=n_hum
             elif n_hum>0:
                 risk_free_humans[(i,j)]=n_hum

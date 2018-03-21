@@ -1,5 +1,5 @@
 # from twAIlight.Map import Map
-from twAIlight.Map_Silv import Map
+from Map_Silv import Map
 
 
 class Map8(Map):
