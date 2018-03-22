@@ -52,10 +52,16 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         #    return self._children
         #else:
             self._children = list()
-            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
+            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max,
+                                                          stay_enabled=self.stay_enabled,
+                                                          nb_cases=self.nb_cases[self.depth]):
+                # Vérification du timeout
                 if not self.q_m_s is None and not self.q_m_s.empty(): break
+                
+                # Création du sommet fils
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
+                
                 child = SommetDuJeu_NegaMax_MPOO(
                     is_vamp=not self.is_vamp,
                     depth=self.depth-1,
@@ -64,7 +70,6 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                     nb_cases=self.nb_cases,
                     game_map=carte)
                 child.previous_moves = moves
-                #self._children.append(child)
                 yield child
 
     def negamax(self, alpha, beta):

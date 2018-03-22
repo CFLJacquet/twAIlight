@@ -1,7 +1,7 @@
 import random
 from itertools import product
 
-from twAIlight.Map import Map
+from Map import Map
 
 
 class MapRandom(Map):

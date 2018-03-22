@@ -23,7 +23,7 @@ class AlgoAleatoireInterne(JoueurInterne):
         if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
         if show_map: self.map.print_map()
 
-        return random.choice(self.map.next_relevant_moves(self.is_vamp, nb_group_max=3, stay_enabled=False))
+        return random.choice(self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=3, stay_enabled=False))
 
 class AlgoNaive(JoueurInterne):
 
@@ -94,10 +94,11 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         queue_master_slave = Queue()  # Queue aller
         queue_slave_master = Queue()  # Queue retour
-
         thread = TreeParseThread(queue_master_slave, queue_slave_master, params)
         thread.start()
-        thread.join(timeout=1.8)
+
+        self.timeout = 1.8
+        thread.join(timeout=self.timeout)
 
         if queue_slave_master.empty():
             queue_master_slave.put(0)
