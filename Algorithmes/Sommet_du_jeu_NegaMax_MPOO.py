@@ -7,8 +7,6 @@ from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
 
-NB = 0
-
 class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
     __vertices_created = 0
     __transposion_table = {}
@@ -50,9 +48,9 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
     @property
     def children(self):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        if not self._children is None:
-            return self._children
-        else:
+        #if not self._children is None:
+        #    return self._children
+        #else:
             self._children = list()
             for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
                 if not self.q_m_s is None and not self.q_m_s.empty(): break
@@ -66,7 +64,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                     nb_cases=self.nb_cases,
                     game_map=carte)
                 child.previous_moves = moves
-                self._children.append(child)
+                #self._children.append(child)
                 yield child
 
     def negamax(self, alpha, beta):
@@ -148,6 +146,57 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
 
         :return: le prochain mouvement
         """
+        alpha = None
+        beta = None
+        color = 1 if self.is_vamp else -1
+
+        if self.map.game_over() or self.depth == 0:
+            return color * self.evaluation
+
+        bestvalue = None
+        next_move = None
+        for child in self.children:
+            if alpha is None and beta is None:
+                v = - child.negamax(None, None)
+            elif beta is None:
+                v = - child.negamax(None, -1*alpha)
+            elif alpha is None:
+                v = - child.negamax(-1*beta, None)
+            else:
+                v = - child.negamax(-1*beta, -1*alpha)
+
+            # On prend le max entre bestvalue et v
+            if bestvalue is None:
+                bestvalue = v
+                next_move = child.previous_moves
+            elif bestvalue < v:
+                bestvalue = v
+                next_move = child.previous_moves
+
+            
+            #print(v, child.previous_moves, child.map.state_evaluation())
+            if alpha is None:
+                alpha = v
+            elif alpha < v:
+                alpha = v
+
+            if beta is not None:
+                if alpha >= beta:
+                    break
+
+        if self.q_s_m is None:
+            return next_move # For testing
+        if self.q_m_s.empty():
+            self.q_s_m.put(next_move)
+
+    def next_move_old(self):
+        """ Renvoie le meilleur mouvement à faire.
+        C'est la fonction Minimax-Decision du cours 4 s.54
+
+        Parcourt le graphe en DFS
+
+        :return: le prochain mouvement
+        """
         # On sélectione le noeud fils selon sa race
 
         next_child = min(self.children,
@@ -165,34 +214,26 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
 
 if __name__ == '__main__':
     carte = MapLigne13()
-    for _ in range(1):
-        next_move = carte.next_relevant_moves(
-            True,
-            stay_enabled=False,
-            nb_group_max=4,
-            nb_cases=8)[0]
-    
+    next_moves = [
+        [(0,20,10,1,19)],
+        [(20,20,10,19,19)],
+        [(1,19,5,2,19),(1,19,6,2,18)],
+        [(19,19,5,20,18),(19,19,6,18,18)]
+    ]
+    for next_move in next_moves:
         carte.compute_moves(next_move)
-        
-        next_move = carte.next_relevant_moves(
-            False,
-            stay_enabled=False,
-            nb_group_max=4,
-            nb_cases=8)[0]
     
-        carte.compute_moves(next_move)
-
-        racine= SommetDuJeu_NegaMax_MPOO(
-            depth=6,
-            nb_group_max=2,
-            stay_enabled=False,
-            nb_cases= [None,1,2,2,2,3,4],#[None,1,3,2,4,3,4],
-            game_map=carte,
-            is_vamp=True,
-            init_map=True)
-        
-        #carte.compute_moves(racine.next_move())
-        carte.print_map()
+    racine= SommetDuJeu_NegaMax_MPOO(
+        depth=6,
+        nb_group_max=3,
+        stay_enabled=False,
+        nb_cases= [None,1,1,2,2,2,2],#[None,1,3,2,4,3,4],
+        game_map=carte,
+        is_vamp=True,
+        init_map=True)
+    
+    #carte.compute_moves(racine.next_move())
+    carte.print_map()
 
     import cProfile
     cProfile.run('print(racine.next_move()); print(racine.nb_vertices_created())')

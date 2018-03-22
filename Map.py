@@ -218,11 +218,12 @@ class Map:
             ######################## Bataille Humain vs Monstre ##################
 
             if n_hum:
+
                 if self.debug_mode:
                     print("Bataille contre humains en ({},{})".format(x, y))
 
                 # cas victoire assurée
-                if n_hum < n_att:
+                if n_hum <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
                     n_total = n_att+n_hum
@@ -236,18 +237,29 @@ class Map:
 
                 # cas victoire non sure
                 else:
-                    # Victoire de l'attaquant ?
+                    proba_p = self.proba_p(n_att, n_hum)
                     if self.debug_mode:
                         print("Probabilité de victoire : {:.2f}% ({} humains vs {} attaquants)".format(
-                            Map.proba_p(n_att, n_hum), n_hum, n_att))
-                    # Victoire des monstres
+                            proba_p, n_hum, n_att))
+                    
+                    victory = proba_p > 0.5
+                    # Si victoire des monstres
+                    if victory:
+                        n_total = round((n_hum + n_att) * proba_p) # Nombre d'attaquants survivants 
+                        # Enregistrement des attaquants survivants sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            0, is_vamp * (n_total), (not is_vamp) * (n_total),
+                            n_hum, n_vamp, n_lg)
 
-                    n_surv = round(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
-                    # Enregistrement des humains survivants sur la carte
-                    self.simple_update_content(
-                        x, y, 
-                        n_surv, 0, 0,
-                        n_hum, n_vamp, n_lg)
+                    # Si victoire des humains
+                    else:
+                        n_surv = round(n_hum * (1-proba_p)) # Nombre d'humain survivant
+                        # Enregistrement des humains survivants sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            n_surv, 0, 0,
+                            n_hum, n_vamp, n_lg)
                     if self.debug_mode:
                         print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
 
@@ -260,7 +272,7 @@ class Map:
                 n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
 
                 # Victoire sure
-                if n_def < n_att:
+                if n_def * 1.5 <= n_att:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
 
@@ -277,18 +289,28 @@ class Map:
 
                 # Victoire non sure
                 else:
-                    # Victoire de l'attaquant
+                    proba_p = self.proba_p(n_att, n_def)
                     if self.debug_mode:
                         print("Probabilité de victoire : {:.2f}% ({} défenseurs vs {} attaquants)".format(
-                            Map.proba_p(n_att, n_def), n_def, n_att))
+                            proba_p, n_def, n_att))
+
+                    victory = proba_p > 0.5
+                    # Victoire de l'attaquant
+                    if victory:
+                        n_surv = round(n_att * proba_p)
+                        self.simple_update_content(
+                            x, y, 
+                            0, is_vamp * n_surv, (not is_vamp) * n_surv,
+                            n_hum, n_vamp, n_lg)
 
                     # Victoire du défenseur
-                    n_surv = round(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
-                    # Enregistrement sur la carte
-                    self.simple_update_content(
-                        x, y, 
-                        0, (not is_vamp) * n_surv, is_vamp * n_surv,
-                        n_hum, n_vamp, n_lg)
+                    else:
+                        n_surv = round(n_def * (1-proba_p))  # Nombre de défenseur survivant
+                        # Enregistrement sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            0, (not is_vamp) * n_surv, is_vamp * n_surv,
+                            n_hum, n_vamp, n_lg)
 
                     if self.debug_mode:
                         print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
@@ -809,7 +831,7 @@ class Map:
         """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
             - max 2 sous-groupes à la fin
             - pas de sous-groupe de moins de pop_of_monster // 3
-            - un pas de repartitions = max(1, pop//10)
+            - un pas de repartitions = max(1, pop//3)
 
         :param pop_of_monster: int
         :param n_case: int

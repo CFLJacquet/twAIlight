@@ -8,7 +8,8 @@ from copy import deepcopy, copy
 from twAIlight.Joueur import Joueur
 from twAIlight.Joueur_Interne import JoueurInterne
 from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_MPOO import SommetDuJeu_NegaMax_MPOO
+from twAIlight.Algorithmes.Sommet_du_jeu_Negascout import SommetDuJeu_Negascout
+from twAIlight.Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
 from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
@@ -23,7 +24,7 @@ class AlgoAleatoireInterne(JoueurInterne):
         if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
         if show_map: self.map.print_map()
 
-        return random.choice(self.map.next_relevant_moves(self.is_vamp, nb_group_max=3, stay_enabled=False))
+        return random.choice(self.map.next_relevant_moves(self.is_vamp, nb_group_max=2, stay_enabled=False))
 
 class AlgoNaive(JoueurInterne):
 
@@ -55,7 +56,7 @@ class TreeParseThread(threading.Thread):
         self._stop_event = threading.Event()
 
     def run(self):
-        racine = SommetDuJeu_NegaMax_MPOO(
+        racine = SommetDuJeu_Negascout(
             depth=self.params['depth_max'],
             nb_group_max=self.params['nb_group_max'],
             stay_enabled=self.params['stay_enabled'],
@@ -67,7 +68,7 @@ class TreeParseThread(threading.Thread):
         racine.init_queues(self.q_m_s, self.q_s_m)
         racine.next_move()
 
-class AlgoNegMax_MPOO(JoueurInterne):
+class AlgoNegascout(JoueurInterne):
     """
     Une réécriture de la classe JoueurInterne
 
@@ -79,9 +80,9 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         if show_map: self.map.print_map()
         #if not  self.depth_max:
-        self.depth_max = 6
-        self.nb_group_max = 3
-        self.nb_cases = [None,1,1,2,2,2,2]
+        self.depth_max = 7
+        self.nb_group_max = 2
+        self.nb_cases = [None,1,2,2,2,3,3,4]
 
 
         params = {}
@@ -101,7 +102,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         if queue_slave_master.empty():
             queue_master_slave.put(0)
-            next_move = next(self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max))
+            next_move = next(self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=2))
             print("TimeOut !")
         else:
             next_move = queue_slave_master.get_nowait()
@@ -111,13 +112,13 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
     @classmethod
     def nb_vertices_created(cls):
-        return SommetDuJeu_NegaMax_MPOO.nb_vertices_created()
+        return SommetDuJeu_Negascout.nb_vertices_created()
 
 
 if __name__ == "__main__":
+    Joueur1 = AlgoNegascout
     Joueur2 = AlgoNegMax_MPOO
-    Joueur1 = AlgoAleatoireInterne
-    carte= MapLigne13
+    carte= Map8
     Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="Joueur1", name2="Joueur2", print_map=True, debug_mode=False)
     Serveur.start()
 
