@@ -165,133 +165,8 @@ class Map:
                 n += 1
         return n, elements
 
-    def most_probable_outcome(self,moves):
-        """
-        Met à jour et traite les déplacements d'un joueur sur la carte en considérant uniquement le cas le plus probable dans chaque configuration de bataille
-        :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
-        :return: None
-        """
-        # Race du joueur
-        is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
-
-        # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
-        battles_to_run = defaultdict(int)
-        for i, j, n, x, y in moves:
-            # Libération des cases sources
-            old_h, old_v, old_lg = self.content[i,j]
-            if is_vamp:  # le joueur est un vampire
-                self.simple_update_content(i, j, 0,  old_v-n, 0, old_h, old_v, old_lg)
-            else:  # le joueur est un loup-garou
-                self.simple_update_content(i, j, 0, 0, old_lg - n, old_h, old_v, old_lg)
-
-            # Chargement des cases cibles
-            # On enregistre les modifications sur les cases sans bataille
-            # Population de la case cible
-            n_hum, n_vamp, n_lg = self.content[(x, y)]
-            # Si case cible est vide
-            if self.content[(x, y)] == (0, 0, 0):
-                self.simple_update_content(x, y, 0, n * is_vamp, n * (not is_vamp), 0, 0, 0)
-
-            # Case vide peuplée d'humains
-            if n_hum:
-                # On enregistre la bataille
-                battles_to_run[(x, y)] += n
-
-            # Case cible peuplée d'ami
-            # On peuple ces cases
-            if n_vamp and is_vamp:
-                self.simple_update_content(x, y, 0, (n + n_vamp), 0, n_hum, n_vamp, n_lg)
-            elif n_lg and not is_vamp:
-                self.simple_update_content(x, y, 0, 0, (n + n_lg), n_hum, n_vamp, n_lg)
-
-            # Case cible avec des ennemis
-            if n_vamp and not is_vamp or n_lg and is_vamp:
-                # On enregistre la bataille
-                battles_to_run[(x, y)] += n
-
-        # On traite les batailles enregistrées
-        for x, y in battles_to_run:
-            n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
-            n_hum, n_vamp, n_lg = self.content[(x, y)]  # Populations initiales de la case cible
-
-            ######################## Bataille Humain vs Monstre ##################
-
-            if n_hum:
-                if self.debug_mode:
-                    print("Bataille contre humains en ({},{})".format(x, y))
-
-                # cas victoire assurée
-                if n_hum < n_att:
-                    if self.debug_mode:
-                        print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
-                    n_total = n_att+n_hum
-                    # Enregistrement des nouvelles populations sur la carte
-                    self.simple_update_content(
-                        x, y, 
-                        0, is_vamp * (n_total), (not is_vamp) * (n_total),
-                        n_hum, n_vamp, n_lg)
-                    if self.debug_mode:
-                        print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(0, 0))
-
-                # cas victoire non sure
-                else:
-                    # Victoire de l'attaquant ?
-                    if self.debug_mode:
-                        print("Probabilité de victoire : {:.2f}% ({} humains vs {} attaquants)".format(
-                            Map.proba_p(n_att, n_hum), n_hum, n_att))
-                    # Victoire des monstres
-
-                    n_surv = round(n_hum * (1-self.proba_p(n_att,n_hum)) ) # Nombre d'humain survivant
-                    # Enregistrement des humains survivants sur la carte
-                    self.simple_update_content(
-                        x, y, 
-                        n_surv, 0, 0,
-                        n_hum, n_vamp, n_lg)
-                    if self.debug_mode:
-                        print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
-
-            ###################### Bataille Vampires vs Loups-Garous ########################
-
-            else:
-                if self.debug_mode:
-                    print("Bataille entres monstres en ({},{})".format(x, y))
-
-                n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
-
-                # Victoire sure
-                if n_def < n_att:
-                    if self.debug_mode:
-                        print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
-
-                    n_surv =round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
-
-                    # Enregistrement des attaquants survivants
-                    self.simple_update_content(
-                        x, y, 
-                        0, is_vamp * n_surv, (not is_vamp) * n_surv,
-                        n_hum, n_vamp, n_lg)
-
-                    if self.debug_mode:
-                        print("Victoire de l'attaquant ! {} survivants".format(n_surv))
-
-                # Victoire non sure
-                else:
-                    # Victoire de l'attaquant
-                    if self.debug_mode:
-                        print("Probabilité de victoire : {:.2f}% ({} défenseurs vs {} attaquants)".format(
-                            Map.proba_p(n_att, n_def), n_def, n_att))
-
-                    # Victoire du défenseur
-                    n_surv = round(n_def - (1-self.proba_p(n_att,n_def)))  # Nombre de défenseur survivant
-                    # Enregistrement sur la carte
-                    self.simple_update_content(
-                        x, y, 
-                        0, (not is_vamp) * n_surv, is_vamp * n_surv,
-                        n_hum, n_vamp, n_lg)
-
-                    if self.debug_mode:
-                        print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
-
+    ##############################################################################################
+    ########################### UPDATE THE MAP ###################################################
 
     def create_positions(self, positions):
         """ Crée la carte à partir de la commande MAP reçu par le joueur
@@ -333,366 +208,8 @@ class Map:
         # On hash la nouvelle position
         self._hash ^= self.hash_position((i, j, n_hum, n_vamp, n_lg))
 
-
-    def next_possible_positions(self, is_vamp, nb_group_max=None):
-        """
-        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe) \n
-
-        :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
-        """
-
-        new_positions = defaultdict(list)
-
-        # On récupère toutes les positions initiales possibles
-        if is_vamp:  # Le joueur est un loup-garou
-            starting_positions = [x_y for x_y in self.content if self.content[x_y][1] != 0]
-        else:  # Le joueur est un loup-garou
-            starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
-
-        x_max, y_max = self.size
-
-        for starting_pos in starting_positions:
-            x_old, y_old = starting_pos
-
-            available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
-                                   if (i, j) != (0, 0) \
-                                   and 0 <= (x_old + i) < x_max \
-                                   and 0 <= (y_old + j) < y_max
-                                   ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
-            for new_pos in available_positions:
-                new_positions[starting_pos].append(new_pos)
-        return new_positions
-
-    @staticmethod
-    def repartitions_recursive(pop_of_monster, n_case):
-        """ Renvoie les répartitions d'au plus pop_of_monster dans n_case \n\n
-
-        :param pop_of_monster: int \n
-        :param n_case: int \n 
-        :return: list : liste des répartitions possibles
-        """
-        repartitions = list()
-
-        if pop_of_monster == 0:
-            return [[0] * n_case]
-        if n_case == 1:
-            for pop_last_case in range(pop_of_monster + 1):
-                repartitions.append([pop_last_case])
-            return repartitions
-        for pop_first_case in range(pop_of_monster + 1):
-            for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
-                new_rep = [pop_first_case] + rep
-                repartitions.append(new_rep)
-        return repartitions
-
-
-    @staticmethod
-    def relevant_repartitions(pop_of_monster, n_case, split_enabled=True, stay_enabled=True):
-        """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
-            - max 2 sous-groupes à la fin
-            - pas de sous-groupe de moins de pop_of_monster // 3
-
-        :param pop_of_monster: int
-        :param n_case: int
-        :return: list : liste des répartitions possibles
-        """
-
-        pop_combinaisons = list()
-        min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
-        for pop_1 in range(pop_of_monster if split_enabled else 1):
-            pop_2 = pop_of_monster - pop_1
-            if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
-                continue
-            pop_combinaisons.append((pop_1, pop_2))
-        
-        repartitions = list()
-        if stay_enabled:repartitions.append([0] * n_case) # cas trivial
-        
-        for pop_1, pop_2 in pop_combinaisons:
-            if pop_1 == 0 or stay_enabled:
-                for j in range(n_case): # Le groupe 1 reste sur la case de départ
-                    l = [0] * n_case
-                    l[j] = pop_2
-                    repartitions.append(l)
-
-            if pop_1 == 0: continue # On évite n_case - 1 doublons 
-            for i in range(n_case-1):
-                for j in range(i+1, n_case):
-                    l = [0] * n_case
-                    l[i] = pop_1
-                    l[j] = pop_2
-                    repartitions.append(l)
-        return repartitions
-
-    def next_relevant_possible_moves(self,is_vamp, nb_moves=3):
-        """ Renvoie les combinaisons de mouvements pertinentes pour un joueur. \n\n
-
-            Hypotheses: \n
-            - on ne considère que les groupes d'humains convertible a 100% => risque de ne pas
-            pouvoir bouger si y a que des gros \n
-            - demi-dist de l'ennemi => risque immobilisation si ennemi a cote \n
-            - si il y a rien d'interessant prendre une direction rapprochant d'un groupe humain
-            convertible    ________________ A IMPLEMENTER AVEC UN ALGO A* ________________
-            :param is_vamp: race du joueur \n
-            :return: liste ordonnée des meilleurs mouvements possibles
-        """
-        next_possible_positions = self.next_possible_positions(is_vamp)
-        next_best_moves = {}
-        x_max, y_max = self.size
-        
-
-        if is_vamp: all_ennemis = [x_y for x_y in self.content if self.content[x_y][2]]
-        else : all_ennemis = [x_y for x_y in self.content if self.content[x_y][1]]
-
-        all_humains = [x_y for x_y in self.content if self.content[x_y][0]]
-
-        for starting_position, moves in next_possible_positions.items():
-            # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
-            # ... afin de régler la taille du kernel pour le produit de convolution. On considère
-            # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
-            dangerous_enn = [x_y for x_y in all_ennemis \
-                                # sum donne le nombre d'individus sur la case
-                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
-
-            if dangerous_enn :
-                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
-                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
-                                    for group_enn in dangerous_enn ] )
-                if dist_min < 0:
-                    print("ATTENTION ennemi a cote")
-                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
-                    de nous """
-
-            else : #distance par défaut
-                if self.debug_mode:
-                    print("\nPas d'ennemi dangereux -> dist_min = 1/2 * taille carte ")
-                dist_min = min(x_max//2, y_max//2)
-            
-            # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
-            valeur = []
-            for direction in moves:
-                grad = 0
-                for i in range(-dist_min, dist_min+1):
-                    for j in range(-dist_min, dist_min+1):
-                        try :
-                            # on récupère les groupes d'humains suffisamment petits (<= taille)
-                            hum = self.content[(direction[0] + i, direction[1] + j)][0]
-                            if hum <= sum(self.content[starting_position]) :
-                                grad += hum
-                        except:
-                            pass
-                valeur.append( (grad, sum(self.content[direction]), direction) )
-            
-            """if not all(v == 0 for v in [x[0] for x in valeur]): """
-            valeur.sort(key=lambda x: (-x[1], -x[0]))
-            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
-
-            if self.debug_mode:
-                    print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
-                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur,"\n")
-
-        return next_best_moves
-
-    def next_relevant_positions(self, is_vamp, nb_group_max=None, nb_cases=None):
-        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
-        next_relevant_positions = {}
-
-        for starting_config in next_possible_positions:
-            _, n_mob = starting_config
-
-            def sort_function(pos):
-                n_hum, _, _ = self.content[pos]
-                return n_hum if 1.5 * n_hum <= n_mob else -n_hum
-
-            relevant_positions = sorted(
-                next_possible_positions[starting_config],
-                key=sort_function,
-                reverse=True)
-
-            if not nb_cases is None:
-                relevant_positions = relevant_positions[:nb_cases]
-
-            next_relevant_positions[starting_config] = relevant_positions
-        return next_relevant_positions
-
-    def next_relevant_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
-        """ Génère toutes les combinaisons possibles de mouvements possibles par un joueur
-
-        ITERATOR !!!
-
-        :param is_vamp: race du joueur
-        :return: liste des mouvements possibles
-        """
-        next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
-        nb_group = len(next_possible_positions)
-
-        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
-
-        for starting_config, next_positions in next_possible_positions.items():
-            _, n_mob = starting_config
-            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
-
-            pop_of_monsters = n_mob
-
-            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            split_enabled = True if nb_group_max is None else nb_group < nb_group_max
-            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
-            nb_group += 1
-
-            group_repartitions[starting_config] = repartitions
-
-        # liste des mouvements possibles par le joueur
-        # next_possible_moves = list()
-
-        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
-        for combined_repartitions in product(*group_repartitions.values()):
-
-            moves = list()  # Liste des mouvements
-
-            # Parcours de chaque groupe de monstre
-            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
-
-                starting_position, _ = starting_config
-                # Pour un groupe de monstre, où vont-ils partir ?
-                for i, n_mons in enumerate(repartition):
-                    # Au moins un monstre se déplace
-                    if n_mons:
-                        # Position d'arrivée de ce sous-groupe de monstre
-                        new_position = next_possible_positions[starting_config][i]
-
-                        # On enregistre ce mouvement pour un groupe de monstre
-                        moves.append((*starting_position, n_mons, *new_position))
-
-            if moves == []:
-                continue
-
-            yield (moves)
-
-    def compute_score_map(self, is_vamp):
-        """Calcule les scores de chaque cases de la carte et renvoie un nparray
-        :return: scores de chaque case list(list)
-        """
-        # 1 noyau gaussien, 1 noyau moyenne
-        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]])
-        avg_k   = np.array([[1,1,1],[1,1,1], [1,1,1]])
-        
-        a = 1 if is_vamp else 2
-        d = 2 if is_vamp else 1
-
-        temp = np.array(list(map(list,self.content.values())))
-        matrix = temp.reshape((self.size[0], self.size[1], 3))
-        score_hum = signal.convolve2d(matrix[...,0], gauss_k, mode="same")
-        score_adv = (signal.convolve2d(matrix[..., a], avg_k, mode="same") - matrix[...,d]) * matrix[...,d]
-        score = np.maximum(8 * score_hum, score_adv)
-        return score.tolist()
-
-    def next_ranked_moves(self, is_vamp, nb_group_max=None, stay_enabled=None):
-        score = self.compute_score_map(is_vamp)
-        ranked_moves = sorted(
-            self.next_possible_moves(is_vamp, nb_group_max, stay_enabled),
-            key= lambda moves: sum(score[move[3]][move[4]] * move[2] for move in moves),
-            reverse=True)
-        return ranked_moves
-
-    def next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None):
-        """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
-
-        :param is_vamp: race du joueur
-        :return: liste des mouvements possibles
-        """
-        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
-        nb_group = len(next_possible_positions)
-
-        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
-
-        for starting_position, next_positions in next_possible_positions.items():
-
-            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
-
-            if is_vamp:
-                pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
-            else:
-                pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
-
-            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
-            split_enabled = True
-            if not nb_group_max is None:
-                split_enabled = True if nb_group < nb_group_max else False
-            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
-            if split_enabled: nb_group += 1
-
-            group_repartitions[starting_position] = repartitions
-
-        # liste des mouvements possibles par le joueur
-        next_possible_moves = list()
-
-        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
-        for combined_repartitions in product(*group_repartitions.values()):
-
-            moves = list()  # Liste des mouvements
-
-            # Parcours de chaque groupe de monstre
-            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
-
-                # Pour un groupe de monstre, où vont-ils partir ?
-                for i, n_mons in enumerate(repartition):
-                    # Au moins un monstre se déplace
-                    if n_mons:
-                        # Position d'arrivée de ce sous-groupe de monstre
-                        new_position = next_possible_positions[starting_position][i]
-
-                        # Respect de la règle 5
-                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
-                            continue  # On ne rajoute pas cet élément
-                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
-                            continue  # On ne rajoute pas cet élément
-
-                        # On enregistre ce mouvement pour un groupe de monstre
-                        moves.append((*starting_position, n_mons, *new_position))
-
-            if moves not in next_possible_moves:
-                next_possible_moves.append(moves)
-
-        # Respect de la règle 1
-        while [] in next_possible_moves:
-            next_possible_moves.remove([])
-
-        return next_possible_moves
-
-
-    def random_moves(self, is_vamp):
-        """ Renvoie un mouvement aléatoirement choisi
-
-        :param is_vamp: race du joueur
-        :return: liste de mouvements de la forme [(i,j,n,x,y),...]
-        """
-        # Dictionnaires des mouvements rassemblés, en valeur le nombre de monstres
-        concat_moves = defaultdict(int)
-
-        next_possible_positions = self.next_possible_positions(is_vamp)
-        # On souhaite avoir au moins un mouvement
-        while not concat_moves:
-            for starting_position, next_positions in next_possible_positions.items():
-
-                if is_vamp:
-                    pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
-                else:
-                    pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
-
-                # On choisit le nombre de monstres à déplacer un à un.
-                n_moving_monsters= random.randint(0,pop_of_monsters)
-
-                for _ in range(n_moving_monsters):
-                    concat_moves[(*starting_position, *random.choice(next_positions))]+=1
-
-        # On ecrit au bon format notre liste de mouvements attendue
-        random_moves=list()
-        for (i,j,x,y),n in concat_moves.items():
-            random_moves.append((i,j,n,x,y))
-
-        return random_moves
-
-
+    ###############################################################################################
+    ############################### COMPUTE MOVES #################################################
 
     def compute_moves(self, moves):
         """
@@ -845,6 +362,10 @@ class Map:
             if old_map_content[(i, j)] != (n_hum, n_vamp, n_lg):  # Différence avec la vieille carte détectée
                 self.UPD.append((i, j, n_hum, n_vamp, n_lg))  # Enregistrement dans la liste UPD
 
+    
+    ###############################################################################################
+    ############################### POSSIBLE OUTCOMES #############################################
+
     def possible_outcomes(self, moves):
         """ Evalue une liste de mouvements, et donne en sortie pour chaque issue possible un update des positions
         et la probabilité de la dite issue
@@ -985,6 +506,700 @@ class Map:
                 possible_outcomes.append((proba_conbined_battle, possible_outcome))
 
         return possible_outcomes
+    
+    def most_probable_outcome(self,moves, is_vamp=None):
+        """
+        Met à jour et traite les déplacements d'un joueur sur la carte en considérant uniquement le cas le plus probable dans chaque configuration de bataille
+        :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
+        :return: None
+        """
+        # Race du joueur
+        if is_vamp is None:
+            is_vamp = True if self.content[(moves[0][0], moves[0][1])][1] else False
+
+        # Emplacement des batailles, avec le nombre de représentants de notre espèce à cet endroit
+        battles_to_run = defaultdict(int)
+        for i, j, n, x, y in moves:
+            # Libération des cases sources
+            old_h, old_v, old_lg = self.content[i,j]
+            if is_vamp:  # le joueur est un vampire
+                self.simple_update_content(i, j, 0,  old_v-n, 0, old_h, old_v, old_lg)
+            else:  # le joueur est un loup-garou
+                self.simple_update_content(i, j, 0, 0, old_lg - n, old_h, old_v, old_lg)
+
+            # Chargement des cases cibles
+            # On enregistre les modifications sur les cases sans bataille
+            # Population de la case cible
+            n_hum, n_vamp, n_lg = self.content[(x, y)]
+            # Si case cible est vide
+            if self.content[(x, y)] == (0, 0, 0):
+                self.simple_update_content(x, y, 0, n * is_vamp, n * (not is_vamp), 0, 0, 0)
+
+            # Case vide peuplée d'humains
+            if n_hum:
+                # On enregistre la bataille
+                battles_to_run[(x, y)] += n
+
+            # Case cible peuplée d'ami
+            # On peuple ces cases
+            if n_vamp and is_vamp:
+                self.simple_update_content(x, y, 0, (n + n_vamp), 0, n_hum, n_vamp, n_lg)
+            elif n_lg and not is_vamp:
+                self.simple_update_content(x, y, 0, 0, (n + n_lg), n_hum, n_vamp, n_lg)
+
+            # Case cible avec des ennemis
+            if n_vamp and not is_vamp or n_lg and is_vamp:
+                # On enregistre la bataille
+                battles_to_run[(x, y)] += n
+
+        # On traite les batailles enregistrées
+        for x, y in battles_to_run:
+            n_att = battles_to_run[(x, y)]  # Nombre d'attaquants
+            n_hum, n_vamp, n_lg = self.content[(x, y)]  # Populations initiales de la case cible
+
+            ######################## Bataille Humain vs Monstre ##################
+
+            if n_hum:
+
+                if self.debug_mode:
+                    print("Bataille contre humains en ({},{})".format(x, y))
+
+                # cas victoire assurée
+                if n_hum <= n_att:
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} humains vs {} attaquants".format(n_att, n_hum))
+                    n_total = n_att+n_hum
+                    # Enregistrement des nouvelles populations sur la carte
+                    self.simple_update_content(
+                        x, y, 
+                        0, is_vamp * (n_total), (not is_vamp) * (n_total),
+                        n_hum, n_vamp, n_lg)
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ({} survivants, {} humains convertis)".format(0, 0))
+
+                # cas victoire non sure
+                else:
+                    proba_p = self.proba_p(n_att, n_hum)
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} humains vs {} attaquants)".format(
+                            proba_p, n_hum, n_att))
+                    
+                    victory = proba_p > 0.5
+                    # Si victoire des monstres
+                    if victory:
+                        n_total = round((n_hum + n_att) * proba_p) # Nombre d'attaquants survivants 
+                        # Enregistrement des attaquants survivants sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            0, is_vamp * (n_total), (not is_vamp) * (n_total),
+                            n_hum, n_vamp, n_lg)
+
+                    # Si victoire des humains
+                    else:
+                        n_surv = round(n_hum * (1-proba_p)) # Nombre d'humain survivant
+                        # Enregistrement des humains survivants sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            n_surv, 0, 0,
+                            n_hum, n_vamp, n_lg)
+                    if self.debug_mode:
+                        print("Défaite de l'attaquant ({} humains survivants)".format(n_surv))
+
+            ###################### Bataille Vampires vs Loups-Garous ########################
+
+            else:
+                if self.debug_mode:
+                    print("Bataille entres monstres en ({},{})".format(x, y))
+
+                n_def = n_lg if is_vamp else n_vamp  # Nombre de défenseurs
+
+                # Victoire sure
+                if n_def * 1.5 <= n_att:
+                    if self.debug_mode:
+                        print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
+
+                    n_surv =round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
+
+                    # Enregistrement des attaquants survivants
+                    self.simple_update_content(
+                        x, y, 
+                        0, is_vamp * n_surv, (not is_vamp) * n_surv,
+                        n_hum, n_vamp, n_lg)
+
+                    if self.debug_mode:
+                        print("Victoire de l'attaquant ! {} survivants".format(n_surv))
+
+                # Victoire non sure
+                else:
+                    proba_p = self.proba_p(n_att, n_def)
+                    if self.debug_mode:
+                        print("Probabilité de victoire : {:.2f}% ({} défenseurs vs {} attaquants)".format(
+                            proba_p, n_def, n_att))
+
+                    victory = proba_p > 0.5
+                    # Victoire de l'attaquant
+                    if victory:
+                        n_surv = round(n_att * proba_p)
+                        self.simple_update_content(
+                            x, y, 
+                            0, is_vamp * n_surv, (not is_vamp) * n_surv,
+                            n_hum, n_vamp, n_lg)
+
+                    # Victoire du défenseur
+                    else:
+                        n_surv = round(n_def * (1-proba_p))  # Nombre de défenseur survivant
+                        # Enregistrement sur la carte
+                        self.simple_update_content(
+                            x, y, 
+                            0, (not is_vamp) * n_surv, is_vamp * n_surv,
+                            n_hum, n_vamp, n_lg)
+
+                    if self.debug_mode:
+                        print("Défaite de l'attaquant ({} défenseurs survivants)".format(n_surv))
+
+    ###############################################################################################
+    ############################### Next ************* positions ##################################
+
+    def next_possible_positions(self, is_vamp):
+        """
+        Une fonction qui génère TOUTES les positions possibles à partir d'une carte (8 mouvements pour chaque groupe) \n
+
+        :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
+        """
+
+        new_positions = defaultdict(list)
+
+        # On récupère toutes les positions initiales possibles
+        if is_vamp:  # Le joueur est un loup-garou
+            starting_positions = [x_y for x_y in self.content if self.content[x_y][1] != 0]
+        else:  # Le joueur est un loup-garou
+            starting_positions = [x_y for x_y in self.content if self.content[x_y][2] != 0]
+
+        x_max, y_max = self.size
+
+        for starting_pos in starting_positions:
+            x_old, y_old = starting_pos
+
+            available_positions = [(x_old + i, y_old + j) for i, j in product((-1, 0, 1), repeat=2) \
+                                   if (i, j) != (0, 0) \
+                                   and 0 <= (x_old + i) < x_max \
+                                   and 0 <= (y_old + j) < y_max
+                                   ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
+            for new_pos in available_positions:
+                new_positions[starting_pos].append(new_pos)
+        return new_positions
+
+    def next_possible_positions_2(self, is_vamp, nb_group_max=None):
+        """
+        Une fonction qui génère un ensemble de positions possibles à partir d'une carte.
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considère que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
+
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré)
+
+        :return: next_posible_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs les nouvelles positions possibles
+        """
+        new_positions = defaultdict(list)
+        # Race du joueur
+        race = 1 if is_vamp else 2
+
+        # On récupère toutes les positions initiales possibles
+        starting_positions = []
+        for (x, y), content in self.content.items():
+            if content[race] != 0:
+                starting_positions.append(((x, y), content[race]))
+        
+        if not nb_group_max is None:
+            if len(starting_positions) > nb_group_max:
+                starting_positions = sorted(starting_positions, key=itemgetter(1), reverse=True)
+                starting_positions = starting_positions[:nb_group_max]
+
+        x_max, y_max = self.size
+        x_mid = x_max//2; y_mid = y_max//2
+
+        for starting_pos in starting_positions:
+            (x_old, y_old), _ = starting_pos
+
+            # K1 vers le bas / gauche ~~
+            if x_old <= x_mid and y_old <= y_mid:
+                #offset_x = (0,-1,1); offset_y = (1,0,-1)
+                offset = ((-1,1), (0,1), (-1,0), (1,1), (-1,-1), (1,0), (0,-1), (1,-1))
+            # K2 vers la droite / bas
+            if x_old <= x_mid and y_old > y_mid:
+                #offset_x = (1,0,-1); offset_y = (0,1,-1)
+                offset = ((1,1), (1,0), (0,1), (1,-1), (-1,1), (0,-1), (-1,0), (-1,-1))
+            # K3 vers la gauche /haut
+            if x_old > x_mid and y_old <= y_mid:
+                #offset_x = (-1, 0 ,1); offset_y = (0,-1,1)
+                offset = ((-1,-1), (-1,0), (0,-1), (-1,1), (1, -1), (0,1), (1,0), (1,1))
+            # K4 vers le haut / droite
+            if x_old > x_mid and y_old > y_mid:
+                #offset_x = (0,-1,1); offset_y = (-1,0,1)
+                offset = ((1, -1), (0,-1), (1,0), (-1,-1), (1,1), (-1,0), (0,1), (-1,1))
+
+            available_positions = [(x_old + i, y_old + j) for i, j in offset \
+                                   if 0 <= (x_old + i) < x_max \
+                                   and 0 <= (y_old + j) < y_max
+                                   ]  # pas de condition sur la règle 5 ici, pour ne pas être trop restrictif
+            for new_pos in available_positions:
+                new_positions[starting_pos].append(new_pos)
+        return new_positions
+
+    def next_relevant_positions(self, is_vamp, nb_group_max=None, nb_cases=None):
+        """
+        Une fonction qui genere un ensemble de positions pertinentes à partir d'une carte.
+        
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considere que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
+
+        De plus on ne renvoie que :param: nb_cases cases pour chaque groupes (ELAGAGE).
+
+        On choisit ces cases en fonctions du nombre d'humains mangeables présents sur chaque case.
+
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param:  nb_cases : nombre de cases renvoyées par groupes
+
+        :return: next_relevant_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs les nouvelles positions possibles
+        """
+        next_possible_positions = self.next_possible_positions_2(is_vamp, nb_group_max)
+        next_relevant_positions = {}
+    
+        for starting_config in next_possible_positions:
+            _, n_mob = starting_config
+            
+            def sort_function(pos):
+                n_hum, n_vamp, n_lg = self.content[pos]
+                n_adv = n_lg if is_vamp else n_vamp
+                score_h   = n_hum if n_hum <= n_mob else -n_hum
+                score_adv = n_adv if 1.5*n_adv <= n_mob else -n_adv
+                return score_h + score_adv 
+
+            relevant_positions = sorted(
+                next_possible_positions[starting_config],
+                key=sort_function,
+                reverse=True)
+
+            if not nb_cases is None:
+                relevant_positions = relevant_positions[:nb_cases]
+            
+            next_relevant_positions[starting_config] = relevant_positions
+        return next_relevant_positions 
+
+    def next_relevant_positions_2(self, is_vamp, nb_group_max=None, nb_cases=None):
+        """
+        Une fonction qui genere un ensemble de positions pertinentes à partir d'une carte.
+        
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considere que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
+
+        De plus on ne renvoie que :param: nb_cases cases pour chaque groupes (ELAGAGE).
+
+        On choisit ces cases en fonctions du nombre d'humains mangeables présents sur chaque case.
+
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param:  nb_cases : nombre de cases renvoyées par groupes
+
+        :return: next_relevant_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs sont ([pos1, pos2, ...], split_enabled)
+        """
+        next_possible_positions = self.next_possible_positions_2(is_vamp, nb_group_max)
+        next_relevant_positions = {}
+    
+        for starting_config, next_positions in next_possible_positions.items():
+            _, n_mob = starting_config
+            
+            def score_func(pos):
+                n_hum, n_vamp, n_lg = self.content[pos]
+                n_adv = n_lg if is_vamp else n_vamp
+                score_h   = n_hum if n_hum <= n_mob else -n_hum
+                score_adv = n_adv if 1.5*n_adv <= n_mob else -n_adv
+                return score_h + score_adv 
+
+            score_list = [score_func(pos) for pos in next_positions]
+
+            if min(score_list) == 0 and max(score_list) == 0:
+                relevant_positions = next_positions
+                split_enabled = False
+            else:
+                relevant_positions = [pos for _,pos in sorted(zip(score_list, next_positions), reverse=True)]
+                split_enabled = True
+                if not nb_cases is None:
+                    relevant_positions = relevant_positions[:nb_cases]
+
+            next_relevant_positions[starting_config] = (relevant_positions, split_enabled)
+        return next_relevant_positions 
+
+    ###############################################################################################
+    ################################## REPARTITIONS ###############################################
+    @staticmethod
+    def repartitions_recursive(pop_of_monster, n_case):
+        """ Renvoie TOUTES les répartitions d'au plus pop_of_monster dans n_case \n\n
+
+        :param pop_of_monster: int \n
+        :param n_case: int \n 
+        :return: list : liste des répartitions possibles
+        """
+        repartitions = list()
+
+        if pop_of_monster == 0:
+            return [[0] * n_case]
+        if n_case == 1:
+            for pop_last_case in range(pop_of_monster + 1):
+                repartitions.append([pop_last_case])
+            return repartitions
+        for pop_first_case in range(pop_of_monster + 1):
+            for rep in Map.repartitions_recursive(pop_of_monster - pop_first_case, n_case - 1):
+                new_rep = [pop_first_case] + rep
+                repartitions.append(new_rep)
+        return repartitions
+    
+    @staticmethod
+    def relevant_repartitions(pop_of_monster, n_case, split_enabled=True, stay_enabled=True):
+        """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
+            - max 2 sous-groupes à la fin
+            - pas de sous-groupe de moins de pop_of_monster // 3
+            - un pas de repartitions = max(1, pop//5)
+
+        :param pop_of_monster: int
+        :param n_case: int
+        :return: list : liste des répartitions possibles
+        """
+
+        pop_combinaisons = list()
+        min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
+        for pop_1 in range(0, pop_of_monster if split_enabled else 1, max(1, pop_of_monster // 5)):
+            pop_2 = pop_of_monster - pop_1
+            if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
+                continue
+            pop_combinaisons.append((pop_1, pop_2))
+        
+        repartitions = list()
+        if stay_enabled:repartitions.append([0] * n_case) # cas trivial
+        
+        for pop_1, pop_2 in pop_combinaisons:
+            if pop_1 == 0 or stay_enabled:
+                for j in range(n_case): # Le groupe 1 reste sur la case de départ
+                    l = [0] * n_case
+                    l[j] = pop_2
+                    repartitions.append(l)
+
+            if pop_1 == 0: continue # On évite n_case - 1 doublons 
+            for i in range(n_case-1):
+                for j in range(i+1, n_case):
+                    l = [0] * n_case
+                    l[i] = pop_1
+                    l[j] = pop_2
+                    repartitions.append(l)
+        return repartitions
+
+    ###############################################################################################
+    ################### Next **************** moves ###############################################
+
+    def next_possible_moves(self, is_vamp):
+        """ Renvoie TOUTES les combinaisons possibles de mouvements possibles par un joueur
+
+        :param is_vamp: race du joueur
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_position, next_positions in next_possible_positions.items():
+
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            if is_vamp:
+                pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
+            else:
+                pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            repartitions = Map.repartitions_recursive(pop_of_monsters, n_case)
+
+            group_repartitions[starting_position] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_position, repartition in zip(group_repartitions.keys(), combined_repartitions):
+
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_position][i]
+
+                        # Respect de la règle 5
+                        if new_position in [(x_old, y_old) for x_old, y_old, *_ in moves]:
+                            continue  # On ne rajoute pas cet élément
+                        if starting_position in [(new_x, new_y) for *_, new_x, new_y in moves]:
+                            continue  # On ne rajoute pas cet élément
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves not in next_possible_moves:
+                next_possible_moves.append(moves)
+
+        # Respect de la règle 1
+        while [] in next_possible_moves:
+            next_possible_moves.remove([])
+
+        return next_possible_moves
+
+    def compute_score_map(self, is_vamp):
+        """Calcule les scores de chaque cases de la carte et renvoie un nparray
+        :return: scores de chaque case list(list)
+        """
+        # 1 noyau gaussien, 1 noyau moyenne
+        gauss_k = np.array([[1,1,1],[1,2,1], [1,1,1]])
+        avg_k   = np.array([[1,1,1],[1,1,1], [1,1,1]])
+        
+        a = 1 if is_vamp else 2
+        d = 2 if is_vamp else 1
+
+        temp = np.array(list(map(list,self.content.values())))
+        matrix = temp.reshape((self.size[0], self.size[1], 3))
+        score_hum = signal.convolve2d(matrix[...,0], gauss_k, mode="same")
+        score_adv = (signal.convolve2d(matrix[..., a], avg_k, mode="same") - matrix[...,d]) * matrix[...,d]
+        score = np.maximum(8 * score_hum, score_adv)
+        return score.tolist()
+
+    def next_ranked_moves(self, is_vamp, nb_group_max=None, stay_enabled=None):
+        score = self.compute_score_map(is_vamp)
+        ranked_moves = sorted(
+            self.next_possible_moves(is_vamp),
+            key= lambda moves: sum(score[move[3]][move[4]] * move[2] for move in moves),
+            reverse=True)
+        return ranked_moves
+
+    def random_moves(self, is_vamp):
+        """ Renvoie un mouvement aléatoirement choisi
+
+        :param is_vamp: race du joueur
+        :return: liste de mouvements de la forme [(i,j,n,x,y),...]
+        """
+        # Dictionnaires des mouvements rassemblés, en valeur le nombre de monstres
+        concat_moves = defaultdict(int)
+
+        next_possible_positions = self.next_possible_positions(is_vamp)
+        # On souhaite avoir au moins un mouvement
+        while not concat_moves:
+            for starting_position, next_positions in next_possible_positions.items():
+
+                if is_vamp:
+                    pop_of_monsters = self.content[starting_position][1]  # Nombre de vampires sur la case
+                else:
+                    pop_of_monsters = self.content[starting_position][2]  # Nombre de loup-garous sur la case
+
+                # On choisit le nombre de monstres à déplacer un à un.
+                n_moving_monsters= random.randint(0,pop_of_monsters)
+
+                for _ in range(n_moving_monsters):
+                    concat_moves[(*starting_position, *random.choice(next_positions))]+=1
+
+        # On ecrit au bon format notre liste de mouvements attendue
+        random_moves=list()
+        for (i,j,x,y),n in concat_moves.items():
+            random_moves.append((i,j,n,x,y))
+
+        return random_moves
+
+    # Version Charles
+    def next_relevant_possible_moves(self,is_vamp, nb_moves=3):
+        """ Renvoie les combinaisons de mouvements pertinentes pour un joueur. \n\n
+
+            Hypotheses: \n
+            - on ne considère que les groupes d'humains convertible a 100% => risque de ne pas
+            pouvoir bouger si y a que des gros \n
+            - demi-dist de l'ennemi => risque immobilisation si ennemi a cote \n
+            - si il y a rien d'interessant prendre une direction rapprochant d'un groupe humain
+            convertible    ________________ A IMPLEMENTER AVEC UN ALGO A* ________________
+            :param is_vamp: race du joueur \n
+            :return: liste ordonnée des meilleurs mouvements possibles
+        """
+        next_possible_positions = self.next_possible_positions(is_vamp)
+        next_best_moves = {}
+        x_max, y_max = self.size
+        
+
+        if is_vamp: all_ennemis = [x_y for x_y in self.content if self.content[x_y][2]]
+        else : all_ennemis = [x_y for x_y in self.content if self.content[x_y][1]]
+
+        #all_humains = [x_y for x_y in self.content if self.content[x_y][0]]
+
+        for starting_position, moves in next_possible_positions.items():
+            # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
+            # ... afin de régler la taille du kernel pour le produit de convolution. On considère
+            # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
+            dangerous_enn = [x_y for x_y in all_ennemis \
+                                # sum donne le nombre d'individus sur la case
+                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
+
+            if dangerous_enn :
+                # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
+                dist_min = min( [ int(max(abs(group_enn[0]-starting_position[0]),abs(group_enn[1]-starting_position[1]))/2)-1 \
+                                    for group_enn in dangerous_enn ] )
+                if dist_min < 0:
+                    print("ATTENTION ennemi a cote")
+                    """ prevoir le passage au mode defensif si ennemi trop gros une case a cote
+                    de nous """
+
+            else : #distance par défaut
+                if self.debug_mode:
+                    print("\nPas d'ennemi dangereux -> dist_min = 1/2 * taille carte ")
+                dist_min = min(x_max//2, y_max//2)
+            
+            # on calcule le produit de convolution de noyau de taille (2*dist_min+1) pour chaque case autour de notre groupe 
+            valeur = []
+            for direction in moves:
+                grad = 0
+                for i in range(-dist_min, dist_min+1):
+                    for j in range(-dist_min, dist_min+1):
+                        try :
+                            # on récupère les groupes d'humains suffisamment petits (<= taille)
+                            hum = self.content[(direction[0] + i, direction[1] + j)][0]
+                            if hum <= sum(self.content[starting_position]) :
+                                grad += hum
+                        except:
+                            pass
+                valeur.append( (grad, sum(self.content[direction]), direction) )
+            
+            """if not all(v == 0 for v in [x[0] for x in valeur]): """
+            valeur.sort(key=lambda x: (-x[1], -x[0]))
+            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
+
+            if self.debug_mode:
+                    print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
+                    print("Produit de convolution (gradient, nb_humains dans la cellule, coord) :\n", valeur,"\n")
+
+        return next_best_moves
+
+    def i_next_relevant_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """
+        Renvoie (genere) les mouvements pertinents possibles pour un joueur
+
+        ITERATOR !!!
+
+        :param: is_vamp: race du joueur
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param: stay_enabled : si True, autorise les groupes à ne pas bouger (au moins 1 mouvement est conservé)
+        :param: nb_cases : nombre de cases renvoyées par groupes
+
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
+        nb_group = len(next_possible_positions)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_config, next_positions in next_possible_positions.items():
+            _, n_mob = starting_config
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            pop_of_monsters = n_mob
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            split_enabled = True if nb_group_max is None else nb_group < nb_group_max
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
+            nb_group += 1
+
+            group_repartitions[starting_config] = repartitions
+
+        # liste des mouvements possibles par le joueur
+        #next_possible_moves = list()
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
+                
+                starting_position, _ = starting_config
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_config][i]
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves == []:
+                continue
+
+            yield(moves)
+
+    def i_next_relevant_moves_2(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """
+        Renvoie (genere) les mouvements pertinents possibles pour un joueur
+
+        ITERATOR !!!
+
+        :param: is_vamp: race du joueur
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param: stay_enabled : si True, autorise les groupes à ne pas bouger (au moins 1 mouvement est conservé)
+        :param: nb_cases : nombre de cases renvoyées par groupes
+
+        :return: liste des mouvements possibles
+        """
+        next_possible_positions = self.next_relevant_positions_2(is_vamp, nb_group_max, nb_cases)
+        nb_group = len(next_possible_positions)
+
+        group_repartitions = {}  # pour chaque groupe, on regarde la répartition de monstres autour de la case de départ
+
+        for starting_config, (next_positions, split_enabled) in next_possible_positions.items():
+            _, n_mob = starting_config
+            n_case = len(next_positions)  # Nombre de nouvelles positions possibles
+
+            pop_of_monsters = n_mob
+
+            # Toutes les possibilités de répartitions à pop_of_monstres monstres sur n_case cases
+            split_enabled &= True if nb_group_max is None else nb_group < nb_group_max
+            repartitions = Map.relevant_repartitions(pop_of_monsters, n_case, split_enabled, stay_enabled)
+            nb_group += 1
+
+            group_repartitions[starting_config] = repartitions
+
+        # On s'intéresse à toutes les combinaisons possibles de mouvements sur chaque groupe
+        for combined_repartitions in product(*group_repartitions.values()):
+
+            moves = list()  # Liste des mouvements
+
+            # Parcours de chaque groupe de monstre
+            for starting_config, repartition in zip(group_repartitions.keys(), combined_repartitions):
+                
+                starting_position, _ = starting_config
+                # Pour un groupe de monstre, où vont-ils partir ?
+                for i, n_mons in enumerate(repartition):
+                    # Au moins un monstre se déplace
+                    if n_mons:
+                        # Position d'arrivée de ce sous-groupe de monstre
+                        new_position = next_possible_positions[starting_config][0][i]
+
+                        # On enregistre ce mouvement pour un groupe de monstre
+                        moves.append((*starting_position, n_mons, *new_position))
+
+            if moves == []:
+                continue
+
+            yield(moves)
+
+    #############################################################################################
+    #############################################################################################
 
     @staticmethod
     def binomial_coefficient(k, n):
@@ -1211,6 +1426,9 @@ class Map:
             print("|")
         print("_" * (self.size[0] * 5))
 
+        self.print_score()
+
+    def print_score(self):
         # Score
         n_hum, n_vamp, n_lg = self.populations
         print(
@@ -1221,13 +1439,6 @@ class Map:
 if __name__ == "__main__":
     carte = Map()
     carte.print_map()
-    carte.update_content([(1,1,3,0,0)])
-    carte.print_map()
-    moves=[(0,1,2,1,1)]
-    print()
-    carte.most_probable_outcome(moves)
-    carte.print_map()
-
 
     #print(carte.next_possible_relevant_moves(True, 3))
 

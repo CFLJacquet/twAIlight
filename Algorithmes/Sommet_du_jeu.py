@@ -1,6 +1,6 @@
 from copy import deepcopy, copy
 
-from Map import Map
+from twAIlight.Map import Map
 
 
 class SommetChance:

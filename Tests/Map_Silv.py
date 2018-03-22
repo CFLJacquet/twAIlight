@@ -179,7 +179,7 @@ class Map:
 
     def update_content(self, positions):
         """
-        Mise à jour simple de la carte
+        Mise à jour de la carte
         :param positions: liste de quintuplets de la forme (i,j,n_hum, n_vampire, n_loup_garou) avec i,j les coordonnées de la case
         n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
         :return: None
@@ -189,6 +189,12 @@ class Map:
             self.simple_update_content(i, j, n_hum, n_vamp, n_lg, old_h, old_v, old_lg)
     
     def simple_update_content(self, i, j, n_hum, n_vamp, n_lg, old_h, old_v, old_lg):
+        """
+        Mise à jour simple de la carte
+        :param positions: 1 quintuplet de la forme (i,j,n_hum, n_vampire, n_loup_garou) avec i,j les coordonnées de la case
+        n_humain le nombre d'humains, n_vampire le nombre de vampires et n_loup_garou le nombre de loups garous
+        :return: None
+        """
         # On déhash l'ancienne position
         self._hash ^= self.hash_position((i, j, old_h, old_v, old_lg))
 
@@ -246,13 +252,17 @@ class Map:
         return repartitions
 
 
-    def next_possible_positions(self, is_vamp, nb_group_max=None):
+    def next_possible_positions_2(self, is_vamp, nb_group_max=None):
         """
-        Une fonction qui génère toutes les positions possibles à partir d'une carte (8 mouvements pour chaque groupe) \n
+        Une fonction qui génère un ensemble de positions possibles à partir d'une carte.
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considère que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
 
-        :return: new_positions : un dictionnaire dont les clefs sont (x_old,y_old) et les valeurs les nouvelles positions possibles
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré)
+
+        :return: next_posible_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs les nouvelles positions possibles
         """
-
         new_positions = defaultdict(list)
         # Race du joueur
         race = 1 if is_vamp else 2
@@ -284,7 +294,23 @@ class Map:
 
 
     def next_relevant_positions(self, is_vamp, nb_group_max=None, nb_cases=None):
-        next_possible_positions = self.next_possible_positions(is_vamp, nb_group_max)
+        """
+        Une fonction qui genere un ensemble de positions pertinentes à partir d'une carte.
+        
+        Au lieu de renvoyer toutes les cases autour de chaque groupe, on ne considere que 
+        les :param: nb_group_max groupes ayant le plus de monstres 
+
+        De plus on ne renvoie que :param: nb_cases cases pour chaque groupes (ELAGAGE).
+
+        On choisit ces cases en fonctions du nombre d'humains mangeables présents sur chaque case.
+
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param:  nb_cases : nombre de cases renvoyées par groupes
+
+        :return: next_relevant_positions : un dictionnaire dont les clefs sont ((x_old,y_old), pop_old) 
+                                 et les valeurs les nouvelles positions possibles
+        """
+        next_possible_positions = self.next_possible_positions_2(is_vamp, nb_group_max)
         next_relevant_positions = {}
     
         for starting_config in next_possible_positions:
@@ -306,10 +332,15 @@ class Map:
         return next_relevant_positions 
 
 
-    def next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
-        """ Renvoie toutes les combinaisons possibles de mouvements possibles par un joueur
+    def next_relevant_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """
+        Renvoie une liste des mouvements pertinents possibles pour un joueur
 
-        :param is_vamp: race du joueur
+        :param: is_vamp: race du joueur
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param: stay_enabled : si True, autorise les groupes à ne pas bouger (au moins 1 mouvement est conservé)
+        :param: nb_cases : nombre de cases renvoyées par groupes
+
         :return: liste des mouvements possibles
         """
         next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
@@ -361,12 +392,15 @@ class Map:
 
         return next_possible_moves
 
-    def i_next_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
-        """ Génère toutes les combinaisons possibles de mouvements possibles par un joueur
+    def i_relevant_possible_moves(self, is_vamp, nb_group_max=None, stay_enabled=None, nb_cases=None):
+        """
+        Renvoie (genere) les mouvements pertinents possibles pour un joueur
 
-        ITERATOR !!!
+        :param: is_vamp: race du joueur
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+        :param: stay_enabled : si True, autorise les groupes à ne pas bouger (au moins 1 mouvement est conservé)
+        :param: nb_cases : nombre de cases renvoyées par groupes
 
-        :param is_vamp: race du joueur
         :return: liste des mouvements possibles
         """
         next_possible_positions = self.next_relevant_positions(is_vamp, nb_group_max, nb_cases)
@@ -424,7 +458,7 @@ class Map:
         # Dictionnaires des mouvements rassemblés, en valeur le nombre de monstres
         concat_moves = defaultdict(int)
 
-        next_possible_positions = self.next_possible_positions(is_vamp)
+        next_possible_positions = self.next_relevant_positions(is_vamp)
         # On souhaite avoir au moins un mouvement
         while not concat_moves:
             for starting_config, next_positions in next_possible_positions.items():
@@ -445,7 +479,7 @@ class Map:
         return random_moves
 
 
-    def most_probable_outcome(self, moves, is_vamp):
+    def most_probable_outcome_2(self, moves, is_vamp):
         """
         Met à jour et traite les déplacements d'un joueur sur la carte en considérant uniquement le cas le plus probable dans chaque configuration de bataille
         :param moves: liste de quintuplets de la forme (i,j,n,x,y) pour un déplacement de n individus en (i,j) vers (x,y)
@@ -885,7 +919,7 @@ class Map:
 if __name__ == "__main__":
     carte = Map()
     carte.print_map()
-    print(len(carte.next_possible_moves(True, nb_group_max=1)))
+    #print(len(carte.next_possible_moves(True, nb_group_max=1)))
 
     #print(carte.next_possible_relevant_moves(True, 3))
 

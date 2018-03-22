@@ -8,8 +8,8 @@ from scipy import signal
 
 from twAIlight.Map import Map
 #from twAIlight.Cartes.Map_Ligne13 import MapLigne13
-from twAIlight.Cartes.Map_Silv_Ligne13 import MapLigne13
-from twAIlight.Cartes.Map_Silv_Map8 import Map8
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Cartes.Map_Map8 import Map8
 from twAIlight.Cartes.Map_TheTrap import MapTheTrap
 
 def create_matrix1(carte):
@@ -149,7 +149,7 @@ def test_main_map(carte):
         carte.compute_moves(random.choice(next_moves[:5]))
 
 if __name__ == '__main__':
-    carte = MapLigne13()
+    carte = Map8()
     # POP_M = 1
     # N_CASE = 8
     #test_relevant_repartitions(carte, POP_M, N_CASE)
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     import cProfile
     #cProfile.run("test_possible_moves(carte)")
     def to_test(carte):
-        next_moves = carte.next_possible_moves(True, nb_group_max=None, stay_enabled=None, nb_cases=1)
+        next_moves = carte.next_possible_moves(True, nb_group_max=None, stay_enabled=None)
         #carte.print_map()
         return len(next_moves), next_moves
     cProfile.run("print(to_test(carte))")

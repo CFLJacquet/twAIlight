@@ -85,7 +85,7 @@ class SommetOutcome_MinMax(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_ranked_moves(self.is_vamp):
+            for moves in self.map.next_possible_moves(self.is_vamp):
                 child = SommetChance_MinMax(is_vamp=self.is_vamp, depth=self.depth, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)
@@ -144,9 +144,12 @@ class SommetOutcome_MinMax(SommetOutcome):
 
 
 if __name__ == '__main__':
-    carte = Map8()
-    racine=SommetOutcome_MinMax(is_vamp=True, depth=1, game_map=carte, init_map=True)
+    carte = MapLigne13()
     import cProfile
-    cProfile.run("racine.next_move()")
+    def to_test():
+        for _ in range(200):
+            racine=SommetOutcome_MinMax(is_vamp=True, depth=2, game_map=carte, init_map=True)
+            racine.next_move()
+    cProfile.run("to_test()")
 
     #print(racine.next_move())
