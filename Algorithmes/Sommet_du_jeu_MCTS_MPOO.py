@@ -2,12 +2,12 @@ from copy import deepcopy
 import random
 from math import sqrt, log
 
-from Algorithmes.Sommet_du_jeu import SommetOutcome
-from Map import Map
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import Map8
-from Cartes.Map_Random import MapRandom
-from Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
+from twAIlight.Map import Map
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Cartes.Map_Map8 import Map8
+from twAIlight.Cartes.Map_Random import MapRandom
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 
 class SommetMonteCarlo(SommetOutcome):
@@ -46,7 +46,7 @@ class SommetMonteCarlo(SommetOutcome):
     def children(self):
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp, nb_group_max=self.nb_group_max,
+            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max,
                                                       stay_enabled=self.stay_enabled,
                                                       nb_cases=self.nb_cases[self.depth]):
                 # Création du sommet fils
@@ -175,7 +175,7 @@ class SommetMonteCarlo(SommetOutcome):
 
 
 if __name__ == '__main__':
-    carte = Map8()
+    """ carte = Map8()
     carte.print_map()
     racine= SommetMonteCarlo(
         depth=11,
@@ -214,9 +214,15 @@ if __name__ == '__main__':
     print("Sommets créés :")
     print(SommetMonteCarlo.nb_vertices_created())
     print("Nombre de simulations :")
-    print(racine.n_games)
-"""
+    print(racine.n_games) """
+
     carte=MapLigne13()
-    racine = SommetOutcome_MonteCarlo(is_vamp=True, game_map=carte)
+    racine= SommetMonteCarlo(
+        depth=11,
+        nb_group_max=2,
+        stay_enabled=False,
+        nb_cases=[None,1,1,1,1,2,1,2,2,3,2,5],
+        game_map=carte,
+        is_vamp=True)
     import cProfile
-    cProfile.run("[racine.MCTS() for _ in range(20)]")"""
+    cProfile.run("[racine.MCTS() for _ in range(20)]")

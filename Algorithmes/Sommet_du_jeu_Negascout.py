@@ -129,11 +129,11 @@ class SommetDuJeu_Negascout(SommetOutcome):
 if __name__ == '__main__':
     carte = Map8()
 
-    next_move = carte.next_relevant_moves(
+    next_move = next(carte.i_next_relevant_moves_2(
         False,
         stay_enabled=False,
         nb_group_max=4,
-        nb_cases=8)[0]
+        nb_cases=8))
 
     carte.compute_moves(next_move)
 

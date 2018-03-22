@@ -2,14 +2,15 @@
 from copy import deepcopy
 from time import time
 
-from Joueur_Interne import JoueurInterne
-from Serveur_Interne import ServeurInterne
-from Algorithmes.Sommet_du_jeu_MCTS_MPOO import SommetMonteCarlo
-from Map import Map
-from Cartes.Map_Dust2 import MapDust2
-from Cartes.Map_TheTrap import MapTheTrap
-from Cartes.Map_Map8 import  Map8
-from Cartes.Map_Ligne13 import MapLigne13
+from twAIlight.Joueur_Interne import JoueurInterne
+from twAIlight.Serveur_Interne import ServeurInterne
+from twAIlight.Algorithmes.Sommet_du_jeu_MCTS_MPOO import SommetMonteCarlo
+from twAIlight.Algorithmes.Algo_Naive import AlgoNaive
+from twAIlight.Map import Map
+from twAIlight.Cartes.Map_Dust2 import MapDust2
+from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from twAIlight.Cartes.Map_Map8 import  Map8
+from twAIlight.Cartes.Map_Ligne13 import MapLigne13
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -44,7 +45,7 @@ class AlgoMCTSMPOO(JoueurInterne):
 
 
         start_time = time()
-        while time() < start_time + 2:
+        while time() < start_time + 1.8:
             racine.MCTS()
 
         max_child = max(racine.children,
@@ -65,11 +66,11 @@ class AlgoMCTSMPOO(JoueurInterne):
 
 
 if __name__ == "__main__":
-    Joueur1 = AlgoAleatoireInterne
+    Joueur1 = AlgoNaive
     Joueur2 = AlgoMCTSMPOO
     Carte = MapLigne13
     Serveur = ServeurInterne(Carte, Joueur1, Joueur2, name1="Aléatoire", name2="MonteCarlo", print_map=True,
-                             debug_mode=False)
+                             debug_mode=True)
     Serveur.start()
     Serveur.join()
     print(AlgoMCTSMPOO.nb_vertices_created())

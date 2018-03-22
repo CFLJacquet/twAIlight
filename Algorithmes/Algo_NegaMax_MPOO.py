@@ -23,7 +23,7 @@ class AlgoAleatoireInterne(JoueurInterne):
         if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
         if show_map: self.map.print_map()
 
-        return random.choice(self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=3, stay_enabled=False))
+        return next(self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=3, stay_enabled=False))
 
 class AlgoNaive(JoueurInterne):
 
