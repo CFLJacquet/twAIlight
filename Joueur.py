@@ -12,8 +12,8 @@ PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi
 
 
-# HOTE = sys.argv[1]
-# PORT = int(sys.argv[2])
+#HOTE = sys.argv[1]
+#PORT = int(sys.argv[2])
 
 class Joueur(Thread):
     """

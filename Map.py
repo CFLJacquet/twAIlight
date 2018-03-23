@@ -831,6 +831,7 @@ class Map:
             next_relevant_positions[starting_config] = (relevant_positions, split_enabled)
         return next_relevant_positions 
 
+
     ###############################################################################################
     ################################## REPARTITIONS ###############################################
     @staticmethod
@@ -893,6 +894,42 @@ class Map:
                     l[j] = pop_2
                     repartitions.append(l)
         return repartitions
+    
+    
+    @staticmethod
+    def i_relevant_repartitions(pop_of_monster, n_case, split_enabled=True):
+        """ Renvoie les répartitions pertinentes d'au plus pop_of_monster dans n_case :
+            - max 2 sous-groupes à la fin
+            - pas de sous-groupe de moins de pop_of_monster // 3
+            - un pas de repartitions = max(1, pop//5)
+
+        :param pop_of_monster: int
+        :param n_case: int
+        :return: list : liste des répartitions possibles
+        """
+
+        pop_combinaisons = list()
+        min_size = max(pop_of_monster // 3, 2) if pop_of_monster > 1 else 0
+        for pop_1 in range(0, pop_of_monster if split_enabled else 1, max(1, pop_of_monster // 5)):
+            pop_2 = pop_of_monster - pop_1
+            if  0 < pop_1 < min_size or 0 < pop_2 < min_size:
+                continue
+            pop_combinaisons.append((pop_1, pop_2))
+        
+        for pop_1, pop_2 in pop_combinaisons:
+            if pop_1 == 0:
+                for j in range(n_case): # Le groupe 1 reste sur la case de départ
+                    l = [0] * n_case
+                    l[j] = pop_2
+                    yield(l)
+                continue
+
+            for i in range(n_case-1):
+                for j in range(i+1, n_case):
+                    l = [0] * n_case
+                    l[i] = pop_1
+                    l[j] = pop_2
+                    yield(l)
 
     ###############################################################################################
     ################### Next **************** moves ###############################################
@@ -1198,8 +1235,116 @@ class Map:
 
             yield(moves)
 
+
+    def i_next_relevant_moves_3(self, is_vamp, nb_moves_max=10, dist_max=6, nb_group_max=6):
+        """
+        Renvoie (genere) les mouvements pertinents possibles pour un joueur
+
+        ITERATOR !!!
+
+        :param: is_vamp: race du joueur
+        :param: nb_moves_max : nombre de moves renvoyés maximum
+        :param: dist_max : distance maximum où sont considérée les groupes non alliés
+        :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
+
+        :return: liste des mouvements possibles
+        """
+        race = 1 if is_vamp else 2
+        adv  = 2 if is_vamp else 1
+        hum  = 0
+
+        starting_positions = set()
+        adv_positions = set()
+        hum_positions = set()
+
+        for x_y, content in self.content.items():
+            if   content[race] != 0: starting_positions.add(x_y)
+            elif content[adv]  != 0: adv_positions.add(x_y)
+            elif content[hum]  != 0: hum_positions.add(x_y)
+
+        all_pos_moves = defaultdict(list)
+
+        for (i, j) in starting_positions:
+
+            # La liste de direction non vide
+            directions = defaultdict(set)
+            for (x,y) in hum_positions:
+                directions[(self.sign(x-i), self.sign(y-j))].add(((x,y), max(abs(x-i), abs(y-j))))
+            for (x,y) in adv_positions:
+                directions[(self.sign(x-i), self.sign(y-j))].add(((x,y), max(abs(x-i), abs(y-j))))
+            if not hum_positions:
+                for (x,y) in starting_positions:
+                    directions[(self.sign(x-i), self.sign(y-j))].add(((x,y), max(abs(x-i), abs(y-j))))
+
+            
+            next_posible_positions = [(i+x, j+y) for (x,y) in directions]
+
+            # On crée la liste de mouvements associés à la liste de positions
+            n_case = len(next_posible_positions)  # Nombre de nouvelles positions possibles
+            pop_of_monsters = self.content[(i,j)][race]
+            repartitions = Map.i_relevant_repartitions(
+                pop_of_monsters, n_case,
+                len(starting_positions) < nb_group_max)
+
+            moves = list()
+            moves_score = list()
+
+            def compute_score(n_mob, i, j, x_dir, y_dir):
+                score = 0
+                for x_y, dist in directions[x_dir, y_dir]:
+                    if score and dist >= dist_max:continue
+                    n_hum, n_vamp, n_lg = self.content[x_y]
+                    n_ally = n_vamp if is_vamp else n_lg
+                    n_adv  = n_lg if is_vamp else n_vamp
+                    if n_hum:
+                        if n_hum <= n_mob:  score += 5*n_hum/dist
+                        else:               score -= n_hum/dist
+                    else:
+                        if n_adv:
+                            if 1.2*n_adv <= n_mob:  score += 10*n_adv/dist
+                            else:                   score -= 10*n_adv/dist
+                        if n_ally: score += 5*n_ally/dist 
+                return score
+
+            for repartition in repartitions:
+                move = list()
+                score = 0
+                for k, n_mons in enumerate(repartition):
+                        # Au moins un monstre se déplace
+                        if n_mons:
+                            # Position d'arrivée de ce sous-groupe de monstre
+                            x, y = next_posible_positions[k]
+                            # On enregistre ce mouvement pour un groupe de monstre
+                            move.append((i, j, n_mons, x, y))
+                            score += compute_score(n_mons, i, j, x-i, y-j)
+
+                moves.append(move)
+                moves_score.append(score)
+            
+            if moves == []: continue
+            # On ordonne la liste selon le score
+            sorted_moves = [move for _,move in sorted(zip(moves_score, moves), reverse=True)]
+            # On rajoute dans le dict
+            all_pos_moves[(i,j)] = sorted_moves
+        
+        # On renvoie les X premiers du produit cartésien au Maximum
+        nb_moves = 0
+        for k in range(-1, len(all_pos_moves)):
+            if nb_moves >= nb_moves_max: break
+            move = []
+            for i, v in enumerate(all_pos_moves.values()):
+                if len(v) >= 2:
+                    move += v[0] if i != k else v[1]
+            nb_moves +=1
+            yield(move)
+
+
     #############################################################################################
     #############################################################################################
+    
+    @staticmethod
+    def sign(x):
+        return x and (1, -1)[x < 0]
 
     @staticmethod
     def binomial_coefficient(k, n):
@@ -1438,7 +1583,12 @@ class Map:
 
 if __name__ == "__main__":
     carte = Map()
+    carte.simple_update_content(0,0,0,1,0,0,0,0)
+    carte.simple_update_content(1,0,2,0,0,0,0,0)
     carte.print_map()
+
+    #carte.compute_moves(next(carte.i_next_relevant_moves_3(True)))
+    #carte.print_map()
 
     #print(carte.next_possible_relevant_moves(True, 3))
 
