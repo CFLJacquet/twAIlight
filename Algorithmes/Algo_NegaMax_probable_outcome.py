@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy, copy
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_probable_outcome import SommetDuJeu_NegaMax
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Algorithmes.Sommet_du_jeu_NegaMax_probable_outcome import SommetDuJeu_NegaMax
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_TheTrap import MapTheTrap
 
 
 class AlgoAleatoireInterne(JoueurInterne):
@@ -27,8 +27,6 @@ class AlgoNegMax_MPO(JoueurInterne):
         if show_map: self.map.print_map()
         racine = SommetDuJeu_NegaMax(
             depth=depth_max,
-            nb_group_max=nb_group_max,
-            stay_enabled=stay_enabled,
             game_map=copy(self.map),
             is_vamp=self.is_vamp,
             init_map=True)

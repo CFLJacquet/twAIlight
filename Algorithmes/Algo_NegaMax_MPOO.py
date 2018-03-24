@@ -48,7 +48,7 @@ class TreeParseThread(threading.Thread):
 
 class AlgoNegMax_MPOO(JoueurInterne):
     """
-    
+    TODO
     """
     def next_moves(self, show_map=True):
         if show_map: self.map.print_map()

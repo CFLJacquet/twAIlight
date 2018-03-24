@@ -1,5 +1,0 @@
-03/20/2018 16:47:33	Démarrage de l'attente de 2 connexion(s).
-03/20/2018 16:47:37	Réception de NME en cours pour le joueur 0
-03/20/2018 16:47:37	Nom du joueur #0 est TwAIlight
-03/20/2018 16:47:37	Envoi de la description de la carte au joueur 0
-03/20/2018 16:47:37	Envoi de la description de la carte au joueur 0 terminé

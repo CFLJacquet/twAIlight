@@ -618,7 +618,7 @@ class Map:
                     if self.debug_mode:
                         print("Victoire assurée de l'attaquant ! {} attaquants vs {} défenseurs".format(n_att, n_def))
 
-                    n_surv =round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
+                    n_surv = round(n_att*self.proba_p(n_att,n_def))  # Nombre d'attaquants survivants
 
                     # Enregistrement des attaquants survivants
                     self.simple_update_content(
@@ -939,13 +939,14 @@ class Map:
         Pour cela, l'approche est différente des fonctions vu précédemment.
         Pour chaque groupe :
             - nous générons la liste des cases qui nous rapprochent d'un autre groupe 
-              d'humains, d'ennemis ou d'alliés
-            - nous générons la liste des mouvements possibles en ne considérant que ces cases
-            - nous notons avec une heuristique lourde chaque mouvement (voir fonction score ci-dessous)
-            - nous ordonnons la liste des mouvements (de celui qui a la meilleur heuristique à la moins bonne)
+              d'humains, d'ennemis ou d'alliés.
+            - nous générons la liste des mouvements possibles en ne considérant que ces cases.
+            - nous notons avec une heuristique lourde chaque mouvement (voir fonction score ci-dessous).
+            - nous ordonnons la liste des mouvements (de celui qui a la meilleur heuristique 
+              à celui qui a la moins bonne).
         Puis nous générons la liste de mouvements pour l'ensemble des groupes
         en faisant un produit cartésien partiel en ne considérant que
-        les deux meilleurs mouvements de chaque groupe
+        les deux meilleurs mouvements de chaque groupe.
 
         :param: is_vamp: race du joueur
 
@@ -955,7 +956,7 @@ class Map:
 
         :param: nb_group_max : nombre de groupes (maximum) considéré (le reste est ignoré).
 
-        :return: liste des mouvements possibles
+        :yield: les meilleurs mouvements
         """
         race = 1 if is_vamp else 2
         adv  = 2 if is_vamp else 1
@@ -1127,13 +1128,14 @@ class Map:
 
         #all_humains = [x_y for x_y in self.content if self.content[x_y][0]]
 
-        for starting_position, moves in next_possible_positions.items():
+        for starting_config, moves in next_possible_positions.items():
+            starting_position, n_mob = starting_config
             # Prendre l'ennemi "dangereux" le plus proche et calculer la moitié de la distance ...
             # ... afin de régler la taille du kernel pour le produit de convolution. On considère
             # ... que l'ennemi aura mangé tous les humains dans sa zone (dist/2)
             dangerous_enn = [x_y for x_y in all_ennemis \
                                 # sum donne le nombre d'individus sur la case
-                                if sum(self.content[x_y]) >  sum(self.content[starting_position]) ] 
+                                if sum(self.content[x_y]) >  n_mob ] 
 
             if dangerous_enn :
                 # on prend la distance du groupe le plus proche et on le divise par 2, et on soustrait 1
@@ -1158,7 +1160,7 @@ class Map:
                         try :
                             # on récupère les groupes d'humains suffisamment petits (<= taille)
                             hum = self.content[(direction[0] + i, direction[1] + j)][0]
-                            if hum <= sum(self.content[starting_position]) :
+                            if hum <= n_mob :
                                 grad += hum
                         except:
                             pass
@@ -1166,7 +1168,7 @@ class Map:
             
             """if not all(v == 0 for v in [x[0] for x in valeur]): """
             valeur.sort(key=lambda x: (-x[1], -x[0]))
-            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= sum(self.content[starting_position]) ][:nb_moves]
+            next_best_moves[starting_position] = [ x[2] for x in valeur if x[1] <= n_mob ][:nb_moves]
 
             if self.debug_mode:
                     print("Demi-distance a l'adversaire le plus proche :", dist_min+1)
@@ -1176,7 +1178,71 @@ class Map:
 
     #############################################################################################
     #############################################################################################
-    
+
+    def next_position_to_target(self,origin, destination, forbidden_places=set()):
+        """Prochain mouvement vers une cible en utilisant l'algorithme A*"""
+        visited = set()
+        to_visit = set()
+        distance_from_origin = {origin: 0}
+        predecessor = dict()
+        evaluations = {origin: Map.distance(origin, destination)}
+        current_position = origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance = distance_from_origin[current_position]
+            i, j = current_position
+            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
+                                            if 0<=(i + i_0)<self.size[0]
+                                            and 0<= (j+j_0) < self.size[1]])
+            new_positions_to_explore -= visited
+            new_positions_to_explore -= forbidden_places
+            new_positions_to_explore -= to_visit
+            to_visit |= new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos] = current_distance + 1
+                evaluations[pos] = Map.distance(pos, destination)
+                predecessor[pos] = current_position
+            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
+
+        while predecessor[current_position] != origin:
+            current_position = predecessor[current_position]
+
+        return current_position
+
+
+    def real_distance(self,origin, destination, forbidden_places=set()):
+        """Distance entre origin et destination sans passer par les forbidden places en utilisant l'algorithme A*"""
+        visited = set()
+        to_visit = set()
+        distance_from_origin = {origin: 0}
+        evaluations = {origin: Map.distance(origin, destination)}
+        current_position = origin
+
+        while current_position != destination:
+            visited.add(current_position)
+            to_visit.discard(current_position)
+            current_distance = distance_from_origin[current_position]
+            i, j = current_position
+            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
+                                            if 0 <= (i + i_0) < self.size[0]
+                                            and 0 <= (j + j_0) < self.size[1]])
+            new_positions_to_explore -= visited
+            new_positions_to_explore -= forbidden_places
+            new_positions_to_explore -= to_visit
+            to_visit |= new_positions_to_explore
+            for pos in new_positions_to_explore:
+                distance_from_origin[pos] = current_distance + 1
+                evaluations[pos] = Map.distance(pos, destination)
+            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
+
+        return distance_from_origin[destination]
+
+
+    #############################################################################################
+    #############################################################################################
+
     @staticmethod
     def sign(x):
         return x and (1, -1)[x < 0]
@@ -1317,66 +1383,6 @@ class Map:
         else:  # Autant de loups-garous ni de vampires ==> Match Nul
             return None
 
-
-    def next_position_to_target(self,origin, destination, forbidden_places=set()):
-        """Prochain mouvement vers une cible en utilisant l'algorithme A*"""
-        visited = set()
-        to_visit = set()
-        distance_from_origin = {origin: 0}
-        predecessor = dict()
-        evaluations = {origin: Map.distance(origin, destination)}
-        current_position = origin
-
-        while current_position != destination:
-            visited.add(current_position)
-            to_visit.discard(current_position)
-            current_distance = distance_from_origin[current_position]
-            i, j = current_position
-            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
-                                            if 0<=(i + i_0)<self.size[0]
-                                            and 0<= (j+j_0) < self.size[1]])
-            new_positions_to_explore -= visited
-            new_positions_to_explore -= forbidden_places
-            new_positions_to_explore -= to_visit
-            to_visit |= new_positions_to_explore
-            for pos in new_positions_to_explore:
-                distance_from_origin[pos] = current_distance + 1
-                evaluations[pos] = Map.distance(pos, destination)
-                predecessor[pos] = current_position
-            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
-
-        while predecessor[current_position] != origin:
-            current_position = predecessor[current_position]
-
-        return current_position
-
-
-    def real_distance(self,origin, destination, forbidden_places=set()):
-        """Distance entre origin et destination sans passer par les forbidden places en utilisant l'algorithme A*"""
-        visited = set()
-        to_visit = set()
-        distance_from_origin = {origin: 0}
-        evaluations = {origin: Map.distance(origin, destination)}
-        current_position = origin
-
-        while current_position != destination:
-            visited.add(current_position)
-            to_visit.discard(current_position)
-            current_distance = distance_from_origin[current_position]
-            i, j = current_position
-            new_positions_to_explore = set([(i + i_0, j + j_0) for (i_0, j_0) in product((-1, 0, 1), repeat=2)
-                                            if 0 <= (i + i_0) < self.size[0]
-                                            and 0 <= (j + j_0) < self.size[1]])
-            new_positions_to_explore -= visited
-            new_positions_to_explore -= forbidden_places
-            new_positions_to_explore -= to_visit
-            to_visit |= new_positions_to_explore
-            for pos in new_positions_to_explore:
-                distance_from_origin[pos] = current_distance + 1
-                evaluations[pos] = Map.distance(pos, destination)
-            current_position = min(to_visit, key=lambda x: distance_from_origin[x] + evaluations[x])
-
-        return distance_from_origin[destination]
 
     @staticmethod
     def distance(origin, destination):

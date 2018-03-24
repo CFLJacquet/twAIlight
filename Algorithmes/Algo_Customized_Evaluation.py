@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
-from twAIlight.Algorithmes.Algo_NegaMax import AlgoNegaMax
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Serveur_Interne import ServeurInterne
+from Joueur_Interne import JoueurInterne
+from Algorithmes.Algo_Aleatoire import AlgoAleatoireInterne
+from Algorithmes.Algo_NegaMax import AlgoNegaMax
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import Map8
+from Serveur_Interne import ServeurInterne
 
 
 class AlgoCustomizedEvaluation(JoueurInterne):

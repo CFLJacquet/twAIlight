@@ -1,6 +1,6 @@
 
-from twAIlight.Joueur import Joueur
-from twAIlight.Joueur_Interne import JoueurInterne
+from Joueur import Joueur
+from Joueur_Interne import JoueurInterne
 
 
 class AlgoNaive(JoueurInterne):

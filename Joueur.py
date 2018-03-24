@@ -6,7 +6,7 @@ from itertools import product
 from threading import Thread
 import time
 
-from twAIlight.Map import Map
+from Map import Map
 
 PORT = 5555  # TODO à changer pour le tournoi
 HOTE = "127.0.0.1"  # TODO à changer pour le tournoi

@@ -1,11 +1,11 @@
 from queue import Queue
 from copy import deepcopy, copy
 
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Map import Map
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_Ligne13 import MapLigne13
 
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
+from Algorithmes.Sommet_du_jeu import SommetOutcome
 
 class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
     __vertices_created = 0

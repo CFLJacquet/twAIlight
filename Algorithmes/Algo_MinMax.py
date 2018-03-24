@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_MinMax_Transposition import SommetOutcome_MinMax, SommetChance_MinMax
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Algorithmes.Sommet_du_jeu_MinMax_Transposition import SommetOutcome_MinMax, SommetChance_MinMax
+from Map import Map
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_Ligne13 import MapLigne13
 
 class AlgoAleatoireInterne(JoueurInterne):
     """

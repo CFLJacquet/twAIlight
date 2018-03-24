@@ -5,47 +5,26 @@ from time import sleep, time
 from queue import Queue
 from copy import deepcopy, copy
 
-from twAIlight.Joueur import Joueur
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_MPO_2 import SommetDuJeu_NegaMax_MPOO
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Joueur import Joueur
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_Ligne13 import MapLigne13
 
-#from twAIlight.Map_Silv import Map
+from Algorithmes.Sommet_du_jeu_NegaMax_MPO_2 import SommetDuJeu_NegaMax_MPOO
+from Algorithmes.Algo_Naive import AlgoNaive
 
 
 class AlgoAleatoireInterne(JoueurInterne):
     """
     Joueur avec la fonction de décision aléatoire de Charles
     """
-    def next_moves(self, show_map=True):
-        if self.debug_mode: print(self.name + '/next_moves Map : ' + str(self.map.content))
-        if show_map: self.map.print_map()
-
-        return next(self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=None, stay_enabled=False))
-
-class AlgoNaive(JoueurInterne):
-
-    #def create_map(self, map_size):
-    #    """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
-    #
-    #    :param map_size: (n,m) dimension de la carte
-    #    :return: None
-    #    """
-    #    self.map = Map(map_size=map_size) # Map_Silv
-
-    def next_moves(self, show_map=True):
-        next_move =  next(self.map.i_next_relevant_moves_2(
-            self.is_vamp,
-            stay_enabled=False,
-            nb_group_max=4,
-            nb_cases=8))
-        print("Naive: ", next_move)
-        return next_move
-
 
 class TreeParseThread(threading.Thread):
+    """
+    Thread slave créé pour parcourir l'arbre Negamax.
+    Se fait interrompre par le Thread joueur si le parcours de l'arbre dépasse le temps imparti.
+    """
     
     def __init__(self, q_m_s, q_s_m, params):
         threading.Thread.__init__(self)
@@ -95,7 +74,7 @@ class AlgoNegMax_MPOO(JoueurInterne):
 
         if show_map: self.map.print_map()
         
-        next_move = next(self.map.i_next_relevant_moves_3(self.is_vamp))
+        next_move = next(self.map.i_next_best_moves(self.is_vamp))
         
         self.depth_max = 4
         self.timeout = 1.9

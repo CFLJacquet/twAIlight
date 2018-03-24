@@ -2,12 +2,12 @@ from copy import deepcopy
 from collections import defaultdict
 import random
 
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
-from twAIlight.Map import Map
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from Map import Map
 
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_Random import MapRandom
+from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_Random import MapRandom
 
 
 class SommetChance_TemporalDifference(SommetChance):

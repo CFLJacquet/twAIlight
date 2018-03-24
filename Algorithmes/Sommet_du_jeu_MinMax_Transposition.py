@@ -1,9 +1,9 @@
 from copy import deepcopy, copy
 
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from Map import Map
+from Cartes.Map_Ligne13 import MapLigne13
+from Cartes.Map_Map8 import Map8
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_MinMax(SommetChance):
