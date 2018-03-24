@@ -94,6 +94,8 @@ Ces différents algorithmes sont expliqués plus loin dans ce document.
     - **Algo_MinMax.py**
     - **Algo_MonteCarloTreeSearch.py**
     - **Algo_NegaMax_MPOO.py**
+    - **Algo_Negamax_MPO_2.py**
+    - **Algo_Negamax_MPO_3.py**
     - **Algo_NegaMax_Oriente.py**
     - **Algo_NegaMax_Probable_outcome.py**
     - **Algo_NegaMax.py**
@@ -102,6 +104,7 @@ Ces différents algorithmes sont expliqués plus loin dans ce document.
     - **Sommet_du_Jeu_MinMax_Transposition.py**
     - **Sommet_du_Jeu_MonteCarlo.py**
     - **Sommet_du_Jeu_NegaMax_MPOO.py**
+    - **Sommet_du_Jeu_NegaMax_MPO_2.py**
     - **Sommet_du_Jeu_NegaMax_probable_outcome.py**
     - **Sommet_du_Jeu_NegaMax_Transposition_Oriente.py**
     - **Sommet_du_Jeu_NegaMax_Transposition.py**
@@ -154,8 +157,19 @@ Variante du MinMax avec une table de hashage qui permet de garder une mémoire d
 
 #### MPOO
 Cette variante du Most Probable Outcome effectue des choix drastiques en:
-- Limitant le nombre de groupes ennemis que nous prenons en compte
-- Limitant le nombre de sommets que nous explorons à chaque profondeur
+- Limitant le nombre de groupes ennemis que nous prenons en compte (paramêtre donné en argument à l'arbre Négamax). Cela permet de ne pas être sensible à un ennemi se splitant de multiple fois dans le but de ralentir notre parcours de l'arbre.
+- Limitant le nombre de split possible pour chaque case: pas de split en trois (ou plus) groupes, pas de création de groupe de taille inférieur à min(2, taille_du_groupe//3). Enfin toutes les répartitions possibles ne sont pas conservées (on ne regarde que les répartitions 20%/80%, 40%/60%, 60%/40% et 80%/20%)
+- Limitant le nombre de cases que nous considérons pour chaque groupes (paramêtre donné en argument à l'arbre Négamax). L'heuristique utilisé pour trier les 8 cases est très simple puisqu'elle ne considère que les contenus de ces 8 cases. 
+
+Cela nous permet de limiter fortement le facteur de branchement à chaque profondeur et ainsi d'explorer l'arbre beaucoup plus en profondeur. De plus, les calculs d'heuristiques intermédiaires étant très simples, nous arrivons à calculer environ 10k noeuds/seconde.
+
+Malheureusement, nos heuristiques trop simples nous amenaient souvent à prendre des décisions allant à l'encontre du bon sens et faibles face des algorithmes plus naïfs de type glouton. 
+
+
+#### MPO_2
+Cette variante du Most Probable Outcome utilise un autre algorithme pour générer les mouvements possibles sur une carte donnée. Le facteur de branchement est ainsi inférieur ou égal à 8.
+L'heuristique utilisée pour obtenir ce petit nombre de mouvements est plus lourde que celle précédemment utilisée. Cela limite fortement le nombre de noeuds générable par seconde (environ 600 noeuds/s sur une config vieille de 6 ans).
+Cependant ce mode de génération des mouvements nous permet de considérer un grand nombre de groupe de monstres amis et ennemis en évitant l'explosion combinatoire du produit cartésien des possibilités de chaque groupe.
 
 ### Nota bene, Pour lancer un joueur pour jouer sur le serveur le jour du tournoi:
 * Créer dans un fichier une classe héritée de Joueur (dans Joueur.py), qui override la méthode next_moves de Joueur
