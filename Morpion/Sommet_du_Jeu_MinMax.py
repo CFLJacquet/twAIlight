@@ -1,5 +1,6 @@
 from Morpion.Sommet_du_Jeu import SommetDuJeu
 from Morpion.Map_Morpion import Morpion
+
 class SommetDuJeuMinMax(SommetDuJeu):
     __vertices_created = 0
 

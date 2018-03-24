@@ -44,7 +44,7 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
 
     while not sommet_1.map.game_over():
         if debug_mode: print(sommet_1.map)
-        if debug_mode: print("{} joue".format(sommet_1.is_ami))
+        if debug_mode: print("{} joue".format(sommet_1.is_vamp))
 
         start_play = time.time()
         updated_moves += [sommet_1.next_move()]  # Mise à jour de l'historique des coups
@@ -59,7 +59,7 @@ def run_a_game(classe_sommet_1, classe_sommet_2, debug_mode=False):
             break
 
         if debug_mode: print(sommet_2.map)
-        if debug_mode: print("{} joue".format(sommet_2.is_ami))
+        if debug_mode: print("{} joue".format(sommet_2.is_vamp))
 
         start_play = time.time()
         updated_moves += [sommet_2.next_move()]  # Mise à jour de l'historique des coups
