@@ -19,10 +19,8 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         cls.q_m_s = q_m_s
         cls.q_s_m = q_s_m
 
-    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, nb_cases=None, game_map=None, init_map=False):
+    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, stay_enabled=True, nb_cases=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
-        self.nb_group_max = nb_group_max
-        self.nb_cases = nb_cases
         SommetDuJeu_NegaMax_MPOO.__vertices_created += 1
         if init_map:
             SommetDuJeu_NegaMax_MPOO.__transposion_table={}
@@ -45,29 +43,21 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         SommetDuJeu_NegaMax_MPOO.__transposion_table[self.map.hash] = (flag, depth, score)
 
     @property
-    def children(self):
-        # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
-        #if not self._children is None:
-        #    return self._children
-        #else:
-            self._children = list()
-            for moves in self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=self.nb_group_max,
-                                                          nb_cases=self.nb_cases[self.depth]):
-                # Vérification du timeout
-                if not self.q_m_s is None and not self.q_m_s.empty(): break
-                
-                # Création du sommet fils
-                carte=copy(self.map)
-                carte.most_probable_outcome(moves, self.is_vamp)
-                
-                child = SommetDuJeu_NegaMax_MPOO(
-                    is_vamp=not self.is_vamp,
-                    depth=self.depth-1,
-                    nb_group_max=self.nb_group_max,
-                    nb_cases=self.nb_cases,
-                    game_map=carte)
-                child.previous_moves = moves
-                yield child
+    def i_children(self):
+        for moves in self.map.i_next_relevant_moves_3(self.is_vamp):
+            # Vérification du timeout
+            if not self.q_m_s is None and not self.q_m_s.empty(): break
+            
+            # Création du sommet fils
+            carte=copy(self.map)
+            carte.most_probable_outcome(moves, self.is_vamp)
+            
+            child = SommetDuJeu_NegaMax_MPOO(
+                is_vamp=not self.is_vamp,
+                depth=self.depth-1,
+                game_map=carte)
+            child.previous_moves = moves
+            yield child
 
     def negamax(self, alpha, beta):
         alphaOrig = alpha
@@ -99,7 +89,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
             return color * self.evaluation
 
         bestvalue = None
-        for child in self.children:
+        for child in self.i_children:
             if alpha is None and beta is None:
                 v = - child.negamax(None, None)
             elif beta is None:
@@ -157,7 +147,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
 
         bestvalue = None
         next_move = None
-        for child in self.children:
+        for child in self.i_children:
             if alpha is None and beta is None:
                 v = - child.negamax(None, None)
             elif beta is None:
@@ -216,6 +206,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
 
 if __name__ == '__main__':
     carte = MapLigne13()
+
     next_moves = [
         [(0,20,10,1,19)],
         [(20,20,10,19,19)],
@@ -227,8 +218,6 @@ if __name__ == '__main__':
     
     racine= SommetDuJeu_NegaMax_MPOO(
         depth=6,
-        nb_group_max=3,
-        nb_cases= [None,1,1,2,2,2,2],#[None,1,3,2,4,3,4],
         game_map=carte,
         is_vamp=True,
         init_map=True)

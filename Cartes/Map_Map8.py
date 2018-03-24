@@ -1,4 +1,4 @@
-from twAIlight.Map import Map
+from Map import Map
 
 
 class Map8(Map):
@@ -76,6 +76,7 @@ class Map8(Map):
 
 if __name__ == "__main__":
     carte = Map8()
+    carte.update_content([(5,3,0,100,0),(5,5,0,10,0)])
     carte.print_map()
     import cProfile
-    cProfile.run("carte.next_possible_moves(is_vamp=True)")
+    cProfile.run("list(carte.i_next_relevant_moves_3(is_vamp=True))")

@@ -1,7 +1,7 @@
-from twAIlight.Map import Map
+from Map import Map
 from copy import deepcopy
 
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_Negamax(SommetChance):
@@ -74,7 +74,7 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.i_next_possible_moves(self.is_vamp):
                 child = SommetChance_Negamax(is_vamp=not self.is_vamp, depth=self.depth-1, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)

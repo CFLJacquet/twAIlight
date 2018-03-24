@@ -2,15 +2,15 @@
 from copy import deepcopy
 from time import time
 
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_MCTS_MPOO import SommetMonteCarlo
-from twAIlight.Algorithmes.Algo_Naive import AlgoNaive
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
-from twAIlight.Cartes.Map_Map8 import  Map8
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Algorithmes.Sommet_du_jeu_MCTS_MPOO import SommetMonteCarlo
+from Algorithmes.Algo_Naive import AlgoNaive
+from Map import Map
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import  Map8
+from Cartes.Map_Ligne13 import MapLigne13
 
 
 class AlgoAleatoireInterne(JoueurInterne):

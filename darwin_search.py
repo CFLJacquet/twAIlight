@@ -1,16 +1,17 @@
 from itertools import combinations
 import math
-from twAIlight.Serveur_Interne import ServeurInterne
 import operator
-# Importation des algorithmes de décision
-from twAIlight.Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
-# Importation des des cartes du tournoi
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_Random import MapRandom
 import random
+
+from Serveur_Interne import ServeurInterne
+
+from Algorithmes.Algo_NegaMax_MPOO import AlgoNegMax_MPOO
+
+from Cartes.Map_Ligne13 import MapLigne13
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_Random import MapRandom
 
 N_GAME = 1 # nombre de parties par carte (chaque carte est appelée dans une pool)
 POOL_SIZE = 20 # Taille des pools de combats

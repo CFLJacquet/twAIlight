@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_NegaMax_Transposition_Oriente import SommetDuJeu_NegaMax_Oriente, SommetChance_NegaMax_Oriente
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Algorithmes.Sommet_du_jeu_NegaMax_Transposition_Oriente import SommetDuJeu_NegaMax_Oriente, SommetChance_NegaMax_Oriente
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_TheTrap import MapTheTrap
 
 
 class AlgoAleatoireInterne(JoueurInterne):

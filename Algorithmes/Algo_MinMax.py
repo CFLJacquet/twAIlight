@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 
-from twAIlight.Joueur_Interne import JoueurInterne
-from twAIlight.Serveur_Interne import ServeurInterne
-from twAIlight.Algorithmes.Sommet_du_jeu_MinMax_Transposition import SommetOutcome_MinMax, SommetChance_MinMax
-from twAIlight.Cartes.Map_Dust2 import MapDust2
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Joueur_Interne import JoueurInterne
+from Serveur_Interne import ServeurInterne
+from Algorithmes.Sommet_du_jeu_MinMax_Transposition import SommetOutcome_MinMax, SommetChance_MinMax
+from Map import Map
+from Cartes.Map_Dust2 import MapDust2
+from Cartes.Map_Ligne13 import MapLigne13
 
 class AlgoAleatoireInterne(JoueurInterne):
     """
@@ -30,7 +31,7 @@ class AlgoMinMax(JoueurInterne):
 if __name__ == "__main__":
     Joueur1 = AlgoAleatoireInterne
     Joueur2 = AlgoMinMax
-    carte = MapLigne13
+    carte = Map
     Serveur = ServeurInterne(carte, Joueur1, Joueur2, name1="ALEA", name2="MINIMAX", print_map=True, debug_mode=False)
     Serveur.start()
     Serveur.join()

@@ -2,12 +2,12 @@ from copy import deepcopy
 import random
 from math import sqrt, log
 
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_TheTrap import MapTheTrap
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Cartes.Map_Random import MapRandom
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
+from Algorithmes.Sommet_du_jeu import SommetOutcome
+from Map import Map
+from Cartes.Map_TheTrap import MapTheTrap
+from Cartes.Map_Map8 import Map8
+from Cartes.Map_Random import MapRandom
+from Cartes.Map_Ligne13 import MapLigne13
 
 
 class SommetMonteCarlo(SommetOutcome):
@@ -46,9 +46,9 @@ class SommetMonteCarlo(SommetOutcome):
     def children(self):
         if self._children is None:
             self._children = list()
-            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max,
-                                                      stay_enabled=self.stay_enabled,
-                                                      nb_cases=self.nb_cases[self.depth]):
+            for moves in self.map.i_next_relevant_moves(self.is_vamp, 
+                                                        nb_group_max=self.nb_group_max,
+                                                        nb_cases=self.nb_cases[self.depth]):
                 # Création du sommet fils
                 carte = deepcopy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)

@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from Algorithmes.Sommet_du_jeu import SommetOutcome
 from Map import Map
@@ -39,7 +39,7 @@ class SommetDuJeu_NegaMax(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.i_next_possible_moves(self.is_vamp):
                 carte=copy(self.map)
                 carte.most_probable_outcome(moves)
                 child = SommetDuJeu_NegaMax(

@@ -1,9 +1,9 @@
 from copy import deepcopy, copy
 
-from twAIlight.Map import Map
-from twAIlight.Cartes.Map_Ligne13 import MapLigne13
-from twAIlight.Cartes.Map_Map8 import Map8
-from twAIlight.Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
+from Map import Map
+from Cartes.Map_Ligne13 import MapLigne13
+from Cartes.Map_Map8 import Map8
+from Algorithmes.Sommet_du_jeu import SommetOutcome, SommetChance
 
 
 class SommetChance_MinMax(SommetChance):
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     carte = MapLigne13()
     import cProfile
     def to_test():
-        for _ in range(200):
+        for _ in range(2):
             racine=SommetOutcome_MinMax(is_vamp=True, depth=2, game_map=carte, init_map=True)
             racine.next_move()
     cProfile.run("to_test()")
