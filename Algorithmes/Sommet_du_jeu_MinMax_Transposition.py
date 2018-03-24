@@ -147,7 +147,7 @@ if __name__ == '__main__':
     carte = MapLigne13()
     import cProfile
     def to_test():
-        for _ in range(200):
+        for _ in range(2):
             racine=SommetOutcome_MinMax(is_vamp=True, depth=2, game_map=carte, init_map=True)
             racine.next_move()
     cProfile.run("to_test()")

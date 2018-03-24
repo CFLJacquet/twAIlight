@@ -19,10 +19,9 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         cls.q_m_s = q_m_s
         cls.q_s_m = q_s_m
 
-    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, stay_enabled=True, nb_cases=None, game_map=None, init_map=False):
+    def __init__(self, is_vamp=None, depth=None, nb_group_max=None, nb_cases=None, game_map=None, init_map=False):
         super().__init__(is_vamp, depth, game_map, init_map)
         self.nb_group_max = nb_group_max
-        self.stay_enabled = stay_enabled
         self.nb_cases = nb_cases
         SommetDuJeu_NegaMax_MPOO.__vertices_created += 1
         if init_map:
@@ -52,8 +51,7 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
         #    return self._children
         #else:
             self._children = list()
-            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max,
-                                                          stay_enabled=self.stay_enabled,
+            for moves in self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=self.nb_group_max,
                                                           nb_cases=self.nb_cases[self.depth]):
                 # Vérification du timeout
                 if not self.q_m_s is None and not self.q_m_s.empty(): break
@@ -66,7 +64,6 @@ class SommetDuJeu_NegaMax_MPOO(SommetOutcome):
                     is_vamp=not self.is_vamp,
                     depth=self.depth-1,
                     nb_group_max=self.nb_group_max,
-                    stay_enabled=self.stay_enabled,
                     nb_cases=self.nb_cases,
                     game_map=carte)
                 child.previous_moves = moves
@@ -231,7 +228,6 @@ if __name__ == '__main__':
     racine= SommetDuJeu_NegaMax_MPOO(
         depth=6,
         nb_group_max=3,
-        stay_enabled=False,
         nb_cases= [None,1,1,2,2,2,2],#[None,1,3,2,4,3,4],
         game_map=carte,
         is_vamp=True,

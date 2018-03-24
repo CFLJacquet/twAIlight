@@ -17,7 +17,7 @@ class ServeurInterne(Thread):
     MAX_GAME_DURATION = None  # Temps maximal d'une partie (en minute), si None, non pris en compte
     # MAX_PLAYS = None  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 
-    MAX_PLAY_DURATION = 2  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
+    # MAX_PLAY_DURATION = 2  # Temps maximal d'un tour  (en seconde), si None, non pris en compte
     # MAX_GAME_DURATION = 5  # Temps maximal d'une partie (en minute), si None, non pris en compte
     MAX_PLAYS = 50  # Nombre maximal de partie jouée par un joueur, si None, non pris en compte
 

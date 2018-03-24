@@ -76,7 +76,7 @@ class SommetDuJeu_NegaMax_Oriente(SommetOutcome):
         # Si la liste des enfants n'est pas vide, alors nul besoin de la recalculer !
         if self._children is None:
             self._children = list()
-            for moves in self.map.next_possible_moves(self.is_vamp):
+            for moves in self.map.i_next_possible_moves(self.is_vamp):
                 child = SommetChance_NegaMax_Oriente(is_vamp=not self.is_vamp, depth=self.depth - 1, game_map=self.map)
                 child.previous_moves = moves
                 self._children.append(child)

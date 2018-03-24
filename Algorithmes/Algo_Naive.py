@@ -4,24 +4,17 @@ from twAIlight.Joueur_Interne import JoueurInterne
 
 
 class AlgoNaive(JoueurInterne):
-
-    #def create_map(self, map_size):
-    #    """ Crée une carte à la taille map_size et l'enregistre dans l'attribut map
-    #
-    #    :param map_size: (n,m) dimension de la carte
-    #    :return: None
-    #    """
-    #    self.map = Map(map_size=map_size) # Map_Silv
-
+    """
+    Joueur allant sur la case adjacente comptant le plus d'humains mangeables.
+    Si pas de groupe d'humains mangeables à porté, il fait tourner le groupe en sens trigo autour du
+    milieu de la carte, sans jamais se suicider.
+    """
     def next_moves(self, show_map=True):
-        next_move =  next(self.map.i_next_relevant_moves_2(
+        next_move =  next(self.map.i_next_relevant_moves(
             self.is_vamp,
-            stay_enabled=False,
-            nb_group_max=4,
-            nb_cases=8))
+            nb_group_max=4))
         print("Naive: ", next_move)
         return next_move
-
 
 
 if __name__ == "__main__":

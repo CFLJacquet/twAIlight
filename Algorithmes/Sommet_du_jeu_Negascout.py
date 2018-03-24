@@ -48,7 +48,7 @@ class SommetDuJeu_Negascout(SommetOutcome):
 
     @property
     def i_children(self):
-        for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
+        for moves in self.map.i_next_relevant_moves(self.is_vamp, nb_group_max=self.nb_group_max, stay_enabled=self.stay_enabled, nb_cases=self.nb_cases[self.depth]):
             if not self.q_m_s is None and not self.q_m_s.empty(): break
             carte=copy(self.map)
             carte.most_probable_outcome(moves, self.is_vamp)
@@ -129,7 +129,7 @@ class SommetDuJeu_Negascout(SommetOutcome):
 if __name__ == '__main__':
     carte = Map8()
 
-    next_move = next(carte.i_next_relevant_moves_2(
+    next_move = next(carte.i_next_relevant_moves(
         False,
         stay_enabled=False,
         nb_group_max=4,

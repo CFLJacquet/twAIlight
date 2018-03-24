@@ -46,9 +46,9 @@ class SommetMonteCarlo(SommetOutcome):
     def children(self):
         if self._children is None:
             self._children = list()
-            for moves in self.map.i_next_relevant_moves_2(self.is_vamp, nb_group_max=self.nb_group_max,
-                                                      stay_enabled=self.stay_enabled,
-                                                      nb_cases=self.nb_cases[self.depth]):
+            for moves in self.map.i_next_relevant_moves(self.is_vamp, 
+                                                        nb_group_max=self.nb_group_max,
+                                                        nb_cases=self.nb_cases[self.depth]):
                 # Création du sommet fils
                 carte = deepcopy(self.map)
                 carte.most_probable_outcome(moves, self.is_vamp)
