@@ -5,7 +5,7 @@ from Cartes.Map_TheTrap import MapTheTrap
 
 # starving_player=A_HumanFirst()
 P1 = A_HumanFirst()
-P2 = HumanFirst()
+P2 = A_HumanFirst()
 carte=MapTheTrap(True)
 
 carte.print_map()
@@ -19,7 +19,8 @@ while not carte.game_over() and turn < 50:
     carte.compute_moves(P1.next_moves())
     carte.print_map()
     # On fait jouer l'adversaire
-    carte.compute_moves(carte.random_moves(is_vamp=False))
+    carte.compute_moves(P2.next_moves())    
+    # carte.compute_moves(carte.random_moves(is_vamp=False))
     turn += 1
 carte.print_map()
 
