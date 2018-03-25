@@ -39,7 +39,7 @@ Extrait du sujet:
 
 > Dans un monde lointain, des êtres mortels et ordinaires vivaient une vie paisible. Mais un soir, à la nuit tombée, leurs terres furent le témoin d’une lutte acharnée entre deux espèces : les Vampires et les Loups-Garous.
 
-NB : comme convenu ce readme se concentre sur les stratégies et algorithmes impleméntés par l'équipe et ne développe pas les aspects liés à la communication avec le serveur.
+NB : comme convenu ce readme se concentre sur les stratégies et algorithmes implémentés par l'équipe et ne développe pas les aspects liés à la communication avec le serveur.
 
 ### <a name="subparagraph2"></a>ii - Arborescence détaillée du projet
 
@@ -47,7 +47,7 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
 
   * **Cartes** : Les différentes cartes sur lesquelles nous pouvons tester notre IA
 
-  * **Morpion** : L'idée de ce dossier Morpion est d'implémenter et de tester sur un problème plus simple différentes approches avant de transposer celles-ci à jeu Vampire vs Loup-garous. Ce dossier nous permet de 1) vérifier que nous avons bien compris les stratégies et algorithmes et que nous les pensons pertinentes pour notre problème 2) Posséder une base qui nous permet d'itérer et de développer plus rapidement les algorithmes sur le jeu Vamp vs LG.
+  * **Morpion** : L'idée de ce dossier Morpion est d'implémenter et de tester sur un problème plus simple différentes approches avant de transposer celles-ci au jeu Vampire vs Loup-garous. Ce dossier nous permet de 1) vérifier que nous avons bien compris les stratégies et algorithmes et que nous les pensons pertinentes pour notre problème 2) Posséder une base qui nous permet d'itérer et de développer plus rapidement les algorithmes sur le jeu Vamp vs LG.
 
     * **Map_Morpion.py** : La "carte" du morpion
 
@@ -68,7 +68,7 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
 
 - **MetaStrategy** : Dossier explorant la piste des heuristiques
 
-  * **StrategyHumanFirst** : Cherche à développer une IA qui va essayer d'optimiser son jeu afin d'attaquer le plus d'humains possibles de façon à devenir nombreux.
+  * **StrategyHumanFirst** : Cherche à développer une IA qui va essayer d'optimiser son jeu afin d'attaquer le plus d'humains possible de façon à devenir nombreux.
 
 - **Algorithmes** : Les différents algorithmes développés et testés pour le tournoi.
   Ces algorithmes héritent tous de la classe JoueurInterne.
@@ -125,17 +125,17 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
 
 - **Darwin_Search.py** : L'idée de la recherche darwinienne est de tester et de classer nos différents algorithmes en effectuant un très grand nombre de tournois entre différentes instances avec des hyperparamètres différents (un hyperparamètre sera typiquement le nombre de groupe d'adversaires max que l'on considère quand on cherche à faire un mouvement)
 
-  On créé des pool aléatoires de combat dans lesquelles on effectue tous les combats possibles: lorsque ces combats sont effectués on classe les algorithmes en fonction de leur win rate et on ne garde que les top N algos. Les autres sont remplacés aléatoirement par des individus générés par un produit cartésien dans l'espace des hyper paramètres.
-  Au bout d'un grand nombre d'itérations les algorithmes qui se maintiennent dans la pool sont supposés être parmi les meilleurs.
+  On créé des pools aléatoires de combat dans lesquels on effectue tous les combats possibles: lorsque ces combats sont effectués on classe les algorithmes en fonction de leur win rate et on ne garde que les top N algos. Les autres sont remplacés aléatoirement par des individus générés par un produit cartésien dans l'espace des hyperparamètres.
+  Au bout d'un grand nombre d'itérations les algorithmes qui se maintiennent dans le pool sont supposés être parmi les meilleurs.
 
   Les paramètres de ce tournoi un peu spécial sont:
 
-  N_GAME : le nombre de parties par carte (chaque carte est appelée dans une pool)
-  POOL_SIZE : la Taille des pools de combats
+  N_GAME : le nombre de parties par carte (chaque carte est appelée dans un pool)
+  POOL_SIZE : la taille des pools de combats
   N_SURVIVORS : le nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
   TIMER : Nombre d'itérations
 
-  Une variante intéressante de cet algorithme est la variante où l'on autorise la pool à contenir plusieurs fois un même individu: autrement dit imaginons que l'individu A survive à la pool 1. On autorise l'ajout de ce même individu A à notre pool B. Résultat: si l'individu A est effectivement le meilleur on devrait avoir tendance à voir notre pool se remplir au fur et à mesure de cet individu A (un espèce qui devient prépondérante dans l'éco système)
+  Une variante intéressante de cet algorithme est celle où l'on autorise le pool à contenir plusieurs fois un même individu: autrement dit imaginons que l'individu A survive au pool 1. On autorise l'ajout de ce même individu A à notre pool B. Résultat: si l'individu A est effectivement le meilleur on devrait avoir tendance à voir notre pool se remplir au fur et à mesure de cet individu A (un espèce qui devient prépondérante dans l'éco système)
 
 
 ### <a name="subparagraph3"></a>iii. Pour tester un nouvel algorithme
@@ -218,7 +218,7 @@ On se rend compte que les algorithmes développés ont bien tous le même niveau
 
 Les deux metrics de performances observées ici sont le temps de calcul pour jouer et le nombre de sommets explorés. Notre meilleur algorithme d'après ces metrics est ici MinMax avec une table de transposition (MinMax_Transposition), car on calcule, enregistre et réutilise la valeur de chaque carte.
 
-Nous avons essayé de choisir les mouvements suivants avec la fonction d'évaluation du cours n°3 (sur le nombre de lignes ouvertes) pour améliorer les performances d'élagague. Les algorithmes avec cette approche (suffice -Oriente) explorent bien moins de noeuds, mais la fonction d'évaluation étant peu performante, son calcul pénalise la performance en temps de calcul des algorithmes concernés.
+Nous avons essayé de choisir les mouvements suivants avec la fonction d'évaluation du cours n°3 (sur le nombre de lignes ouvertes) pour améliorer les performances d'élagage. Les algorithmes avec cette approche (suffixe -Oriente) explorent bien moins de noeuds, mais la fonction d'évaluation étant peu performante, son calcul pénalise la performance en temps de calcul des algorithmes concernés.
 
 ##### Step 1: Utilisation des algorithmes vus en cours
 
@@ -231,7 +231,7 @@ Cf Partie algorithmes
 * Monte Carlo Tree Search
 * Negascout (variante de NegaMax)
 
-Ici les algorithmes ont un champs d'exploration tellement limités (3 ou 4 coups d'avance) que leur performance en combat se dégrage fortement, si on compare leur performance par rapport au joueur aléatoire.
+Ici les algorithmes ont un champ d'exploration tellement limités (3 ou 4 coups d'avance) que leur performance en combat se dégrage fortement, si on compare leur performance par rapport au joueur aléatoire.
 
 ##### Step 2: Tree pruning, simplification et développement d'heuristiques
 
@@ -259,7 +259,7 @@ Amélioration du Negamax n'explorant que des noeuds n'étant pas élagué par l'
 
 Exploration de l'arbre de jeu, selon un critère statistique (Upper Confidence Bound), par simulations. 
 
-Nous avons reussi sur nos ordinateurs avec les approximations décrites plus tard (MPOO) à réaliser 3000 simulations en 2s. Nous utilisons la table de transposition pour enregistrer les simulations d'une carte de départ. Cette approche bien que prometteuse grâce à sa granularité de calcul, ne marche pas aussi bien en pratique. Certaines simulations peuvent durer tellement de temps que l'algorithme peut sauter son tour facilement.
+Nous avons réussi sur nos ordinateurs avec les approximations décrites plus tard (MPOO) à réaliser 3000 simulations en 2s. Nous utilisons la table de transposition pour enregistrer les simulations d'une carte de départ. Cette approche bien que prometteuse grâce à sa granularité de calcul, ne marche pas aussi bien en pratique. Certaines simulations peuvent durer tellement de temps que l'algorithme peut sauter son tour facilement.
 
 ### Optimisation de l'algorithme
 
@@ -272,9 +272,9 @@ Nous avons reussi sur nos ordinateurs avec les approximations décrites plus tar
 
 ### MPOO
 Cette variante du Most Probable Outcome effectue des choix drastiques en:
-- Limitant le nombre de groupes ennemis que nous prenons en compte (paramêtre donné en argument à l'arbre Négamax). Cela permet de ne pas être sensible à un ennemi se splitant de multiple fois dans le but de ralentir notre parcours de l'arbre.
+- Limitant le nombre de groupes ennemis que nous prenons en compte (paramètre donné en argument à l'arbre Négamax). Cela permet de ne pas être sensible à un ennemi se splitant de multiple fois dans le but de ralentir notre parcours de l'arbre.
 - Limitant le nombre de split possible pour chaque case: pas de split en trois (ou plus) groupes, pas de création de groupe de taille inférieur à min(2, taille_du_groupe//3). Enfin toutes les répartitions possibles ne sont pas conservées (on ne regarde que les répartitions 20%/80%, 40%/60%, 60%/40% et 80%/20%)
-- Limitant le nombre de cases que nous considérons pour chaque groupes (paramêtre donné en argument à l'arbre Négamax). L'heuristique utilisé pour trier les 8 cases est très simple puisqu'elle ne considère que les contenus de ces 8 cases.
+- Limitant le nombre de cases que nous considérons pour chaque groupes (paramètre donné en argument à l'arbre Négamax). L'heuristique utilisé pour trier les 8 cases est très simple puisqu'elle ne considère que les contenus de ces 8 cases.
 
 Cela nous permet de limiter fortement le facteur de branchement à chaque profondeur et ainsi d'explorer l'arbre beaucoup plus en profondeur. De plus, les calculs d'heuristiques intermédiaires étant très simples, nous arrivons à calculer environ 10k noeuds/seconde.
 
@@ -327,6 +327,6 @@ Deux moyens pour comparer la performance des algorithmes:
 
 * **Lancer une compétition "darwin" pour avoir une compréhension plus fine des hyper paramètres**
 
-  Le darwin search prend en entrée un algorithme à hyper paramètres et génère une population en effectuant produit cartésien de ces paramètres discrétisés.
+  Le darwin search prend en entrée un algorithme à hyperparamètres et génère une population en effectuant produit cartésien de ces paramètres discrétisés.
   C'est une variante de l'algorithme tournoi un peu spéciale car on va ajouter à un pool de combat aléatoirement ces individus, effectuer un tournoi et ne garder que les n meilleurs (les survivants).
   On répète cette idée pour voir quels algorithmes survivent le plus longtemps (ie restent dans le pool)
