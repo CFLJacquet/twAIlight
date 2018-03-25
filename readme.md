@@ -124,17 +124,17 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
 
 - **Darwin_Search.py** : L'idée de la recherche darwinienne est de tester et de classer nos différents algorithmes en effectuant un très grand nombre de tournois entre différentes instances avec des hyperparamètres différents (un hyperparamètre sera typiquement le nombre de groupe d'adversaires max que l'on considère quand on cherche à faire un mouvement)
 
-On créé des pool aléatoires de combat dans lesquelles on effectue tous les combats possibles: lorsque ces combats sont effectués on classe les algorithmes en fonction de leur win rate et on ne garde que les top N algos. Les autres sont remplacés aléatoirement par des individus générés par un produit cartésien dans l'espace des hyper paramètres.
-Au bout d'un grand nombre d'itérations les algorithmes qui se maintiennent dans la pool sont supposés être parmi les meilleurs.
+  On créé des pool aléatoires de combat dans lesquelles on effectue tous les combats possibles: lorsque ces combats sont effectués on classe les algorithmes en fonction de leur win rate et on ne garde que les top N algos. Les autres sont remplacés aléatoirement par des individus générés par un produit cartésien dans l'espace des hyper paramètres.
+  Au bout d'un grand nombre d'itérations les algorithmes qui se maintiennent dans la pool sont supposés être parmi les meilleurs.
 
-Les paramètres de ce tournoi un peu spécial sont:
+  Les paramètres de ce tournoi un peu spécial sont:
 
-N_GAME : le nombre de parties par carte (chaque carte est appelée dans une pool)
-POOL_SIZE : la Taille des pools de combats
-N_SURVIVORS : le nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
-TIMER : Nombre d'itérations
+  N_GAME : le nombre de parties par carte (chaque carte est appelée dans une pool)
+  POOL_SIZE : la Taille des pools de combats
+  N_SURVIVORS : le nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
+  TIMER : Nombre d'itérations
 
-Une variante intéressante de cet algorithme est la variante où l'on autorise la pool à contenir plusieurs fois un même individu: autrement dit imaginons que l'individu A survive à la pool 1. On autorise l'ajout de ce même individu A à notre pool B. Résultat: si l'individu A est effectivement le meilleur on devrait avoir tendance à voir notre pool se remplir au fur et à mesure de cet individu A (un espèce qui devient prépondérante dans l'éco système)
+  Une variante intéressante de cet algorithme est la variante où l'on autorise la pool à contenir plusieurs fois un même individu: autrement dit imaginons que l'individu A survive à la pool 1. On autorise l'ajout de ce même individu A à notre pool B. Résultat: si l'individu A est effectivement le meilleur on devrait avoir tendance à voir notre pool se remplir au fur et à mesure de cet individu A (un espèce qui devient prépondérante dans l'éco système)
 
 
 ### <a name="subparagraph3"></a>iii. Pour tester un nouvel algorithme
