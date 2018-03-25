@@ -3,7 +3,7 @@
 <i>Option ISIA - Centrale Paris <br>
 Mars 2018 <hr></i></p>
 
-**Auteurs** : Silvestre Perret, Mathieu Seris, Chloé Gobé, Charles Jacquet, Eymard Houdeville <br>
+**Auteurs** : Chloé Gobé, Eymard Houdeville, Charles Jacquet, Silvestre Perret, Mathieu Seris<br>
 
 ## Index
 
@@ -12,19 +12,20 @@ Mars 2018 <hr></i></p>
     1.  [Introduction](#subparagraph1)
     2.  [Arborescence détaillée du projet](#subparagraph2)
     3.  [Pour tester un nouvel algorithme](#subparagraph3)
-    4.  [Pour lancer un joueur pour jouer sur le serveur le jour du tournoi](#subparagrah4)
+    4.  [Pour lancer un joueur pour jouer sur le serveur le jour du tournoi](#subparagraph4)
 
 2.  [Méthode de développement](#test)
 
 3.  [Algorithmes](#alg)
 
-4.  [Heuristiques](#strat)
+4.  [Heuristique](#strat)
 
 5.  [Approches testées et imaginées](#approches)
 
     1.  [Différents comportements](#behaviors)
-    2.  [](#d)
-
+    2.  [Multiprocessing](#multiprocessing)
+    3.  [Exploration de l'arbre](#exploration)
+    
 6.  [Mesures de performance, tests et conclusions](#perf)
 
 Le but de ce projet est de développer une intelligence artificielle capable de jouer au jeu "Vampire contre Loups-Garou". Les règles du jeu sont dans le fichier "Projetv10b.pdf".
@@ -99,9 +100,9 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
   * **Sommet_du_Jeu_Temporal_Diffrence_0.py**
   * **Sommet_du_Jeu.py**
 
-- **Log_cProfile** : ?
+- **Log_cProfile** : contient les logs des profils effectués pour optimiser le temps de réponse de nos algorithmes.
 
-- **V3.3** : ?
+- **V3.3** : Fichier de claroline pour lancer une partie avec le serveur du Projet
 
 - **Joueur.py** :
   Le fichier de base est Joueur.py .
@@ -161,6 +162,7 @@ if __name__=='__main__':
 python MonAlgo.py XXX.X.X.X YYYY
 ```
 
+<i>Attention toutes les classes du dossier Algorithmes héritent de la classe JoueurInterne pour pouvoir les appeler (ici) avec notre moteur de jeu interne ! Ne pas hésiter à modifier le code pour le tester sur le serveur .exe </i>
 <hr>
 
 ## <a name="test"></a>2.Méthode de développement
@@ -169,15 +171,69 @@ Notre approche est globalement la suivante:
 
 ##### Step 0: Un problème plus simple
 
-Pour nous appropier les algorithmes nous avons utilisé un problème plus simple (le Morpion).
+Pour nous appropier les algorithmes nous avons utilisé un problème plus simple (le Morpion). Nous pensons pouvoir appréhender complétement l'arbre de jeu du Morpion.
+
+Voici un exemple de résultats d'un tournoi sur les algorithmes développés sur le jeu du Morpion : 
+
+Match Aleatoire vs MinMax: score 0V 1N 9D <br>
+Match Aleatoire vs AlphaBeta: score 0V 0N 10D <br>
+Match Aleatoire vs AlphaBetaOriente: score 0V 2N 8D <br>
+Match Aleatoire vs MinMax_Transposition: score 0V 0N 10D <br>
+Match Aleatoire vs Negamax_Oriente: score 0V 2N 8D <br>
+Match Aleatoire vs Negamax: score 0V 0N 10D<br>
+<br>
+Match MinMax vs AlphaBeta: score 0V 10N 0D<br>
+Match MinMax vs AlphaBetaOriente: score 0V 10N 0D<br>
+Match MinMax vs MinMax_Transposition: score 0V 10N 0D<br>
+Match MinMax vs Negamax_Oriente: score 0V 10N 0D<br>
+Match MinMax vs Negamax: score 0V 10N 0D<br>
+Match AlphaBeta vs AlphaBetaOriente: score 0V 10N 0D<br>
+Match AlphaBeta vs MinMax_Transposition: score 0V 10N 0D<br>
+Match AlphaBeta vs Negamax_Oriente: score 0V 10N 0D<br>
+Match AlphaBeta vs Negamax: score 0V 10N 0D<br>
+Match AlphaBetaOriente vs MinMax_Transposition: score 0V 10N 0D<br>
+Match AlphaBetaOriente vs Negamax_Oriente: score 0V 10N 0D<br>
+Match AlphaBetaOriente vs Negamax: score 0V 10N 0D<br>
+Match MinMax_Transposition vs Negamax_Oriente: score 0V 10N 0D<br>
+Match MinMax_Transposition vs Negamax: score 0V 10N 0D<br>
+Match Negamax_Oriente vs Negamax: score 0V 10N 0D<br>
+<br>
+296 sommets ont été créés pour la classe Aleatoire<br>
+21138535 sommets ont été créés pour la classe MinMax<br>
+21137066 sommets ont été créés pour la classe AlphaBeta<br>
+21112573 sommets ont été créés pour la classe AlphaBetaOriente<br>
+18326 sommets ont été créés pour la classe MinMax_Transposition<br>
+20811 sommets ont été créés pour la classe Negamax_Oriente<br>
+24463 sommets ont été créés pour la classe Negamax<br>
+<br>
+Aleatoire a joué durant 0.00 s.<br>
+MinMax a joué durant 860.40 s.<br>
+AlphaBeta a joué durant 657.73 s.<br>
+AlphaBetaOriente a joué durant 1609.12 s.<br>
+MinMax_Transposition a joué durant 0.29 s.<br>
+Negamax_Oriente a joué durant 1.25 s.<br>
+Negamax a joué durant 0.42 s.<br>
+
+On se rend compte que les algorithmes développés ont bien tous le même niveau, et ils battent facilement le joueur aléatoire.
+
+Les deux metrics de performances observées ici sont le temps de calcul pour jouer et le nombre de sommets explorés. Notre meilleur algorithme d'après ces metrics est ici MinMax avec une table de transposition (MinMax_Transposition), car on calcule, enregistre et réutilise la valeur de chaque carte.
+
+Nous avons essayé de choisir les mouvements suivants avec la fonction d'évaluation du cours n°3 (sur le nombre de lignes ouvertes) pour améliorer les performances d'élagague. Les algorithmes avec cette approche (suffice -Oriente) explorent bien moins de noeuds, mais la fonction d'évaluation étant peu performante, son calcul pénalise la performance en temps de calcul des algorithmes concernés.
 
 ##### Step 1: Utilisation des algorithmes vus en cours
 
 Cf Partie algorithmes
 
-##### Step 2: Tree pruning, simplification et développement d'heuristiques
+* MinMax
+* MinMax avec une table de transposition
+* AlphaBeta
+* NegaMax (variante de MinMax)
+* Monte Carlo Tree Search
+* Negascout (variante de NegaMax)
 
-........
+Ici les algorithmes ont un champs d'exploration tellement limités (3 ou 4 coups d'avance) que leur performance en combat se dégrage fortement, si on compare leur performance par rapport au joueur aléatoire.
+
+##### Step 2: Tree pruning, simplification et développement d'heuristiques
 
 <hr>
 
@@ -195,25 +251,26 @@ Réécriture de la fonction next_move qui applique l'algorithme MinMax au choix 
 
 Simplfication du MinMax qui repose sur le fait que nous sommes dans un jeu à somme nulle.
 
-### Most probable outcome
+### Variante Negascout
 
-Variante du Negamax dans notre code qui simplifie grandement l'arbre en ne conservant que les noeuds à probabilité (ceux issus des combats par exemple) les plus probables (avec la probabilité la plus élévée).
-Cette méthode de pruning oblige notre joueur à ne considérer que les issues les plus probables de chaque tour et allège de façon importante les calculs.
+Amélioration du Negamax n'explorant que des noeuds n'étant pas élagué par l'alphabéta. (version non fonctionnelle ????)
 
-### MonteCarlo
+### MonteCarloTreeSearch
 
-??
+Exploration de l'arbre de jeu, selon un critère statistique (Upper Confidence Bound), par simulations. 
+
+Nous avons reussi sur nos ordinateurs avec les approximations décrites plus tard (MPOO) à réaliser 3000 simulations en 2s. Nous utilisons la table de transposition pour enregistrer les simulations d'une carte de départ. Cette approche bien que prometteuse grâce à sa granularité de calcul, ne marche pas aussi bien en pratique. Certaines simulations peuvent durer tellement de temps que l'algorithme peut sauter son tour facilement.
 
 ### Optimisation de l'algorithme
 
-* **Variante MinMax with Transposition** <br>
-  Variante du MinMax avec une table de hashage qui permet de garder une mémoire des calculs de coùuts/gains (économie de calcul)
-Cependant ce mode de génération des mouvements nous permet de considérer un grand nombre de groupe de monstres amis et ennemis en évitant l'explosion combinatoire du produit cartésien des possibilités de chaque groupe.
+* **Ajout d'une table de hashage** <br>
+  Cela permet de garder en mémoire les scores des cartes déjà rencontrées afin de ne pas les recalculer (économie de calcul). Tout comme pour le jeu du Morpion, nous avons repris la table de hashage de Zobrist pour hasher les positions d'une carte.
 
 * **Simplification dans la façon dont notre joueur voit la carte** <br>
-  Cette variante du Most Probable Outcome effectue des choix drastiques en limitant le nombre de groupes ennemis que nous prenons en compte et en limitant le nombre de sommets que nous explorons à chaque profondeur
+  Cette variante du Most Probable Outcome effectue des choix drastiques en limitant le nombre de groupes ennemis que nous prenons en compte et en limitant le nombre de sommets que nous explorons à chaque profondeur. Le but est ici de faire abstraction des groupes d'ennemis trop petits que certains de nos concurrents pourrait créer lors du tournoi pour ralentir notre exploration du jeu.
 
-#### MPOO
+
+### MPOO
 Cette variante du Most Probable Outcome effectue des choix drastiques en:
 - Limitant le nombre de groupes ennemis que nous prenons en compte (paramêtre donné en argument à l'arbre Négamax). Cela permet de ne pas être sensible à un ennemi se splitant de multiple fois dans le but de ralentir notre parcours de l'arbre.
 - Limitant le nombre de split possible pour chaque case: pas de split en trois (ou plus) groupes, pas de création de groupe de taille inférieur à min(2, taille_du_groupe//3). Enfin toutes les répartitions possibles ne sont pas conservées (on ne regarde que les répartitions 20%/80%, 40%/60%, 60%/40% et 80%/20%)
@@ -224,7 +281,7 @@ Cela nous permet de limiter fortement le facteur de branchement à chaque profon
 Malheureusement, nos heuristiques trop simples nous amenaient souvent à prendre des décisions allant à l'encontre du bon sens et faibles face des algorithmes plus naïfs de type glouton.
 
 
-#### MPO_2
+### MPO_2
 Cette variante du Most Probable Outcome utilise un autre algorithme pour générer les mouvements possibles sur une carte donnée. Le facteur de branchement est ainsi inférieur ou égal à 8.
 L'heuristique utilisée pour obtenir ce petit nombre de mouvements est plus lourde que celle précédemment utilisée. Cela limite fortement le nombre de noeuds générable par seconde (environ 600 noeuds/s sur une config vieille de 6 ans).
 
@@ -250,6 +307,15 @@ Ces comportements auraient été déclenchés par différentes conditions sur le
 * Absence d'humains
 * Situation délicate à l'approche de la fin du jeu
 * Ennemi en faible nombre
+
+### <a name="multiprocessing"></a> ii. Multiprocessing
+Nous n'utilisons pas toutes les capacités des ordinateurs à notre disposition malheureusement. Nous avions imaginé pouvoir distribuer plusieurs arbres d'explorations à profondeur différente sur plusieurs processeurs en parallèle. La profondeur d'exploration s'adapterait à la puissance de calcul disponible pour vérifier plusieurs contraintes :
+* Toujours renvoyer une proposition de prochains mouvements dans le temps imparti
+* Renvoyer la meilleure proposition de prochains mouvements possibles avec le temps imparti avec une profondeur maximale
+
+### <a name="exploration"></a> iii. Exploration de l'arbre pendant les temps d'attente
+Nous aurions pu continuer l'exploration de notre arbre de jeu pendant les temps d'attente, c'est-à-dire, pendant que l'adversaire réfléchit sur son prochain coup. Cela aurait permis d'améliorer quelque peu notre exploration (le gain potentiel est assez faible au vu du facteur de branchement élevé de l'abre de jeu, surtout pour estimer le coup d'un adversaire qu'on ne connait pas). Cette approche étant compliquée à mettre en place, nous n'avons pas pris le temps de l'essayer.
+
 
 ## <a name="perf"></a>6. Mesures de performance, test et conclusions
 
