@@ -124,6 +124,19 @@ NB : comme convenu ce readme se concentre sur les stratégies et algorithmes imp
 
 - **Darwin_Search.py** : L'idée de la recherche darwinienne est de tester et de classer nos différents algorithmes en effectuant un très grand nombre de tournois entre différentes instances avec des hyperparamètres différents (un hyperparamètre sera typiquement le nombre de groupe d'adversaires max que l'on considère quand on cherche à faire un mouvement)
 
+  On créé des pool aléatoires de combat dans lesquelles on effectue tous les combats possibles: lorsque ces combats sont effectués on classe les algorithmes en fonction de leur win rate et on ne garde que les top N algos. Les autres sont remplacés aléatoirement par des individus générés par un produit cartésien dans l'espace des hyper paramètres.
+  Au bout d'un grand nombre d'itérations les algorithmes qui se maintiennent dans la pool sont supposés être parmi les meilleurs.
+
+  Les paramètres de ce tournoi un peu spécial sont:
+
+  N_GAME : le nombre de parties par carte (chaque carte est appelée dans une pool)
+  POOL_SIZE : la Taille des pools de combats
+  N_SURVIVORS : le nombre de survivants que l'on garde dans chaque pool à la suite des combats (on garde Top N_SURVIVORS sur POOL_SIZE individus)
+  TIMER : Nombre d'itérations
+
+  Une variante intéressante de cet algorithme est la variante où l'on autorise la pool à contenir plusieurs fois un même individu: autrement dit imaginons que l'individu A survive à la pool 1. On autorise l'ajout de ce même individu A à notre pool B. Résultat: si l'individu A est effectivement le meilleur on devrait avoir tendance à voir notre pool se remplir au fur et à mesure de cet individu A (un espèce qui devient prépondérante dans l'éco système)
+
+
 ### <a name="subparagraph3"></a>iii. Pour tester un nouvel algorithme
 
 * Si on veut un joueur en local ("interne"), on crée une classe héritée de JoueurInterne, à laquelle on surcharge la fonction next_moves,
@@ -204,11 +217,11 @@ Cependant ce mode de génération des mouvements nous permet de considérer un g
 Cette variante du Most Probable Outcome effectue des choix drastiques en:
 - Limitant le nombre de groupes ennemis que nous prenons en compte (paramêtre donné en argument à l'arbre Négamax). Cela permet de ne pas être sensible à un ennemi se splitant de multiple fois dans le but de ralentir notre parcours de l'arbre.
 - Limitant le nombre de split possible pour chaque case: pas de split en trois (ou plus) groupes, pas de création de groupe de taille inférieur à min(2, taille_du_groupe//3). Enfin toutes les répartitions possibles ne sont pas conservées (on ne regarde que les répartitions 20%/80%, 40%/60%, 60%/40% et 80%/20%)
-- Limitant le nombre de cases que nous considérons pour chaque groupes (paramêtre donné en argument à l'arbre Négamax). L'heuristique utilisé pour trier les 8 cases est très simple puisqu'elle ne considère que les contenus de ces 8 cases. 
+- Limitant le nombre de cases que nous considérons pour chaque groupes (paramêtre donné en argument à l'arbre Négamax). L'heuristique utilisé pour trier les 8 cases est très simple puisqu'elle ne considère que les contenus de ces 8 cases.
 
 Cela nous permet de limiter fortement le facteur de branchement à chaque profondeur et ainsi d'explorer l'arbre beaucoup plus en profondeur. De plus, les calculs d'heuristiques intermédiaires étant très simples, nous arrivons à calculer environ 10k noeuds/seconde.
 
-Malheureusement, nos heuristiques trop simples nous amenaient souvent à prendre des décisions allant à l'encontre du bon sens et faibles face des algorithmes plus naïfs de type glouton. 
+Malheureusement, nos heuristiques trop simples nous amenaient souvent à prendre des décisions allant à l'encontre du bon sens et faibles face des algorithmes plus naïfs de type glouton.
 
 
 #### MPO_2
